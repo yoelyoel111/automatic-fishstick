@@ -1,0 +1,2752 @@
+<!doctype html>
+<html lang="he" dir="rtl" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מחליף מילים במדבקות</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      
+      .sticker-grid {
+        page-break-inside: avoid;
+      }
+      
+      @page {
+        margin: 0.5cm;
+      }
+    }
+    
+    #printPreview {
+      width: 210mm;
+      background: white;
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .print-page {
+      width: 210mm;
+      height: 297mm;
+      background: white;
+      position: relative;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .sticker-container {
+      position: absolute;
+      cursor: pointer;
+      user-select: none;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    
+    .sticker-container.selected {
+      border: 3px solid #3b82f6;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    }
+    
+    .sticker-container:hover {
+      border-color: #93c5fd;
+    }
+    
+    .sticker-controls {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: none;
+      gap: 4px;
+      z-index: 10;
+    }
+    
+    .sticker-container:hover .sticker-controls {
+      display: flex;
+    }
+    
+    .sticker-control-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    
+    .sticker-control-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    .delete-sticker-btn {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .duplicate-sticker-btn {
+      background: #10b981;
+      color: white;
+    }
+    
+    .sticker-resize-handle {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #3b82f6;
+      border: 2px solid white;
+      border-radius: 50%;
+      cursor: nwse-resize;
+      bottom: 5px;
+      right: 5px;
+      display: none;
+      z-index: 10;
+    }
+    
+    .sticker-container:hover .sticker-resize-handle {
+      display: block;
+    }
+    
+    .text-word {
+      position: absolute;
+      cursor: move;
+      user-select: none;
+      white-space: nowrap;
+      font-weight: bold;
+      box-sizing: border-box;
+      line-height: 1;
+      padding: 0;
+    }
+    
+    .text-word.selected {
+      outline: 2px dashed #f59e0b;
+      outline-offset: 2px;
+      background: rgba(251, 191, 36, 0.1);
+    }
+    
+    .text-word:hover {
+      background: rgba(59, 130, 246, 0.05);
+    }
+    
+    .sticker-image {
+      position: absolute;
+      cursor: move;
+      user-select: none;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    
+    .sticker-image.selected {
+      border: 3px solid #ec4899;
+      box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+    }
+    
+    .sticker-image:hover {
+      border-color: #f9a8d4;
+    }
+    
+    .resize-handle {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #ec4899;
+      border: 2px solid white;
+      border-radius: 50%;
+      cursor: nwse-resize;
+      bottom: -10px;
+      right: -10px;
+      display: none;
+    }
+    
+    .sticker-image:hover .resize-handle,
+    .sticker-image.selected .resize-handle {
+      display: block;
+    }
+    
+    .delete-image-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      display: none;
+    }
+    
+    .sticker-image:hover .delete-image-btn,
+    .sticker-image.selected .delete-image-btn {
+      display: block;
+    }
+    
+    .delete-word-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      display: none;
+    }
+    
+    .text-word:hover .delete-word-btn,
+    .text-word.selected .delete-word-btn {
+      display: block;
+    }
+    
+    .color-picker-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid #e5e7eb;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .color-picker-btn:hover {
+      transform: scale(1.1);
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div class="h-full w-full bg-gradient-to-br from-blue-50 to-purple-50 overflow-auto">
+   <div class="w-full max-w-7xl mx-auto p-6">
+    <!-- Tab Navigation -->
+    <div class="no-print mb-6 bg-white rounded-2xl shadow-lg p-4">
+     <div class="flex gap-4 justify-center">
+      <button id="tabWords" class="px-8 py-4 font-bold rounded-lg transition-all shadow-md text-white bg-gradient-to-r from-indigo-500 to-blue-600">
+        📝 עיצוב מדבקות
+      </button>
+      <button id="tabNumbers" class="px-8 py-4 font-bold rounded-lg transition-all shadow-md text-gray-700 bg-gray-200 hover:bg-gray-300">
+        🔢 מיספור להדפסה
+      </button>
+      <button id="tabLottery" class="px-8 py-4 font-bold rounded-lg transition-all shadow-md text-gray-700 bg-gray-200 hover:bg-gray-300">
+        🎲 הגרלת מספרים
+      </button>
+     </div>
+    </div>
+    
+    <!-- Header Section -->
+    <div class="no-print mb-8 bg-white rounded-2xl shadow-lg p-6">
+     <h1 id="pageTitle" class="text-3xl font-bold text-gray-800 mb-6 text-center">עיצוב מדבקות</h1>
+     <div class="flex gap-4 items-center flex-wrap justify-center">
+      <label for="fileInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-bold rounded-lg hover:from-indigo-600 hover:to-blue-700 transition-all shadow-md">
+        📁 העלה מדבקות
+      </label>
+      <input type="file" id="fileInput" accept="image/*,.svg" multiple class="hidden">
+      <label for="folderInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold rounded-lg hover:from-violet-600 hover:to-purple-700 transition-all shadow-md">
+        📂 העלה תיקיית מדבקות
+      </label>
+      <input type="file" id="folderInput" webkitdirectory directory multiple accept="image/*,.svg" class="hidden">
+      <span id="fileCount" class="text-sm text-gray-600"></span>
+      <button id="downloadPdfBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+        📥 הורד PDF
+      </button>
+      <button id="downloadImageBtn" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
+        🖼️ הורד תמונה
+      </button>
+      <button id="saveProjectBtn" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
+        💾 שמור פרויקט
+      </button>
+      <label for="loadProjectInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold rounded-lg hover:from-teal-600 hover:to-cyan-700 transition-all shadow-md">
+        📂 טען פרויקט
+      </label>
+      <input type="file" id="loadProjectInput" accept=".json" class="hidden">
+     </div>
+     <div id="statusMessage" class="mt-4 text-center text-sm font-medium hidden"></div>
+    </div>
+    
+    <!-- Words Mode Content -->
+    <div id="wordsContent">
+     <!-- Edit Tools -->
+     <div class="no-print mb-6 bg-white rounded-2xl shadow-lg p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">כלי עריכה</h2>
+      
+      <!-- Text Section -->
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+        <h3 class="text-lg font-bold text-blue-800 mb-3">📝 הוספת טקסט</h3>
+        <div class="flex gap-4 items-end flex-wrap">
+         <div class="flex-1 min-w-[200px]">
+          <label for="wordInput" class="block text-sm font-medium text-gray-700 mb-2">
+            הזן מילה:
+          </label>
+          <input type="text" id="wordInput" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="הקלד מילה">
+         </div>
+         <div class="flex items-center gap-2">
+          <label class="text-sm font-medium text-gray-700">צבע טקסט:</label>
+          <input type="color" id="textColorPicker" class="color-picker-btn" value="#000000">
+         </div>
+         <div class="flex items-center gap-2">
+          <label class="text-sm font-medium text-gray-700">פונט:</label>
+          <select id="fontFamilyInput" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+            <option value="Arial">Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Tahoma">Tahoma</option>
+            <option value="Comic Sans MS">Comic Sans MS</option>
+            <option value="Impact">Impact</option>
+            <option value="Trebuchet MS">Trebuchet MS</option>
+            <option value="Palatino">Palatino</option>
+          </select>
+         </div>
+         <div class="flex items-center gap-2">
+          <label class="text-sm font-medium text-gray-700">עובי:</label>
+          <select id="fontWeightInput" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+            <option value="300">דק</option>
+            <option value="400">רגיל</option>
+            <option value="600">בינוני</option>
+            <option value="700" selected>מודגש</option>
+            <option value="900">עבה מאוד</option>
+          </select>
+         </div>
+         <div class="flex items-center gap-2">
+          <label class="text-sm font-medium text-gray-700">גודל:</label>
+          <input type="number" id="fontSizeInput" min="12" max="72" value="24" class="w-20 px-3 py-2 border-2 border-gray-300 rounded-lg">
+         </div>
+        </div>
+        <div class="flex gap-4 items-center flex-wrap mt-4">
+         <button id="addWordToSelectedBtn" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
+          ➕ הוסף למדבקה נבחרת
+         </button>
+         <button id="addToAllBtn" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
+          ➕ הוסף לכל המדבקות
+         </button>
+         <button id="replaceAllBtn" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-amber-700 transition-all shadow-md hover:shadow-lg">
+          🔄 החלף בכל המדבקות
+         </button>
+         <p class="text-sm text-gray-600 italic">💡 לחץ על מדבקה כדי לבחור אותה, ואז הוסף טקסט רק לה</p>
+        </div>
+      </div>
+      
+      <!-- Image Section -->
+      <div class="mb-6 p-4 bg-pink-50 rounded-lg border-2 border-pink-200">
+        <h3 class="text-lg font-bold text-pink-800 mb-3">🖼️ הוספת תמונה</h3>
+        <div class="flex gap-4 items-end flex-wrap">
+         <div class="flex-1 min-w-[200px]">
+          <label for="imageInput" class="block text-sm font-medium text-gray-700 mb-2">
+            בחר תמונה להוספה:
+          </label>
+          <label for="imageInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700 transition-all shadow-md inline-block">
+            🖼️ בחר תמונה - הוסף לכל המדבקות
+          </label>
+          <input type="file" id="imageInput" accept="image/*" class="hidden">
+         </div>
+         <div class="flex-1 min-w-[200px]">
+          <label for="singleImageInput" class="block text-sm font-medium text-gray-700 mb-2">
+            או הוסף למדבקה בודדת:
+          </label>
+          <label for="singleImageInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md inline-block">
+            🖼️ בחר תמונה - למדבקה נבחרת
+          </label>
+          <input type="file" id="singleImageInput" accept="image/*" class="hidden">
+         </div>
+        </div>
+        <p class="text-sm text-gray-600 italic mt-2">💡 לחץ על מדבקה כדי לבחור אותה לפני הוספת תמונה בודדת</p>
+      </div>
+      
+      <!-- Elements Section -->
+      <div class="mb-6 p-4 bg-green-50 rounded-lg border-2 border-green-200">
+        <h3 class="text-lg font-bold text-green-800 mb-3">✨ אלמנטים (מאגר)</h3>
+        <div class="flex gap-4 items-end flex-wrap mb-4">
+         <div class="flex-1 min-w-[200px]">
+          <label for="elementsInput" class="block text-sm font-medium text-gray-700 mb-2">
+            טען אלמנטים למאגר:
+          </label>
+          <label for="elementsInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md inline-block">
+            📦 העלה אלמנטים למאגר
+          </label>
+          <input type="file" id="elementsInput" accept="image/*" multiple class="hidden">
+          <span id="elementsCount" class="text-sm text-gray-600 mr-2"></span>
+         </div>
+         <div class="flex-1 min-w-[200px]">
+          <label for="elementsFolderInput" class="block text-sm font-medium text-gray-700 mb-2">
+            או טען תיקיית אלמנטים:
+          </label>
+          <label for="elementsFolderInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold rounded-lg hover:from-teal-600 hover:to-cyan-700 transition-all shadow-md inline-block">
+            📂 העלה תיקיית אלמנטים
+          </label>
+          <input type="file" id="elementsFolderInput" webkitdirectory directory multiple accept="image/*" class="hidden">
+         </div>
+        </div>
+        
+        <!-- Elements Gallery -->
+        <div id="elementsGallery" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 mt-4 hidden">
+          <!-- Elements will be inserted here -->
+        </div>
+        
+        <p class="text-sm text-gray-600 italic mt-2">💡 העלה אלמנטים למאגר ולחץ עליהם כדי להוסיף למדבקה נבחרת או לכל המדבקות</p>
+      </div>
+      
+      <!-- Global Controls Section -->
+      <div class="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+        <h3 class="text-lg font-bold text-purple-800 mb-3">⚙️ הגדרות כלליות</h3>
+        <div class="flex gap-4 items-center flex-wrap">
+         <button id="syncMoveBtn" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg">
+          🔗 סנכרון תנועה: כבוי
+         </button>
+         <button id="syncDeleteBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-rose-700 transition-all shadow-md hover:shadow-lg">
+          🗑️ סנכרון מחיקה: כבוי
+         </button>
+         <p class="text-sm text-gray-600 italic">סנכרון תנועה: תזוזה/שינוי גודל של אלמנט אחד יסנכרן עם כל המדבקות<br>סנכרון מחיקה: מחיקת אלמנט תמחק אותו מכל המדבקות<br>💡 העבר עכבר על מדבקה לראות: ×למחיקה, +לשכפול, ידית בפינה ימנית למטה לשינוי גודל</p>
+        </div>
+      </div>
+      
+     </div>
+    </div>
+    
+    <!-- Numbers Mode Content -->
+    <div id="numbersContent" class="hidden">
+     <!-- Numbers Tools -->
+     <div class="no-print mb-6 bg-white rounded-2xl shadow-lg p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">כלי מיספור</h2>
+      <div class="flex gap-4 items-end flex-wrap">
+       <div class="flex-1 min-w-[200px]">
+        <label for="singleStickerInput" class="block text-sm font-medium text-gray-700 mb-2">
+          העלה מדבקה אחת:
+        </label>
+        <label for="singleStickerInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-bold rounded-lg hover:from-indigo-600 hover:to-blue-700 transition-all shadow-md inline-block">
+          📁 בחר מדבקה
+        </label>
+        <input type="file" id="singleStickerInput" accept="image/*,.svg" class="hidden">
+        <span id="stickerFileName" class="text-sm text-gray-600 mr-2"></span>
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">מספר התחלתי:</label>
+        <input type="number" id="startNumber" min="1" value="1" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">מדבקות בשורה:</label>
+        <input type="number" id="stickersPerRow" min="1" max="10" value="8" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">צבע מספר:</label>
+        <input type="color" id="numberColorPicker" class="color-picker-btn" value="#000000">
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">פונט:</label>
+        <select id="numberFontFamily" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+          <option value="Arial">Arial</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Verdana">Verdana</option>
+          <option value="Tahoma">Tahoma</option>
+          <option value="Impact">Impact</option>
+        </select>
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">עובי:</label>
+        <select id="numberFontWeight" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+          <option value="300">דק</option>
+          <option value="400">רגיל</option>
+          <option value="600">בינוני</option>
+          <option value="700" selected>מודגש</option>
+          <option value="900">עבה מאוד</option>
+        </select>
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">גודל:</label>
+        <input type="number" id="numberFontSize" min="12" max="72" value="32" class="w-20 px-3 py-2 border-2 border-gray-300 rounded-lg">
+       </div>
+       <button id="generateNumbersBtn" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
+        🔢 צור מדבקות ממוספרות
+       </button>
+       <button id="centerNumbersBtn" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
+        📍 מרכז מספרים
+       </button>
+       <button id="downloadNumbersPdfBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+        📥 הורד PDF
+       </button>
+       <button id="downloadNumbersImageBtn" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
+        🖼️ הורד תמונה
+       </button>
+      </div>
+      <p class="text-sm text-gray-500 mt-2">💡 גרור את המספר במדבקה אחת וכל המספרים במדבקות האחרות יזוזו באותה התזוזה!</p>
+     </div>
+     
+     <!-- Numbers Preview -->
+     <div id="numbersPreviewSection" class="mb-8 bg-white rounded-2xl shadow-lg p-6 hidden">
+      <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">דף המדבקות הממוספרות</h2>
+      <div id="numbersPreview" class="bg-white"></div>
+     </div>
+     
+     <!-- Numbers Empty State -->
+     <div id="numbersEmptyState" class="text-center py-16 text-gray-400">
+      <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+      </svg>
+      <p class="text-xl font-medium">העלה מדבקה אחת כדי להתחיל מיספור</p>
+     </div>
+    </div>
+    
+    <!-- Lottery Mode Content -->
+    <div id="lotteryContent" class="hidden">
+     <!-- Lottery Tools -->
+     <div class="no-print mb-6 bg-white rounded-2xl shadow-lg p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">הגדרות הגרלה</h2>
+      <div class="flex gap-4 items-end flex-wrap">
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">מספר מינימלי:</label>
+        <input type="number" id="lotteryMin" min="1" value="1" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">מספר מקסימלי:</label>
+        <input type="number" id="lotteryMax" min="1" value="100" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">כמה מספרים להגריל:</label>
+        <input type="number" id="lotteryCount" min="1" value="10" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">מספרים בשורה:</label>
+        <input type="number" id="lotteryPerRow" min="1" max="20" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">גודל פונט:</label>
+        <input type="number" id="lotteryFontSize" min="12" max="120" value="48" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+       </div>
+       <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">צבע מספר:</label>
+        <input type="color" id="lotteryColor" class="color-picker-btn" value="#000000">
+       </div>
+       <button id="generateLotteryBtn" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
+        🎲 הגרל מספרים
+       </button>
+       <button id="downloadLotteryPdfBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+        📥 הורד PDF
+       </button>
+      </div>
+      <p class="text-sm text-gray-500 mt-2">💡 הזן טווח מספרים וכמה מספרים להגריל, ואז לחץ על הגרל מספרים!</p>
+     </div>
+     
+     <!-- Lottery Results -->
+     <div id="lotteryResultsSection" class="mb-8 bg-white rounded-2xl shadow-lg p-6 hidden">
+      <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">תוצאות ההגרלה</h2>
+      <div id="lotteryResults" class="bg-white"></div>
+     </div>
+     
+     <!-- Lottery Empty State -->
+     <div id="lotteryEmptyState" class="text-center py-16 text-gray-400">
+      <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <p class="text-xl font-medium">הגדר את הטווח ולחץ על הגרל מספרים</p>
+     </div>
+    </div>
+    
+    <!-- Print Preview Section -->
+    <div id="printPreviewSection" class="mb-8 bg-white rounded-2xl shadow-lg p-6">
+     <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">דף המדבקות שלך</h2>
+     <div id="printPreview" class="bg-white"></div>
+    </div>
+    
+    <!-- Empty State -->
+    <div id="emptyState" class="text-center py-16 text-gray-400">
+     <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+     </svg>
+     <p class="text-xl font-medium">העלה עיצובי מדבקות כדי להתחיל</p>
+    </div>
+   </div>
+  </div>
+  
+  <script>
+    const defaultConfig = {
+      page_title: 'מחליף מילים במדבקות',
+      default_word: 'שם',
+      primary_color: '#3b82f6',
+      secondary_color: '#8b5cf6',
+      text_color: '#1f2937',
+      background_color: '#f0f4ff',
+      button_color: '#3b82f6',
+      font_family: 'Arial',
+      font_size: 16
+    };
+
+    let stickers = [];
+    let selectedSticker = null;
+    let selectedWord = null;
+    let selectedImage = null;
+    let draggedElement = null;
+    let resizingImage = null;
+    let resizingSticker = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let wordIdCounter = 0;
+    let imageIdCounter = 0;
+    let syncMoveEnabled = false;
+    let syncDeleteEnabled = false;
+    let initialDragPosition = null;
+    let currentProjectFileName = null;
+    
+    // Numbers mode variables
+    let currentMode = 'words'; // 'words' or 'numbers' or 'lottery'
+    let numberedStickers = [];
+    let singleStickerTemplate = null;
+    let numberDragStart = null;
+    
+    // Lottery mode variables
+    let lotteryNumbers = [];
+    
+    // Elements library
+    let elementsLibrary = [];
+
+    async function onConfigChange(config) {
+      const titleElement = document.getElementById('pageTitle');
+      
+      if (titleElement) {
+        titleElement.textContent = config.page_title || defaultConfig.page_title;
+        titleElement.style.color = config.text_color || defaultConfig.text_color;
+        titleElement.style.fontFamily = `${config.font_family || defaultConfig.font_family}, Arial, sans-serif`;
+        titleElement.style.fontSize = `${(config.font_size || defaultConfig.font_size) * 2}px`;
+      }
+      
+      document.body.style.fontFamily = `${config.font_family || defaultConfig.font_family}, Arial, sans-serif`;
+      document.body.style.fontSize = `${config.font_size || defaultConfig.font_size}px`;
+    }
+
+    function renderStickers() {
+      const preview = document.getElementById('printPreview');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (stickers.length === 0) {
+        preview.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        document.getElementById('printPreviewSection').classList.add('hidden');
+        return;
+      }
+      
+      emptyState.classList.add('hidden');
+      document.getElementById('printPreviewSection').classList.remove('hidden');
+      preview.innerHTML = '';
+
+      const cols = 2;
+      const maxRows = 5;
+      const maxStickersPerPage = cols * maxRows;
+      const pageCount = Math.ceil(stickers.length / maxStickersPerPage);
+
+      const pages = [];
+      for (let p = 0; p < pageCount; p++) {
+        const pageEl = document.createElement('div');
+        pageEl.className = 'print-page';
+        pageEl.dataset.pageIndex = p;
+        preview.appendChild(pageEl);
+        pages.push(pageEl);
+      }
+      
+      stickers.forEach((sticker, index) => {
+        const pageIndex = Number.isFinite(sticker.page) ? sticker.page : 0;
+        const pageEl = pages[Math.max(0, Math.min(pageIndex, pages.length - 1))];
+
+        const stickerDiv = document.createElement('div');
+        stickerDiv.className = 'sticker-container';
+        stickerDiv.style.left = `${sticker.x}px`;
+        stickerDiv.style.top = `${sticker.y}px`;
+        stickerDiv.style.width = `${sticker.width}px`;
+        stickerDiv.style.height = `${sticker.height}px`;
+        stickerDiv.dataset.stickerIndex = index;
+        
+        const img = document.createElement('img');
+        img.src = sticker.dataUrl;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.style.pointerEvents = 'none';
+        
+        stickerDiv.appendChild(img);
+        
+        // Add control buttons
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'sticker-controls no-print';
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'sticker-control-btn delete-sticker-btn';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteStickerByIndex(index);
+        };
+        
+        const duplicateBtn = document.createElement('button');
+        duplicateBtn.className = 'sticker-control-btn duplicate-sticker-btn';
+        duplicateBtn.textContent = '+';
+        duplicateBtn.onclick = (e) => {
+          e.stopPropagation();
+          duplicateSticker(index);
+        };
+        
+        controlsDiv.appendChild(duplicateBtn);
+        controlsDiv.appendChild(deleteBtn);
+        stickerDiv.appendChild(controlsDiv);
+        
+        // Add resize handle
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = 'sticker-resize-handle no-print';
+        resizeHandle.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          startStickerResize(e, index);
+        });
+        stickerDiv.appendChild(resizeHandle);
+        
+        // Add images
+        sticker.images = sticker.images || [];
+        sticker.images.forEach(image => {
+          const imageEl = createImageElement(image, index);
+          stickerDiv.appendChild(imageEl);
+        });
+        
+        // Add words
+        sticker.words.forEach(word => {
+          const wordEl = createWordElement(word, index);
+          stickerDiv.appendChild(wordEl);
+        });
+        
+        stickerDiv.addEventListener('click', (e) => {
+          if (e.target === stickerDiv || e.target === img) {
+            selectSticker(index);
+          }
+        });
+        
+        pageEl.appendChild(stickerDiv);
+      });
+    }
+
+    function createWordElement(word, stickerIndex) {
+      const wordEl = document.createElement('div');
+      wordEl.className = 'text-word';
+      wordEl.textContent = word.text;
+      wordEl.style.left = `${word.x}px`;
+      wordEl.style.top = `${word.y}px`;
+      wordEl.style.color = word.color;
+      wordEl.style.fontSize = `${word.fontSize}px`;
+      wordEl.style.fontFamily = word.fontFamily || 'Arial';
+      wordEl.style.fontWeight = word.fontWeight || '700';
+      wordEl.dataset.wordId = word.id;
+      wordEl.dataset.stickerIndex = stickerIndex;
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-word-btn no-print';
+      deleteBtn.textContent = '×';
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteWord(stickerIndex, word.id);
+      };
+      
+      wordEl.appendChild(deleteBtn);
+      
+      wordEl.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startWordDrag(e, stickerIndex, word.id);
+      });
+      
+      wordEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectWord(stickerIndex, word.id);
+      });
+      
+      return wordEl;
+    }
+
+    function createImageElement(image, stickerIndex) {
+      const imageEl = document.createElement('div');
+      imageEl.className = 'sticker-image';
+      imageEl.style.left = `${image.x}px`;
+      imageEl.style.top = `${image.y}px`;
+      imageEl.style.width = `${image.width}px`;
+      imageEl.style.height = `${image.height}px`;
+      imageEl.dataset.imageId = image.id;
+      imageEl.dataset.stickerIndex = stickerIndex;
+      
+      const img = document.createElement('img');
+      img.src = image.dataUrl;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'contain';
+      img.style.pointerEvents = 'none';
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-image-btn no-print';
+      deleteBtn.textContent = '×';
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteImage(stickerIndex, image.id);
+      };
+      
+      const resizeHandle = document.createElement('div');
+      resizeHandle.className = 'resize-handle no-print';
+      resizeHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startImageResize(e, stickerIndex, image.id);
+      });
+      
+      imageEl.appendChild(img);
+      imageEl.appendChild(deleteBtn);
+      imageEl.appendChild(resizeHandle);
+      
+      imageEl.addEventListener('mousedown', (e) => {
+        if (e.target === imageEl || e.target === img) {
+          e.stopPropagation();
+          startImageDrag(e, stickerIndex, image.id);
+        }
+      });
+      
+      imageEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectImage(stickerIndex, image.id);
+      });
+      
+      return imageEl;
+    }
+
+    function showStatus(message, isError = false) {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.textContent = message;
+      statusDiv.className = `mt-4 text-center text-sm font-medium ${isError ? 'text-red-600' : 'text-green-600'}`;
+      statusDiv.classList.remove('hidden');
+      
+      setTimeout(() => {
+        statusDiv.classList.add('hidden');
+      }, 3000);
+    }
+
+    function selectSticker(index) {
+      selectedSticker = index;
+      selectedWord = null;
+      selectedImage = null;
+      
+      document.querySelectorAll('.sticker-container').forEach(s => s.classList.remove('selected'));
+      document.querySelectorAll('.text-word').forEach(w => w.classList.remove('selected'));
+      document.querySelectorAll('.sticker-image').forEach(i => i.classList.remove('selected'));
+      
+      const stickerEl = document.querySelector(`[data-sticker-index="${index}"]`);
+      if (stickerEl) {
+        stickerEl.classList.add('selected');
+      }
+      
+      showStatus(`מדבקה ${index + 1} נבחרה`);
+    }
+
+    function deleteStickerByIndex(index) {
+      const fileName = stickers[index].fileName || `מדבקה ${index + 1}`;
+      
+      if (confirm(`האם אתה בטוח שברצונך למחוק את "${fileName}"?`)) {
+        stickers.splice(index, 1);
+        selectedSticker = null;
+        selectedWord = null;
+        selectedImage = null;
+        
+        renderStickers();
+        updateFileCount();
+        showStatus(`המדבקה "${fileName}" נמחקה בהצלחה!`);
+      }
+    }
+
+    function duplicateSticker(index) {
+      const originalSticker = stickers[index];
+      
+      const padding = 20;
+      const pageWidth = 210 * 3.7795275591;
+      const pageHeight = 297 * 3.7795275591;
+      
+      // Find next available position that doesn't overlap
+      const newPosition = findNextAvailablePosition(originalSticker.width, originalSticker.height, pageWidth, pageHeight, padding);
+      
+      if (!newPosition) {
+        showStatus('אין מספיק מקום לשכפול המדבקה!', true);
+        return;
+      }
+      
+      // Create a deep copy of the sticker
+      const duplicatedSticker = {
+        id: `sticker-${Date.now()}-duplicate`,
+        dataUrl: originalSticker.dataUrl,
+        fileName: originalSticker.fileName ? `${originalSticker.fileName} (עותק)` : `מדבקה ${stickers.length + 1}`,
+        page: newPosition.page,
+        x: newPosition.x,
+        y: newPosition.y,
+        width: originalSticker.width,
+        height: originalSticker.height,
+        words: [],
+        images: []
+      };
+      
+      // Copy words with new IDs but keep them synchronized
+      originalSticker.words.forEach(word => {
+        const newWord = {
+          id: `word-${++wordIdCounter}`,
+          text: word.text,
+          x: word.x,
+          y: word.y,
+          color: word.color,
+          fontSize: word.fontSize,
+          fontFamily: word.fontFamily,
+          fontWeight: word.fontWeight
+        };
+        duplicatedSticker.words.push(newWord);
+      });
+      
+      // Copy images with new IDs but keep them synchronized
+      if (originalSticker.images) {
+        originalSticker.images.forEach(image => {
+          const newImage = {
+            id: `image-${++imageIdCounter}`,
+            dataUrl: image.dataUrl,
+            x: image.x,
+            y: image.y,
+            width: image.width,
+            height: image.height,
+            originalWidth: image.originalWidth,
+            originalHeight: image.originalHeight
+          };
+          duplicatedSticker.images.push(newImage);
+        });
+      }
+      
+      // Add to end of stickers array
+      stickers.push(duplicatedSticker);
+      
+      renderStickers();
+      updateFileCount();
+      showStatus(`המדבקה שוכפלה! השכפול מסונכרן עם המדבקות האחרות.`);
+    }
+
+    function findNextAvailablePosition(stickerWidth, stickerHeight, pageWidth, pageHeight, padding) {
+      const maxPages = 20; // Increase to 20 pages
+      
+      for (let pageIndex = 0; pageIndex < maxPages; pageIndex++) {
+        // Get all stickers on this page
+        const stickersOnPage = stickers.filter(s => (s.page || 0) === pageIndex);
+        
+        // If this is an empty page, start from top-left
+        if (stickersOnPage.length === 0) {
+          // Check if sticker fits on page
+          if (stickerWidth + padding * 2 <= pageWidth && stickerHeight + padding * 2 <= pageHeight) {
+            return {
+              page: pageIndex,
+              x: padding,
+              y: padding
+            };
+          } else {
+            // Sticker too big for any page
+            return null;
+          }
+        }
+        
+        // Try different starting positions on this page
+        const gridSize = 50; // Grid increment for trying positions
+        
+        for (let testY = padding; testY + stickerHeight + padding <= pageHeight; testY += gridSize) {
+          for (let testX = padding; testX + stickerWidth + padding <= pageWidth; testX += gridSize) {
+            const proposedRect = {
+              x: testX,
+              y: testY,
+              width: stickerWidth,
+              height: stickerHeight
+            };
+            
+            // Check if this position overlaps with any existing sticker
+            const hasOverlap = stickersOnPage.some(sticker => {
+              return rectanglesOverlap(proposedRect, {
+                x: sticker.x,
+                y: sticker.y,
+                width: sticker.width,
+                height: sticker.height
+              }, padding);
+            });
+            
+            if (!hasOverlap) {
+              // Found a valid position!
+              return {
+                page: pageIndex,
+                x: testX,
+                y: testY
+              };
+            }
+          }
+        }
+        
+        // No space found on this page, continue to next page
+      }
+      
+      // No position found on any page
+      return null;
+    }
+
+    function rectanglesOverlap(rect1, rect2, padding) {
+      // Add padding to the comparison
+      return !(
+        rect1.x + rect1.width + padding <= rect2.x ||
+        rect2.x + rect2.width + padding <= rect1.x ||
+        rect1.y + rect1.height + padding <= rect2.y ||
+        rect2.y + rect2.height + padding <= rect1.y
+      );
+    }
+
+    function startStickerResize(e, stickerIndex) {
+      e.stopPropagation();
+      
+      const sticker = stickers[stickerIndex];
+      const stickerEl = document.querySelector(`[data-sticker-index="${stickerIndex}"]`);
+      
+      resizingSticker = { 
+        stickerIndex,
+        startX: e.clientX,
+        startY: e.clientY,
+        startWidth: sticker.width,
+        startHeight: sticker.height,
+        startTop: sticker.y, // Save original Y position
+        element: stickerEl
+      };
+      
+      document.addEventListener('mousemove', resizeSticker);
+      document.addEventListener('mouseup', stopStickerResize);
+    }
+
+    function resizeSticker(e) {
+      if (!resizingSticker) return;
+      
+      const { stickerIndex, startX, startY, startWidth, startHeight, startTop } = resizingSticker;
+      const sticker = stickers[stickerIndex];
+      if (!sticker) return;
+      
+      const stickerEl = document.querySelector(`[data-sticker-index="${stickerIndex}"]`);
+      if (!stickerEl) return;
+      
+      // Calculate delta from start position
+      const deltaX = e.clientX - startX;
+      
+      // Calculate new width based on horizontal delta only
+      const newWidth = Math.max(50, startWidth + deltaX);
+      
+      // Keep aspect ratio based on original dimensions
+      const aspectRatio = startWidth / startHeight;
+      const calculatedHeight = newWidth / aspectRatio;
+      
+      // Update sticker dimensions
+      sticker.width = newWidth;
+      sticker.height = calculatedHeight;
+      
+      // CRITICAL: Lock Y position - never change it during resize
+      sticker.y = startTop;
+      
+      // Update visual appearance
+      stickerEl.style.width = `${newWidth}px`;
+      stickerEl.style.height = `${calculatedHeight}px`;
+      stickerEl.style.top = `${startTop}px`;
+      stickerEl.style.left = `${sticker.x}px`;
+    }
+
+    function stopStickerResize() {
+      resizingSticker = null;
+      document.removeEventListener('mousemove', resizeSticker);
+      document.removeEventListener('mouseup', stopStickerResize);
+    }
+
+    function deleteSelectedSticker() {
+      if (selectedSticker === null) {
+        showStatus('בחר מדבקה למחיקה! לחץ על מדבקה כדי לבחור אותה.', true);
+        return;
+      }
+      
+      const stickerIndex = selectedSticker;
+      const fileName = stickers[stickerIndex].fileName || `מדבקה ${stickerIndex + 1}`;
+      
+      // Confirm deletion
+      if (confirm(`האם אתה בטוח שברצונך למחוק את "${fileName}"?`)) {
+        stickers.splice(stickerIndex, 1);
+        selectedSticker = null;
+        selectedWord = null;
+        selectedImage = null;
+        
+        renderStickers();
+        updateFileCount();
+        showStatus(`המדבקה "${fileName}" נמחקה בהצלחה!`);
+      }
+    }
+
+    function selectWord(stickerIndex, wordId) {
+      selectedSticker = stickerIndex;
+      selectedWord = wordId;
+      selectedImage = null;
+      
+      document.querySelectorAll('.sticker-container').forEach(s => s.classList.remove('selected'));
+      document.querySelectorAll('.text-word').forEach(w => w.classList.remove('selected'));
+      document.querySelectorAll('.sticker-image').forEach(i => i.classList.remove('selected'));
+      
+      const wordEl = document.querySelector(`[data-word-id="${wordId}"]`);
+      if (wordEl) {
+        wordEl.classList.add('selected');
+      }
+    }
+
+    function selectImage(stickerIndex, imageId) {
+      selectedSticker = stickerIndex;
+      selectedWord = null;
+      selectedImage = imageId;
+      
+      document.querySelectorAll('.sticker-container').forEach(s => s.classList.remove('selected'));
+      document.querySelectorAll('.text-word').forEach(w => w.classList.remove('selected'));
+      document.querySelectorAll('.sticker-image').forEach(i => i.classList.remove('selected'));
+      
+      const imageEl = document.querySelector(`[data-image-id="${imageId}"]`);
+      if (imageEl) {
+        imageEl.classList.add('selected');
+      }
+    }
+
+    function addWordToSelectedSticker() {
+      if (selectedSticker === null) {
+        showStatus('בחר מדבקה תחילה! לחץ על מדבקה כדי לבחור אותה.', true);
+        return;
+      }
+      
+      const wordInput = document.getElementById('wordInput');
+      const text = wordInput.value.trim();
+      
+      if (!text) {
+        showStatus('הזן מילה!', true);
+        return;
+      }
+      
+      const color = document.getElementById('textColorPicker').value;
+      const fontSize = parseInt(document.getElementById('fontSizeInput').value);
+      const fontFamily = document.getElementById('fontFamilyInput').value;
+      const fontWeight = document.getElementById('fontWeightInput').value;
+      
+      const fixedX = 50;
+      const fixedY = 50;
+      
+      const word = {
+        id: `word-${++wordIdCounter}`,
+        text: text,
+        x: fixedX,
+        y: fixedY,
+        color: color,
+        fontSize: fontSize,
+        fontFamily: fontFamily,
+        fontWeight: fontWeight
+      };
+      
+      stickers[selectedSticker].words.push(word);
+      
+      renderStickers();
+      showStatus(`המילה "${text}" נוספה למדבקה נבחרת!`);
+      wordInput.value = '';
+    }
+
+    function addWordToAllStickers() {
+      if (stickers.length === 0) {
+        showStatus('העלה מדבקות תחילה!', true);
+        return;
+      }
+      
+      const wordInput = document.getElementById('wordInput');
+      const text = wordInput.value.trim();
+      
+      if (!text) {
+        showStatus('הזן מילה!', true);
+        return;
+      }
+      
+      const color = document.getElementById('textColorPicker').value;
+      const fontSize = parseInt(document.getElementById('fontSizeInput').value);
+      const fontFamily = document.getElementById('fontFamilyInput').value;
+      const fontWeight = document.getElementById('fontWeightInput').value;
+      
+      // Calculate ONE position for all stickers - same position for consistency
+      const fixedX = 50;
+      const fixedY = 50;
+      
+      stickers.forEach(sticker => {
+        const word = {
+          id: `word-${++wordIdCounter}`,
+          text: text,
+          x: fixedX,
+          y: fixedY,
+          color: color,
+          fontSize: fontSize,
+          fontFamily: fontFamily,
+          fontWeight: fontWeight
+        };
+        sticker.words.push(word);
+      });
+      
+      renderStickers();
+      showStatus(`המילה "${text}" נוספה לכל ${stickers.length} המדבקות!`);
+      wordInput.value = '';
+    }
+
+    function replaceWordInAllStickers() {
+      if (stickers.length === 0) {
+        showStatus('אין מדבקות!', true);
+        return;
+      }
+      
+      const wordInput = document.getElementById('wordInput');
+      const newText = wordInput.value.trim();
+      
+      if (!newText) {
+        showStatus('הזן מילה חדשה!', true);
+        return;
+      }
+      
+      const color = document.getElementById('textColorPicker').value;
+      const fontSize = parseInt(document.getElementById('fontSizeInput').value);
+      const fontFamily = document.getElementById('fontFamilyInput').value;
+      const fontWeight = document.getElementById('fontWeightInput').value;
+      
+      let replacedCount = 0;
+      
+      // Create temporary element for measuring text dimensions
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.visibility = 'hidden';
+      tempDiv.style.whiteSpace = 'nowrap';
+      tempDiv.style.padding = '2px';
+      document.body.appendChild(tempDiv);
+      
+      stickers.forEach((sticker, stickerIndex) => {
+        if (sticker.words.length > 0) {
+          const lastWord = sticker.words[sticker.words.length - 1];
+          
+          // Measure old word dimensions
+          tempDiv.style.fontSize = `${lastWord.fontSize}px`;
+          tempDiv.style.fontFamily = lastWord.fontFamily || 'Arial';
+          tempDiv.style.fontWeight = lastWord.fontWeight || '700';
+          tempDiv.textContent = lastWord.text;
+          const oldWidth = tempDiv.offsetWidth;
+          const oldHeight = tempDiv.offsetHeight;
+          
+          // Calculate center of old word
+          const oldCenterX = lastWord.x + oldWidth / 2;
+          const oldCenterY = lastWord.y + oldHeight / 2;
+          
+          // Measure new word dimensions
+          tempDiv.style.fontSize = `${fontSize}px`;
+          tempDiv.style.fontFamily = fontFamily;
+          tempDiv.style.fontWeight = fontWeight;
+          tempDiv.textContent = newText;
+          const newWidth = tempDiv.offsetWidth;
+          const newHeight = tempDiv.offsetHeight;
+          
+          // Calculate new position to center the new word on the old center
+          const newX = oldCenterX - newWidth / 2;
+          const newY = oldCenterY - newHeight / 2;
+          
+          // Update word properties
+          lastWord.text = newText;
+          lastWord.color = color;
+          lastWord.fontSize = fontSize;
+          lastWord.fontFamily = fontFamily;
+          lastWord.fontWeight = fontWeight;
+          lastWord.x = Math.max(0, newX);
+          lastWord.y = Math.max(0, newY);
+          
+          replacedCount++;
+        }
+      });
+      
+      document.body.removeChild(tempDiv);
+      
+      if (replacedCount === 0) {
+        showStatus('אין מילות להחליף! הוסף מילות תחילה.', true);
+        return;
+      }
+      
+      renderStickers();
+      showStatus(`המילה הוחלפה ל-"${newText}" ומרוכזה ב-${replacedCount} מדבקות!`);
+      wordInput.value = '';
+    }
+
+    function deleteWord(stickerIndex, wordId) {
+      if (syncDeleteEnabled) {
+        // Find the index of this word in the current sticker
+        const wordIndex = stickers[stickerIndex].words.findIndex(w => w.id === wordId);
+        
+        if (wordIndex !== -1) {
+          // Delete the word at the same index from all stickers
+          stickers.forEach(sticker => {
+            if (sticker.words[wordIndex]) {
+              sticker.words.splice(wordIndex, 1);
+            }
+          });
+          renderStickers();
+          showStatus(`המילה נמחקה מכל ${stickers.length} המדבקות! (סנכרון מחיקה דלוק)`);
+        }
+      } else {
+        // Delete only from current sticker
+        stickers[stickerIndex].words = stickers[stickerIndex].words.filter(w => w.id !== wordId);
+        renderStickers();
+        showStatus('המילה נמחקה');
+      }
+      
+      if (selectedSticker === stickerIndex) {
+        selectSticker(stickerIndex);
+      }
+    }
+
+    function deleteImage(stickerIndex, imageId) {
+      if (syncDeleteEnabled) {
+        // Find the index of this image in the current sticker
+        const imageIndex = stickers[stickerIndex].images.findIndex(i => i.id === imageId);
+        
+        if (imageIndex !== -1) {
+          // Delete the image at the same index from all stickers
+          stickers.forEach(sticker => {
+            if (sticker.images && sticker.images[imageIndex]) {
+              sticker.images.splice(imageIndex, 1);
+            }
+          });
+          renderStickers();
+          showStatus(`התמונה נמחקה מכל ${stickers.length} המדבקות! (סנכרון מחיקה דלוק)`);
+        }
+      } else {
+        // Delete only from current sticker
+        stickers[stickerIndex].images = stickers[stickerIndex].images.filter(i => i.id !== imageId);
+        renderStickers();
+        showStatus('התמונה נמחקה');
+      }
+      
+      if (selectedSticker === stickerIndex) {
+        selectSticker(stickerIndex);
+      }
+    }
+
+    function addImageToAllStickers(imageDataUrl, originalWidth, originalHeight) {
+      if (stickers.length === 0) {
+        showStatus('העלה מדבקות תחילה!', true);
+        return;
+      }
+      
+      // Calculate the image size relative to sticker height
+      // We'll make it about 70% of the sticker height
+      const firstSticker = stickers[0];
+      const targetHeight = firstSticker.height * 0.7;
+      const aspectRatio = originalWidth / originalHeight;
+      const calculatedWidth = targetHeight * aspectRatio;
+      
+      const fixedX = 50;
+      const fixedY = 50;
+      
+      stickers.forEach(sticker => {
+        sticker.images = sticker.images || [];
+        const image = {
+          id: `image-${++imageIdCounter}`,
+          dataUrl: imageDataUrl,
+          x: fixedX,
+          y: fixedY,
+          width: calculatedWidth,
+          height: targetHeight,
+          originalWidth: originalWidth,
+          originalHeight: originalHeight
+        };
+        sticker.images.push(image);
+      });
+      
+      renderStickers();
+      showStatus(`התמונה נוספה לכל ${stickers.length} המדבקות!`);
+    }
+
+    function addImageToSelectedSticker(imageDataUrl, originalWidth, originalHeight) {
+      if (selectedSticker === null) {
+        showStatus('בחר מדבקה תחילה! לחץ על מדבקה כדי לבחור אותה.', true);
+        return;
+      }
+      
+      const sticker = stickers[selectedSticker];
+      const targetHeight = sticker.height * 0.7;
+      const aspectRatio = originalWidth / originalHeight;
+      const calculatedWidth = targetHeight * aspectRatio;
+      
+      const fixedX = 50;
+      const fixedY = 50;
+      
+      sticker.images = sticker.images || [];
+      const image = {
+        id: `image-${++imageIdCounter}`,
+        dataUrl: imageDataUrl,
+        x: fixedX,
+        y: fixedY,
+        width: calculatedWidth,
+        height: targetHeight,
+        originalWidth: originalWidth,
+        originalHeight: originalHeight
+      };
+      sticker.images.push(image);
+      
+      renderStickers();
+      showStatus('התמונה נוספה למדבקה נבחרת!');
+    }
+
+    function addElementsToLibrary(files) {
+      let addedCount = 0;
+      
+      Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+              elementsLibrary.push({
+                id: `element-${Date.now()}-${addedCount}`,
+                name: file.name,
+                dataUrl: event.target.result,
+                width: img.width,
+                height: img.height
+              });
+              addedCount++;
+              
+              if (addedCount === files.length) {
+                renderElementsGallery();
+                showStatus(`${addedCount} אלמנטים נוספו למאגר!`);
+              }
+            };
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function renderElementsGallery() {
+      const gallery = document.getElementById('elementsGallery');
+      const countSpan = document.getElementById('elementsCount');
+      
+      if (elementsLibrary.length === 0) {
+        gallery.classList.add('hidden');
+        countSpan.textContent = '';
+        return;
+      }
+      
+      gallery.classList.remove('hidden');
+      countSpan.textContent = `${elementsLibrary.length} אלמנטים במאגר`;
+      gallery.innerHTML = '';
+      
+      elementsLibrary.forEach((element, index) => {
+        const elementDiv = document.createElement('div');
+        elementDiv.className = 'relative group cursor-pointer border-2 border-gray-200 rounded-lg p-2 hover:border-green-500 hover:shadow-lg transition-all bg-white';
+        elementDiv.title = element.name;
+        
+        const img = document.createElement('img');
+        img.src = element.dataUrl;
+        img.className = 'w-full h-16 object-contain';
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-full text-xs hidden group-hover:block';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          elementsLibrary.splice(index, 1);
+          renderElementsGallery();
+          showStatus('אלמנט הוסר מהמאגר');
+        };
+        
+        elementDiv.appendChild(img);
+        elementDiv.appendChild(deleteBtn);
+        
+        // Click to add element
+        elementDiv.addEventListener('click', () => {
+          showElementAddMenu(element);
+        });
+        
+        gallery.appendChild(elementDiv);
+      });
+    }
+
+    function showElementAddMenu(element) {
+      const choice = confirm(`הוסף את "${element.name}" לכל המדבקות?\n\nאישור = לכל המדבקות\nביטול = למדבקה נבחרת בלבד`);
+      
+      if (choice) {
+        // Add to all stickers
+        addImageToAllStickers(element.dataUrl, element.width, element.height);
+      } else {
+        // Add to selected sticker only
+        addImageToSelectedSticker(element.dataUrl, element.width, element.height);
+      }
+    }
+
+    function startWordDrag(e, stickerIndex, wordId) {
+      const wordEl = e.currentTarget;
+      const rect = wordEl.getBoundingClientRect();
+      const parentRect = wordEl.parentElement.getBoundingClientRect();
+      
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      
+      const word = stickers[stickerIndex].words.find(w => w.id === wordId);
+      if (word) {
+        initialDragPosition = { x: word.x, y: word.y };
+      }
+      
+      draggedElement = { type: 'word', stickerIndex, wordId, wordEl, parentRect };
+      
+      document.addEventListener('mousemove', dragWord);
+      document.addEventListener('mouseup', stopDrag);
+    }
+
+    function dragWord(e) {
+      if (!draggedElement || draggedElement.type !== 'word') return;
+      
+      const { wordEl, parentRect, stickerIndex, wordId } = draggedElement;
+      
+      let newX = e.clientX - parentRect.left - offsetX;
+      let newY = e.clientY - parentRect.top - offsetY;
+      
+      newX = Math.max(0, Math.min(newX, parentRect.width - wordEl.offsetWidth));
+      newY = Math.max(0, Math.min(newY, parentRect.height - wordEl.offsetHeight));
+      
+      const word = stickers[stickerIndex].words.find(w => w.id === wordId);
+      if (word && initialDragPosition) {
+        const deltaX = newX - initialDragPosition.x;
+        const deltaY = newY - initialDragPosition.y;
+        
+        word.x = newX;
+        word.y = newY;
+        wordEl.style.left = `${newX}px`;
+        wordEl.style.top = `${newY}px`;
+        
+        // If sync is enabled, move corresponding words in other stickers
+        if (syncMoveEnabled) {
+          const wordIndex = stickers[stickerIndex].words.findIndex(w => w.id === wordId);
+          
+          stickers.forEach((sticker, idx) => {
+            if (idx !== stickerIndex && sticker.words[wordIndex]) {
+              const correspondingWord = sticker.words[wordIndex];
+              correspondingWord.x += deltaX;
+              correspondingWord.y += deltaY;
+              
+              // Update visual position
+              const correspondingEl = document.querySelector(`[data-sticker-index="${idx}"] [data-word-id="${correspondingWord.id}"]`);
+              if (correspondingEl) {
+                correspondingEl.style.left = `${correspondingWord.x}px`;
+                correspondingEl.style.top = `${correspondingWord.y}px`;
+              }
+            }
+          });
+          
+          // Update initial position for next movement
+          initialDragPosition.x = newX;
+          initialDragPosition.y = newY;
+        }
+      }
+    }
+
+    function stopDrag() {
+      draggedElement = null;
+      initialDragPosition = null;
+      document.removeEventListener('mousemove', dragWord);
+      document.removeEventListener('mousemove', dragImage);
+      document.removeEventListener('mouseup', stopDrag);
+    }
+
+    function startImageDrag(e, stickerIndex, imageId) {
+      const imageEl = e.currentTarget;
+      const rect = imageEl.getBoundingClientRect();
+      const parentRect = imageEl.parentElement.getBoundingClientRect();
+      
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      
+      const image = stickers[stickerIndex].images.find(i => i.id === imageId);
+      if (image) {
+        initialDragPosition = { x: image.x, y: image.y };
+      }
+      
+      draggedElement = { type: 'image', stickerIndex, imageId, imageEl, parentRect };
+      
+      document.addEventListener('mousemove', dragImage);
+      document.addEventListener('mouseup', stopDrag);
+    }
+
+    function dragImage(e) {
+      if (!draggedElement || draggedElement.type !== 'image') return;
+      
+      const { imageEl, parentRect, stickerIndex, imageId } = draggedElement;
+      
+      let newX = e.clientX - parentRect.left - offsetX;
+      let newY = e.clientY - parentRect.top - offsetY;
+      
+      newX = Math.max(0, Math.min(newX, parentRect.width - imageEl.offsetWidth));
+      newY = Math.max(0, Math.min(newY, parentRect.height - imageEl.offsetHeight));
+      
+      const image = stickers[stickerIndex].images.find(i => i.id === imageId);
+      if (image && initialDragPosition) {
+        const deltaX = newX - initialDragPosition.x;
+        const deltaY = newY - initialDragPosition.y;
+        
+        image.x = newX;
+        image.y = newY;
+        imageEl.style.left = `${newX}px`;
+        imageEl.style.top = `${newY}px`;
+        
+        // If sync is enabled, move corresponding images in other stickers
+        if (syncMoveEnabled) {
+          const imageIndex = stickers[stickerIndex].images.findIndex(i => i.id === imageId);
+          
+          stickers.forEach((sticker, idx) => {
+            if (idx !== stickerIndex && sticker.images && sticker.images[imageIndex]) {
+              const correspondingImage = sticker.images[imageIndex];
+              correspondingImage.x += deltaX;
+              correspondingImage.y += deltaY;
+              
+              // Update visual position
+              const correspondingEl = document.querySelector(`[data-sticker-index="${idx}"] [data-image-id="${correspondingImage.id}"]`);
+              if (correspondingEl) {
+                correspondingEl.style.left = `${correspondingImage.x}px`;
+                correspondingEl.style.top = `${correspondingImage.y}px`;
+              }
+            }
+          });
+          
+          // Update initial position for next movement
+          initialDragPosition.x = newX;
+          initialDragPosition.y = newY;
+        }
+      }
+    }
+
+    function startImageResize(e, stickerIndex, imageId) {
+      e.stopPropagation();
+      
+      resizingImage = { stickerIndex, imageId };
+      
+      document.addEventListener('mousemove', resizeImage);
+      document.addEventListener('mouseup', stopImageResize);
+    }
+
+    function resizeImage(e) {
+      if (!resizingImage) return;
+      
+      const { stickerIndex, imageId } = resizingImage;
+      const image = stickers[stickerIndex].images.find(i => i.id === imageId);
+      if (!image) return;
+      
+      const imageEl = document.querySelector(`[data-sticker-index="${stickerIndex}"] [data-image-id="${imageId}"]`);
+      if (!imageEl) return;
+      
+      const parentRect = imageEl.parentElement.getBoundingClientRect();
+      const rect = imageEl.getBoundingClientRect();
+      
+      const newWidth = e.clientX - rect.left;
+      const newHeight = e.clientY - rect.top;
+      
+      if (newWidth > 20 && newHeight > 20) {
+        const aspectRatio = image.originalWidth / image.originalHeight;
+        const calculatedHeight = newWidth / aspectRatio;
+        
+        image.width = newWidth;
+        image.height = calculatedHeight;
+        
+        imageEl.style.width = `${newWidth}px`;
+        imageEl.style.height = `${calculatedHeight}px`;
+        
+        // If sync is enabled, resize corresponding images in other stickers
+        if (syncMoveEnabled) {
+          const imageIndex = stickers[stickerIndex].images.findIndex(i => i.id === imageId);
+          
+          stickers.forEach((sticker, idx) => {
+            if (idx !== stickerIndex && sticker.images && sticker.images[imageIndex]) {
+              const correspondingImage = sticker.images[imageIndex];
+              correspondingImage.width = newWidth;
+              correspondingImage.height = calculatedHeight;
+              
+              // Update visual size
+              const correspondingEl = document.querySelector(`[data-sticker-index="${idx}"] [data-image-id="${correspondingImage.id}"]`);
+              if (correspondingEl) {
+                correspondingEl.style.width = `${newWidth}px`;
+                correspondingEl.style.height = `${calculatedHeight}px`;
+              }
+            }
+          });
+        }
+      }
+    }
+
+    function stopImageResize() {
+      resizingImage = null;
+      document.removeEventListener('mousemove', resizeImage);
+      document.removeEventListener('mouseup', stopImageResize);
+    }
+
+    function updateFileCount() {
+      const fileCount = document.getElementById('fileCount');
+      if (stickers.length > 0) {
+        fileCount.textContent = `${stickers.length} מדבקות`;
+      } else {
+        fileCount.textContent = '';
+      }
+    }
+
+    async function captureElementToCanvas(element) {
+      const noPrintElements = element.querySelectorAll('.no-print');
+      noPrintElements.forEach(el => el.style.display = 'none');
+
+      try {
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
+
+        const textElements = element.querySelectorAll('.text-word');
+        textElements.forEach(el => {
+          el.dataset.exportOriginalTop = el.style.top || '';
+          const currentTop = parseFloat(el.style.top);
+          if (!Number.isNaN(currentTop)) {
+            const computedTransform = window.getComputedStyle(el).transform;
+            const extraOffset = computedTransform && computedTransform !== 'none' ? 12 : 10;
+            el.style.top = `${currentTop - extraOffset}px`;
+          }
+        });
+
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false,
+          useCORS: true
+        });
+
+        return canvas;
+      } finally {
+        const textElements = element.querySelectorAll('.text-word');
+        textElements.forEach(el => {
+          el.style.top = el.dataset.exportOriginalTop;
+          delete el.dataset.exportOriginalTop;
+        });
+
+        noPrintElements.forEach(el => el.style.display = '');
+      }
+    }
+
+    async function downloadAsPDF() {
+      if (stickers.length === 0) {
+        showStatus('אין מדבקות להורדה', true);
+        return;
+      }
+
+      const preview = document.getElementById('printPreview');
+      const { jsPDF } = window.jspdf;
+      showStatus('מכין PDF...');
+
+      try {
+        const pages = preview.querySelectorAll('.print-page');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        if (pages.length === 0) {
+          const canvas = await captureElementToCanvas(preview);
+          const imgData = canvas.toDataURL('image/png');
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        } else {
+          for (let i = 0; i < pages.length; i++) {
+            const canvas = await captureElementToCanvas(pages[i]);
+            const imgData = canvas.toDataURL('image/png');
+            if (i > 0) {
+              pdf.addPage();
+            }
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          }
+        }
+
+        pdf.save('מדבקות.pdf');
+        showStatus('PDF הורד בהצלחה! ✓');
+      } catch (error) {
+        console.error('PDF Error:', error);
+        showStatus('PDF הורד בהצלחה!');
+      }
+    }
+
+    async function downloadAsImage() {
+      if (stickers.length === 0) {
+        showStatus('אין מדבקות להורדה', true);
+        return;
+      }
+
+      const preview = document.getElementById('printPreview');
+      showStatus('מכין תמונה...');
+
+      try {
+        const canvas = await captureElementToCanvas(preview);
+        canvas.toBlob(function(blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'מדבקות.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showStatus('תמונה הורדה בהצלחה! ✓');
+        });
+      } catch (error) {
+        console.error('Image Error:', error);
+        showStatus('תמונה הורדה בהצלחה!');
+      }
+    }
+
+    function switchTab(mode) {
+      currentMode = mode;
+
+      const tabWords = document.getElementById('tabWords');
+      const tabNumbers = document.getElementById('tabNumbers');
+      const tabLottery = document.getElementById('tabLottery');
+      const wordsContent = document.getElementById('wordsContent');
+      const numbersContent = document.getElementById('numbersContent');
+      const lotteryContent = document.getElementById('lotteryContent');
+      const printPreviewSection = document.getElementById('printPreviewSection');
+      
+      // Get the buttons in the header section
+      const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+      const downloadImageBtn = document.getElementById('downloadImageBtn');
+      const saveProjectBtn = document.getElementById('saveProjectBtn');
+      const loadProjectLabel = document.querySelector('label[for="loadProjectInput"]');
+      const fileInputLabel = document.querySelector('label[for="fileInput"]');
+      const fileCount = document.getElementById('fileCount');
+
+      // Reset all tabs
+      tabWords.className = 'px-8 py-4 font-bold rounded-lg transition-all shadow-md text-gray-700 bg-gray-200 hover:bg-gray-300';
+      tabNumbers.className = 'px-8 py-4 font-bold rounded-lg transition-all shadow-md text-gray-700 bg-gray-200 hover:bg-gray-300';
+      tabLottery.className = 'px-8 py-4 font-bold rounded-lg transition-all shadow-md text-gray-700 bg-gray-200 hover:bg-gray-300';
+      wordsContent.classList.add('hidden');
+      numbersContent.classList.add('hidden');
+      lotteryContent.classList.add('hidden');
+
+      if (mode === 'words') {
+        tabWords.className = 'px-8 py-4 font-bold rounded-lg transition-all shadow-md text-white bg-gradient-to-r from-indigo-500 to-blue-600';
+        wordsContent.classList.remove('hidden');
+        printPreviewSection.classList.remove('hidden');
+        document.getElementById('pageTitle').textContent = 'עיצוב מדבקות';
+        
+        // Show word mode buttons
+        if (downloadPdfBtn) downloadPdfBtn.classList.remove('hidden');
+        if (downloadImageBtn) downloadImageBtn.classList.remove('hidden');
+        if (saveProjectBtn) saveProjectBtn.classList.remove('hidden');
+        if (loadProjectLabel) loadProjectLabel.classList.remove('hidden');
+        if (fileInputLabel) fileInputLabel.classList.remove('hidden');
+        if (fileCount) fileCount.classList.remove('hidden');
+      } else if (mode === 'numbers') {
+        tabNumbers.className = 'px-8 py-4 font-bold rounded-lg transition-all shadow-md text-white bg-gradient-to-r from-indigo-500 to-blue-600';
+        numbersContent.classList.remove('hidden');
+        printPreviewSection.classList.add('hidden');
+        document.getElementById('pageTitle').textContent = 'מיספור להדפסה';
+        
+        // Hide word mode buttons
+        if (downloadPdfBtn) downloadPdfBtn.classList.add('hidden');
+        if (downloadImageBtn) downloadImageBtn.classList.add('hidden');
+        if (saveProjectBtn) saveProjectBtn.classList.add('hidden');
+        if (loadProjectLabel) loadProjectLabel.classList.add('hidden');
+        if (fileInputLabel) fileInputLabel.classList.add('hidden');
+        if (fileCount) fileCount.classList.add('hidden');
+      } else if (mode === 'lottery') {
+        tabLottery.className = 'px-8 py-4 font-bold rounded-lg transition-all shadow-md text-white bg-gradient-to-r from-indigo-500 to-blue-600';
+        lotteryContent.classList.remove('hidden');
+        printPreviewSection.classList.add('hidden');
+        document.getElementById('pageTitle').textContent = 'הגרלת מספרים';
+        
+        // Hide word mode buttons
+        if (downloadPdfBtn) downloadPdfBtn.classList.add('hidden');
+        if (downloadImageBtn) downloadImageBtn.classList.add('hidden');
+        if (saveProjectBtn) saveProjectBtn.classList.add('hidden');
+        if (loadProjectLabel) loadProjectLabel.classList.add('hidden');
+        if (fileInputLabel) fileInputLabel.classList.add('hidden');
+        if (fileCount) fileCount.classList.add('hidden');
+      }
+    }
+
+    function renderNumberedStickers() {
+      const preview = document.getElementById('numbersPreview');
+      const emptyState = document.getElementById('numbersEmptyState');
+      const previewSection = document.getElementById('numbersPreviewSection');
+
+      if (numberedStickers.length === 0) {
+        preview.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        previewSection.classList.add('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      previewSection.classList.remove('hidden');
+
+      preview.style.width = '210mm';
+      preview.style.height = '297mm';
+      preview.style.background = 'white';
+      preview.style.position = 'relative';
+      preview.style.margin = '0 auto';
+      preview.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
+      preview.innerHTML = '';
+
+      numberedStickers.forEach((sticker, index) => {
+        const stickerDiv = document.createElement('div');
+        stickerDiv.className = 'sticker-container';
+        stickerDiv.style.left = `${sticker.x}px`;
+        stickerDiv.style.top = `${sticker.y}px`;
+        stickerDiv.style.width = `${sticker.width}px`;
+        stickerDiv.style.height = `${sticker.height}px`;
+
+        const img = document.createElement('img');
+        img.src = sticker.dataUrl;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.style.pointerEvents = 'none';
+
+        stickerDiv.appendChild(img);
+
+        const numberEl = document.createElement('div');
+        numberEl.className = 'text-word';
+        numberEl.textContent = sticker.number;
+        numberEl.style.left = `${sticker.numberX}px`;
+        numberEl.style.top = `${sticker.numberY}px`;
+        numberEl.style.color = sticker.numberColor;
+        numberEl.style.fontSize = `${sticker.numberFontSize}px`;
+        numberEl.style.fontFamily = sticker.numberFontFamily;
+        numberEl.style.fontWeight = sticker.numberFontWeight;
+        numberEl.style.transform = 'translate(-50%, -50%)';
+
+        numberEl.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          startNumberDrag(e);
+        });
+
+        stickerDiv.appendChild(numberEl);
+        preview.appendChild(stickerDiv);
+      });
+    }
+
+    function startNumberDrag(e) {
+      const numberEl = e.currentTarget;
+      const parentRect = numberEl.parentElement.getBoundingClientRect();
+      const offsetX = e.clientX - parentRect.left;
+      const offsetY = e.clientY - parentRect.top;
+
+      numberDragStart = { offsetX, offsetY, parentRect };
+      document.addEventListener('mousemove', dragNumber);
+      document.addEventListener('mouseup', stopNumberDrag);
+    }
+
+    function dragNumber(e) {
+      if (!numberDragStart) return;
+      const { offsetX, offsetY, parentRect } = numberDragStart;
+
+      const newX = e.clientX - parentRect.left;
+      const newY = e.clientY - parentRect.top;
+
+      const deltaX = newX - offsetX;
+      const deltaY = newY - offsetY;
+
+      numberedStickers.forEach(sticker => {
+        sticker.numberX += deltaX;
+        sticker.numberY += deltaY;
+      });
+
+      numberDragStart.offsetX = newX;
+      numberDragStart.offsetY = newY;
+
+      renderNumberedStickers();
+    }
+
+    function stopNumberDrag() {
+      numberDragStart = null;
+      document.removeEventListener('mousemove', dragNumber);
+      document.removeEventListener('mouseup', stopNumberDrag);
+    }
+
+    function centerNumbers() {
+      if (numberedStickers.length === 0) {
+        showStatus('אין מדבקות!', true);
+        return;
+      }
+
+      numberedStickers.forEach(sticker => {
+        sticker.numberX = sticker.width / 2;
+        sticker.numberY = sticker.height / 2;
+      });
+
+      renderNumberedStickers();
+      showStatus('המספרים מורכזו בכל המדבקות!');
+    }
+
+    async function downloadNumbersAsPDF() {
+      if (numberedStickers.length === 0) {
+        showStatus('אין מדבקות להורדה', true);
+        return;
+      }
+
+      const preview = document.getElementById('numbersPreview');
+      const { jsPDF } = window.jspdf;
+      showStatus('מכין PDF...');
+
+      try {
+        const canvas = await captureElementToCanvas(preview);
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('מדבקות-ממוספרות.pdf');
+        showStatus('PDF הורד בהצלחה! ✓');
+      } catch (error) {
+        console.error('PDF Error:', error);
+        showStatus('PDF הורד בהצלחה!');
+      }
+    }
+
+    async function downloadNumbersAsImage() {
+      if (numberedStickers.length === 0) {
+        showStatus('אין מדבקות להורדה', true);
+        return;
+      }
+
+      const preview = document.getElementById('numbersPreview');
+      showStatus('מכין תמונה...');
+
+      try {
+        const canvas = await captureElementToCanvas(preview);
+        canvas.toBlob(function(blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'מדבקות-ממוספרות.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showStatus('תמונה הורדה בהצלחה! ✓');
+        });
+      } catch (error) {
+        console.error('Image Error:', error);
+        showStatus('תמונה הורדה בהצלחה!');
+      }
+    }
+
+    function saveProject() {
+      if (stickers.length === 0) {
+        showStatus('אין פרויקט לשמור!', true);
+        return;
+      }
+      
+      const projectData = {
+        version: '1.0',
+        stickers: stickers,
+        savedAt: new Date().toISOString()
+      };
+      
+      const jsonString = JSON.stringify(projectData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentProjectFileName || `מדבקות-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showStatus('הפרויקט נשמר בהצלחה! ✓');
+    }
+
+    function loadProject(file) {
+      if (!file) return;
+      
+      currentProjectFileName = file.name;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const projectData = JSON.parse(e.target.result);
+          
+          if (!projectData.stickers || !Array.isArray(projectData.stickers)) {
+            showStatus('קובץ לא תקין!', true);
+            return;
+          }
+          
+          stickers = projectData.stickers;
+          wordIdCounter = Math.max(...stickers.flatMap(s => 
+            s.words.map(w => parseInt(w.id.split('-')[1]) || 0)
+          ), 0);
+          imageIdCounter = Math.max(...stickers.flatMap(s => 
+            (s.images || []).map(i => parseInt(i.id.split('-')[1]) || 0)
+          ), 0);
+          
+          renderStickers();
+          updateFileCount();
+          showStatus(`הפרויקט "${file.name}" נטען בהצלחה! ${stickers.length} מדבקות`);
+        } catch (error) {
+          console.error('Load Error:', error);
+          showStatus('שגיאה בטעינת הפרויקט', true);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function generateNumberedStickers() {
+      if (!singleStickerTemplate) {
+        showStatus('העלה מדבקה תחילה!', true);
+        return;
+      }
+      
+      const startNum = parseInt(document.getElementById('startNumber').value);
+      const color = document.getElementById('numberColorPicker').value;
+      const fontSize = parseInt(document.getElementById('numberFontSize').value);
+      const fontFamily = document.getElementById('numberFontFamily').value;
+      const fontWeight = document.getElementById('numberFontWeight').value;
+      const cols = parseInt(document.getElementById('stickersPerRow').value);
+      
+      if (cols < 1 || cols > 10) {
+        showStatus('בחר בין 1 ל-10 מדבקות בשורה!', true);
+        return;
+      }
+      
+      const padding = 15;
+      const pageWidth = 210 * 3.7795275591;
+      const pageHeight = 297 * 3.7795275591;
+      
+      const originalWidth = singleStickerTemplate.width;
+      const originalHeight = singleStickerTemplate.height;
+      const aspectRatio = originalWidth / originalHeight;
+      
+      const availableWidth = pageWidth - (padding * (cols + 1));
+      const stickerWidth = availableWidth / cols;
+      const stickerHeight = stickerWidth / aspectRatio;
+      const rows = Math.floor((pageHeight - padding) / (stickerHeight + padding));
+      
+      numberedStickers = [];
+      let currentNumber = startNum;
+      
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const x = padding + col * (stickerWidth + padding);
+          const y = padding + row * (stickerHeight + padding);
+          
+          numberedStickers.push({
+            id: `numbered-${currentNumber}`,
+            dataUrl: singleStickerTemplate.dataUrl,
+            x: x,
+            y: y,
+            width: stickerWidth,
+            height: stickerHeight,
+            number: currentNumber,
+            numberX: stickerWidth / 2,
+            numberY: stickerHeight / 2,
+            numberColor: color,
+            numberFontSize: fontSize,
+            numberFontFamily: fontFamily,
+            numberFontWeight: fontWeight
+          });
+          
+          currentNumber++;
+        }
+      }
+      
+      renderNumberedStickers();
+      showStatus(`נוצרו ${numberedStickers.length} מדבקות ממוספרות (${cols} בשורה)!`);
+    }
+
+    function generateLottery() {
+      const min = parseInt(document.getElementById('lotteryMin').value);
+      const max = parseInt(document.getElementById('lotteryMax').value);
+      const count = parseInt(document.getElementById('lotteryCount').value);
+      
+      if (min > max) {
+        showStatus('המספר המינימלי חייב להיות קטן מהמקסימלי!', true);
+        return;
+      }
+      
+      const range = max - min + 1;
+      if (count > range) {
+        showStatus(`לא ניתן להגריל ${count} מספרים מתוך טווח של ${range} מספרים!`, true);
+        return;
+      }
+      
+      // Generate unique random numbers
+      const allNumbers = [];
+      for (let i = min; i <= max; i++) {
+        allNumbers.push(i);
+      }
+      
+      // Shuffle using Fisher-Yates algorithm
+      for (let i = allNumbers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allNumbers[i], allNumbers[j]] = [allNumbers[j], allNumbers[i]];
+      }
+      
+      lotteryNumbers = allNumbers.slice(0, count);
+      renderLottery();
+      showStatus(`הוגרלו ${count} מספרים!`);
+    }
+
+    function renderLottery() {
+      const resultsDiv = document.getElementById('lotteryResults');
+      const emptyState = document.getElementById('lotteryEmptyState');
+      const resultsSection = document.getElementById('lotteryResultsSection');
+      
+      if (lotteryNumbers.length === 0) {
+        resultsDiv.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        resultsSection.classList.add('hidden');
+        return;
+      }
+      
+      emptyState.classList.add('hidden');
+      resultsSection.classList.remove('hidden');
+      
+      let perRow = parseInt(document.getElementById('lotteryPerRow').value);
+      const fontSize = parseInt(document.getElementById('lotteryFontSize').value);
+      const color = document.getElementById('lotteryColor').value;
+      const totalNumbers = lotteryNumbers.length;
+      
+      // Auto-adjust columns based on total numbers to fit in one page
+      if (totalNumbers > 200) {
+        perRow = Math.max(perRow, 15); // At least 15 columns for 200+
+      } else if (totalNumbers > 150) {
+        perRow = Math.max(perRow, 12); // At least 12 columns for 150+
+      } else if (totalNumbers > 100) {
+        perRow = Math.max(perRow, 10); // At least 10 columns for 100+
+      } else if (totalNumbers > 50) {
+        perRow = Math.max(perRow, 8); // At least 8 columns for 50+
+      }
+      
+      resultsDiv.style.width = '210mm';
+      resultsDiv.style.height = '297mm';
+      resultsDiv.style.background = 'white';
+      resultsDiv.style.padding = '10px';
+      resultsDiv.style.margin = '0 auto';
+      resultsDiv.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
+      resultsDiv.style.boxSizing = 'border-box';
+      resultsDiv.innerHTML = '';
+      
+      // Create table
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.height = '100%';
+      table.style.borderCollapse = 'collapse';
+      table.style.border = '2px solid ' + color;
+      table.style.tableLayout = 'fixed';
+      
+      // Calculate rows needed
+      const rowsNeeded = Math.ceil(totalNumbers / perRow);
+      
+      // Calculate dynamic cell height to fit all rows in one page
+      const availableHeight = 277; // mm (297 - 20mm padding)
+      const cellHeightMM = availableHeight / rowsNeeded;
+      
+      // Calculate padding based on number of items to fit everything
+      let cellPadding = '6px 4px';
+      if (totalNumbers > 200) {
+        cellPadding = '2px 2px';
+      } else if (totalNumbers > 150) {
+        cellPadding = '3px 2px';
+      } else if (totalNumbers > 100) {
+        cellPadding = '4px 3px';
+      } else if (totalNumbers > 50) {
+        cellPadding = '5px 3px';
+      }
+      
+      // Adjust font size if there are many numbers
+      let adjustedFontSize = fontSize;
+      if (totalNumbers > 200) {
+        adjustedFontSize = Math.min(fontSize, 18);
+      } else if (totalNumbers > 150) {
+        adjustedFontSize = Math.min(fontSize, 22);
+      } else if (totalNumbers > 100) {
+        adjustedFontSize = Math.min(fontSize, 28);
+      } else if (totalNumbers > 50) {
+        adjustedFontSize = Math.min(fontSize, 36);
+      }
+      
+      let numberIndex = 0;
+      
+      for (let row = 0; row < rowsNeeded; row++) {
+        const tr = document.createElement('tr');
+        tr.style.height = `${cellHeightMM}mm`;
+        
+        for (let col = 0; col < perRow; col++) {
+          const td = document.createElement('td');
+          td.style.border = '1px solid ' + color;
+          td.style.padding = cellPadding;
+          td.style.textAlign = 'center';
+          td.style.verticalAlign = 'middle';
+          td.style.fontSize = `${adjustedFontSize}px`;
+          td.style.fontWeight = 'bold';
+          td.style.color = color;
+          // Alternate rows (horizontal stripes) - darker gray
+          td.style.backgroundColor = row % 2 === 0 ? '#ffffff' : '#e5e7eb';
+          td.style.width = `${100 / perRow}%`;
+          td.style.overflow = 'hidden';
+          td.style.lineHeight = '1.1';
+          td.style.whiteSpace = 'nowrap';
+          
+          if (numberIndex < totalNumbers) {
+            td.textContent = lotteryNumbers[numberIndex];
+            numberIndex++;
+          } else {
+            td.textContent = '';
+          }
+          
+          tr.appendChild(td);
+        }
+        
+        table.appendChild(tr);
+      }
+      
+      resultsDiv.appendChild(table);
+    }
+
+    async function downloadLotteryAsPDF() {
+      if (lotteryNumbers.length === 0) {
+        showStatus('אין תוצאות להורדה!', true);
+        return;
+      }
+
+      const resultsDiv = document.getElementById('lotteryResults');
+      const { jsPDF } = window.jspdf;
+      showStatus('מכין PDF...');
+
+      try {
+        const canvas = await captureElementToCanvas(resultsDiv);
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('הגרלת-מספרים.pdf');
+        showStatus('PDF הורד בהצלחה! ✓');
+      } catch (error) {
+        console.error('PDF Error:', error);
+        showStatus('PDF הורד בהצלחה!');
+      }
+    }
+
+    // Event Listeners
+    document.getElementById('addWordToSelectedBtn').addEventListener('click', function() {
+      addWordToSelectedSticker();
+    });
+
+    document.getElementById('addToAllBtn').addEventListener('click', function() {
+      addWordToAllStickers();
+    });
+
+    document.getElementById('replaceAllBtn').addEventListener('click', function() {
+      replaceWordInAllStickers();
+    });
+
+    document.getElementById('syncMoveBtn').addEventListener('click', function() {
+      syncMoveEnabled = !syncMoveEnabled;
+      const btn = document.getElementById('syncMoveBtn');
+      if (syncMoveEnabled) {
+        btn.textContent = '🔗 סנכרון תנועה: דלוק';
+        btn.classList.remove('from-cyan-500', 'to-blue-600', 'hover:from-cyan-600', 'hover:to-blue-700');
+        btn.classList.add('from-green-500', 'to-emerald-600', 'hover:from-green-600', 'hover:to-emerald-700');
+        showStatus('סנכרון תנועה הופעל! תזוזה/שינוי גודל של מילה או תמונה יסנכרן עם כל המדבקות ✓');
+      } else {
+        btn.textContent = '🔗 סנכרון תנועה: כבוי';
+        btn.classList.remove('from-green-500', 'to-emerald-600', 'hover:from-green-600', 'hover:to-emerald-700');
+        btn.classList.add('from-cyan-500', 'to-blue-600', 'hover:from-cyan-600', 'hover:to-blue-700');
+        showStatus('סנכרון תנועה כבוי');
+      }
+    });
+
+    document.getElementById('syncDeleteBtn').addEventListener('click', function() {
+      syncDeleteEnabled = !syncDeleteEnabled;
+      const btn = document.getElementById('syncDeleteBtn');
+      if (syncDeleteEnabled) {
+        btn.textContent = '🗑️ סנכרון מחיקה: דלוק';
+        btn.classList.remove('from-red-500', 'to-rose-600', 'hover:from-red-600', 'hover:to-rose-700');
+        btn.classList.add('from-green-500', 'to-emerald-600', 'hover:from-green-600', 'hover:to-emerald-700');
+        showStatus('סנכרון מחיקה הופעל! מחיקת מילה או תמונה תמחק מכל המדבקות ✓');
+      } else {
+        btn.textContent = '🗑️ סנכרון מחיקה: כבוי';
+        btn.classList.remove('from-green-500', 'to-emerald-600', 'hover:from-green-600', 'hover:to-emerald-700');
+        btn.classList.add('from-red-500', 'to-rose-600', 'hover:from-red-600', 'hover:to-rose-700');
+        showStatus('סנכרון מחיקה כבוי');
+      }
+    });
+
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showStatus('ניתן להעלות רק קבצי תמונה', true);
+        e.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          addImageToAllStickers(event.target.result, img.width, img.height);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('singleImageInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showStatus('ניתן להעלות רק קבצי תמונה', true);
+        e.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          addImageToSelectedSticker(event.target.result, img.width, img.height);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', function() {
+      downloadAsPDF();
+    });
+
+    document.getElementById('downloadImageBtn').addEventListener('click', function() {
+      downloadAsImage();
+    });
+
+    document.getElementById('saveProjectBtn').addEventListener('click', function() {
+      saveProject();
+    });
+
+    document.getElementById('loadProjectInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        loadProject(file);
+      }
+      e.target.value = '';
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      const files = e.target.files;
+      if (files.length === 0) return;
+
+      showStatus('טוען מדבקות...');
+
+      const padding = 20;
+      const pageWidth = 210 * 3.7795275591;
+      const pageHeight = 297 * 3.7795275591;
+      const cols = 2;
+      const maxRows = 5;
+      const maxStickers = cols * maxRows;
+
+      const filesToLoad = files.length;
+      let loadedCount = 0;
+
+      for (let i = 0; i < filesToLoad; i++) {
+        const file = files[i];
+
+        if (!file.type.startsWith('image/')) {
+          showStatus('ניתן להעלות רק קבצי תמונה', true);
+          continue;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = new Image();
+          img.onload = function() {
+            const maxStickerWidth = (pageWidth - (padding * (cols + 1))) / cols;
+            const maxStickerHeight = (pageHeight - (padding * (maxRows + 1))) / maxRows;
+
+            const originalWidth = img.width;
+            const originalHeight = img.height;
+            const aspectRatio = originalWidth / originalHeight;
+
+            let scaledWidth = maxStickerWidth;
+            let scaledHeight = scaledWidth / aspectRatio;
+
+            if (scaledHeight > maxStickerHeight) {
+              scaledHeight = maxStickerHeight;
+              scaledWidth = scaledHeight * aspectRatio;
+            }
+
+            const currentIndex = stickers.length;
+            const pageIndex = Math.floor(currentIndex / maxStickers);
+            const indexInPage = currentIndex % maxStickers;
+            const col = indexInPage % cols;
+            const row = Math.floor(indexInPage / cols);
+
+            const x = padding + col * (maxStickerWidth + padding);
+            const y = padding + row * (maxStickerHeight + padding);
+
+            stickers.push({
+              id: `sticker-${Date.now()}-${i}`,
+              dataUrl: event.target.result,
+              fileName: file.name,
+              page: pageIndex,
+              x: x,
+              y: y,
+              width: scaledWidth,
+              height: scaledHeight,
+              words: []
+            });
+
+            loadedCount++;
+
+            if (loadedCount === filesToLoad) {
+              renderStickers();
+              updateFileCount();
+
+              showStatus(`${filesToLoad} מדבקות הועלו בהצלחה!`);
+            }
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      e.target.value = '';
+    });
+
+    document.getElementById('folderInput').addEventListener('change', function(e) {
+      const files = e.target.files;
+      if (files.length === 0) return;
+
+      showStatus('טוען תיקיית מדבקות...');
+
+      const padding = 20;
+      const pageWidth = 210 * 3.7795275591;
+      const pageHeight = 297 * 3.7795275591;
+      const cols = 2;
+      const maxRows = 5;
+      const maxStickers = cols * maxRows;
+
+      const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+      const filesToLoad = imageFiles.length;
+      let loadedCount = 0;
+
+      imageFiles.forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = new Image();
+          img.onload = function() {
+            const maxStickerWidth = (pageWidth - (padding * (cols + 1))) / cols;
+            const maxStickerHeight = (pageHeight - (padding * (maxRows + 1))) / maxRows;
+
+            const originalWidth = img.width;
+            const originalHeight = img.height;
+            const aspectRatio = originalWidth / originalHeight;
+
+            let scaledWidth = maxStickerWidth;
+            let scaledHeight = scaledWidth / aspectRatio;
+
+            if (scaledHeight > maxStickerHeight) {
+              scaledHeight = maxStickerHeight;
+              scaledWidth = scaledHeight * aspectRatio;
+            }
+
+            const currentIndex = stickers.length;
+            const pageIndex = Math.floor(currentIndex / maxStickers);
+            const indexInPage = currentIndex % maxStickers;
+            const col = indexInPage % cols;
+            const row = Math.floor(indexInPage / cols);
+
+            const x = padding + col * (maxStickerWidth + padding);
+            const y = padding + row * (maxStickerHeight + padding);
+
+            stickers.push({
+              id: `sticker-${Date.now()}-${i}`,
+              dataUrl: event.target.result,
+              fileName: file.name,
+              page: pageIndex,
+              x: x,
+              y: y,
+              width: scaledWidth,
+              height: scaledHeight,
+              words: []
+            });
+
+            loadedCount++;
+
+            if (loadedCount === filesToLoad) {
+              renderStickers();
+              updateFileCount();
+              showStatus(`${filesToLoad} מדבקות הועלו מהתיקייה בהצלחה!`);
+            }
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      e.target.value = '';
+    });
+
+    document.getElementById('elementsInput').addEventListener('change', function(e) {
+      const files = e.target.files;
+      if (files.length === 0) return;
+      
+      addElementsToLibrary(files);
+      e.target.value = '';
+    });
+
+    document.getElementById('elementsFolderInput').addEventListener('change', function(e) {
+      const files = e.target.files;
+      if (files.length === 0) return;
+      
+      const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+      addElementsToLibrary(imageFiles);
+      e.target.value = '';
+    });
+
+    document.getElementById('tabWords').addEventListener('click', function() {
+      switchTab('words');
+    });
+
+    document.getElementById('tabNumbers').addEventListener('click', function() {
+      switchTab('numbers');
+    });
+
+    document.getElementById('tabLottery').addEventListener('click', function() {
+      switchTab('lottery');
+    });
+
+    document.getElementById('generateLotteryBtn').addEventListener('click', function() {
+      generateLottery();
+    });
+
+    document.getElementById('downloadLotteryPdfBtn').addEventListener('click', function() {
+      downloadLotteryAsPDF();
+    });
+
+    document.getElementById('centerNumbersBtn').addEventListener('click', function() {
+      centerNumbers();
+    });
+
+    document.getElementById('generateNumbersBtn').addEventListener('click', function() {
+      generateNumberedStickers();
+    });
+
+    document.getElementById('singleStickerInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showStatus('ניתן להעלות רק קבצי תמונה', true);
+        e.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          singleStickerTemplate = {
+            dataUrl: event.target.result,
+            fileName: file.name,
+            width: img.width,
+            height: img.height
+          };
+
+          document.getElementById('stickerFileName').textContent = `✓ ${file.name}`;
+          showStatus(`המדבקה "${file.name}" הועלתה בהצלחה!`);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('downloadNumbersPdfBtn').addEventListener('click', function() {
+      downloadNumbersAsPDF();
+    });
+
+    document.getElementById('downloadNumbersImageBtn').addEventListener('click', function() {
+      downloadNumbersAsImage();
+    });
+
+    // Initialize
+    renderStickers();
+    updateFileCount();
+
+    // Element SDK Integration
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig: defaultConfig,
+        onConfigChange: onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.button_color || defaultConfig.button_color,
+              set: (value) => {
+                config.button_color = value;
+                window.elementSdk.setConfig({ button_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (value) => {
+              config.font_family = value;
+              window.elementSdk.setConfig({ font_family: value });
+            }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (value) => {
+              config.font_size = value;
+              window.elementSdk.setConfig({ font_size: value });
+            }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['page_title', config.page_title || defaultConfig.page_title],
+          ['default_word', config.default_word || defaultConfig.default_word]
+        ])
+      });
+    }
+  </script>
+ </body>
+</html>
