@@ -256,14 +256,25 @@
     <div class="no-print mb-8 bg-white rounded-2xl shadow-lg p-6">
      <h1 id="pageTitle" class="text-3xl font-bold text-gray-800 mb-6 text-center">עיצוב מדבקות</h1>
      <div class="flex gap-4 items-center flex-wrap justify-center">
-      <label for="fileInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-bold rounded-lg hover:from-indigo-600 hover:to-blue-700 transition-all shadow-md">
-        📁 העלה מדבקות
-      </label>
-      <input type="file" id="fileInput" accept="image/*,.svg" multiple class="hidden">
-      <label for="folderInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold rounded-lg hover:from-violet-600 hover:to-purple-700 transition-all shadow-md">
-        📂 העלה תיקיית מדבקות
-      </label>
-      <input type="file" id="folderInput" webkitdirectory directory multiple accept="image/*,.svg" class="hidden">
+      <div class="relative">
+        <button id="uploadStickersBtn" class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-bold rounded-lg hover:from-indigo-600 hover:to-blue-700 transition-all shadow-md">
+          📁 העלה מדבקות ▾
+        </button>
+        <div id="stickersMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
+          <label for="fileInput" class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-t-lg border-b border-gray-200">
+            💻 מהמחשב
+          </label>
+          <label for="folderInput" class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-200">
+            📂 תיקייה מהמחשב
+          </label>
+          <button id="loadFromGithubStickers" class="w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg">
+            🌐 מהמאגר (GitHub)
+          </button>
+        </div>
+        <input type="file" id="fileInput" accept="image/*,.svg" multiple class="hidden">
+        <input type="file" id="folderInput" webkitdirectory directory multiple accept="image/*,.svg" class="hidden">
+      </div>
+      
       <span id="fileCount" class="text-sm text-gray-600"></span>
       <button id="downloadPdfBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
         📥 הורד PDF
@@ -351,59 +362,48 @@
         <h3 class="text-lg font-bold text-pink-800 mb-3">🖼️ הוספת תמונה</h3>
         <div class="flex gap-4 items-end flex-wrap">
          <div class="flex-1 min-w-[200px]">
-          <label for="imageInput" class="block text-sm font-medium text-gray-700 mb-2">
-            בחר תמונה להוספה:
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            הוסף תמונה לכל המדבקות:
           </label>
-          <label for="imageInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700 transition-all shadow-md inline-block">
-            🖼️ בחר תמונה - הוסף לכל המדבקות
-          </label>
+          <div class="relative inline-block">
+            <button id="addImageAllBtn" class="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700 transition-all shadow-md">
+              🖼️ בחר תמונה ▾
+            </button>
+            <div id="imageAllMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-pink-200 z-50 min-w-[200px]">
+              <label for="imageInput" class="block px-4 py-3 hover:bg-pink-50 cursor-pointer rounded-t-lg border-b border-gray-200">
+                💻 מהמחשב
+              </label>
+              <button id="loadImageFromGithubAll" class="w-full text-right px-4 py-3 hover:bg-pink-50 rounded-b-lg">
+                🌐 מהמאגר (GitHub)
+              </button>
+            </div>
+          </div>
           <input type="file" id="imageInput" accept="image/*" class="hidden">
          </div>
          <div class="flex-1 min-w-[200px]">
-          <label for="singleImageInput" class="block text-sm font-medium text-gray-700 mb-2">
-            או הוסף למדבקה בודדת:
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            הוסף תמונה למדבקה נבחרת:
           </label>
-          <label for="singleImageInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md inline-block">
-            🖼️ בחר תמונה - למדבקה נבחרת
-          </label>
+          <div class="relative inline-block">
+            <button id="addImageSingleBtn" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md">
+              🖼️ בחר תמונה ▾
+            </button>
+            <div id="imageSingleMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-purple-200 z-50 min-w-[200px]">
+              <label for="singleImageInput" class="block px-4 py-3 hover:bg-purple-50 cursor-pointer rounded-t-lg border-b border-gray-200">
+                💻 מהמחשב
+              </label>
+              <button id="loadImageFromGithubSingle" class="w-full text-right px-4 py-3 hover:bg-purple-50 rounded-b-lg">
+                🌐 מהמאגר (GitHub)
+              </button>
+            </div>
+          </div>
           <input type="file" id="singleImageInput" accept="image/*" class="hidden">
          </div>
         </div>
         <p class="text-sm text-gray-600 italic mt-2">💡 לחץ על מדבקה כדי לבחור אותה לפני הוספת תמונה בודדת</p>
       </div>
       
-      <!-- Elements Section -->
-      <div class="mb-6 p-4 bg-green-50 rounded-lg border-2 border-green-200">
-        <h3 class="text-lg font-bold text-green-800 mb-3">✨ אלמנטים (מאגר)</h3>
-        <div class="flex gap-4 items-end flex-wrap mb-4">
-         <div class="flex-1 min-w-[200px]">
-          <label for="elementsInput" class="block text-sm font-medium text-gray-700 mb-2">
-            טען אלמנטים למאגר:
-          </label>
-          <label for="elementsInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md inline-block">
-            📦 העלה אלמנטים למאגר
-          </label>
-          <input type="file" id="elementsInput" accept="image/*" multiple class="hidden">
-          <span id="elementsCount" class="text-sm text-gray-600 mr-2"></span>
-         </div>
-         <div class="flex-1 min-w-[200px]">
-          <label for="elementsFolderInput" class="block text-sm font-medium text-gray-700 mb-2">
-            או טען תיקיית אלמנטים:
-          </label>
-          <label for="elementsFolderInput" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold rounded-lg hover:from-teal-600 hover:to-cyan-700 transition-all shadow-md inline-block">
-            📂 העלה תיקיית אלמנטים
-          </label>
-          <input type="file" id="elementsFolderInput" webkitdirectory directory multiple accept="image/*" class="hidden">
-         </div>
-        </div>
-        
-        <!-- Elements Gallery -->
-        <div id="elementsGallery" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 mt-4 hidden">
-          <!-- Elements will be inserted here -->
-        </div>
-        
-        <p class="text-sm text-gray-600 italic mt-2">💡 העלה אלמנטים למאגר ולחץ עליהם כדי להוסיף למדבקה נבחרת או לכל המדבקות</p>
-      </div>
+      <!-- Elements Section - REMOVED -->
       
       <!-- Global Controls Section -->
       <div class="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
@@ -618,6 +618,41 @@
     
     // Elements library
     let elementsLibrary = [];
+    
+    // GitHub repository configuration
+    const GITHUB_REPO = {
+      stickers: 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/%D7%9E%D7%93%D7%91%D7%A7%D7%95%D7%AA/',
+      elements: 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/%D7%90%D7%9C%D7%9E%D7%A0%D7%98%D7%99%D7%9D/'
+    };
+    
+    // Available files in GitHub repo
+    const GITHUB_FILES = {
+      stickers: [
+        '16.png',
+        '26.png',
+        '27.png',
+        '28.png',
+        '29.png',
+        '30.png',
+        '31.png',
+        '32.png',
+        '35.png',
+        '36.png',
+        '37.png',
+        '40.png'
+      ],
+      elements: [
+        '17.png',
+        '18.png',
+        '19.png',
+        '20.png',
+        '21.png',
+        '22.png',
+        '23.png',
+        '24.png',
+        '25.png'
+      ]
+    };
 
     async function onConfigChange(config) {
       const titleElement = document.getElementById('pageTitle');
@@ -2346,6 +2381,60 @@
     }
 
     // Event Listeners
+    
+    // Toggle stickers menu
+    document.getElementById('uploadStickersBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      const menu = document.getElementById('stickersMenu');
+      menu.classList.toggle('hidden');
+      
+      // Close other menus
+      document.getElementById('imageAllMenu').classList.add('hidden');
+      document.getElementById('imageSingleMenu').classList.add('hidden');
+    });
+    
+    // Toggle image menus
+    document.getElementById('addImageAllBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      const menu = document.getElementById('imageAllMenu');
+      menu.classList.toggle('hidden');
+      
+      document.getElementById('stickersMenu').classList.add('hidden');
+      document.getElementById('imageSingleMenu').classList.add('hidden');
+    });
+    
+    document.getElementById('addImageSingleBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      const menu = document.getElementById('imageSingleMenu');
+      menu.classList.toggle('hidden');
+      
+      document.getElementById('stickersMenu').classList.add('hidden');
+      document.getElementById('imageAllMenu').classList.add('hidden');
+    });
+    
+    // Close menus when clicking outside
+    document.addEventListener('click', function() {
+      document.getElementById('stickersMenu').classList.add('hidden');
+      document.getElementById('imageAllMenu').classList.add('hidden');
+      document.getElementById('imageSingleMenu').classList.add('hidden');
+    });
+    
+    // GitHub loaders
+    document.getElementById('loadFromGithubStickers').addEventListener('click', function() {
+      loadStickersFromGithub();
+      document.getElementById('stickersMenu').classList.add('hidden');
+    });
+    
+    document.getElementById('loadImageFromGithubAll').addEventListener('click', function() {
+      loadImageFromGithubToSticker(true);
+      document.getElementById('imageAllMenu').classList.add('hidden');
+    });
+    
+    document.getElementById('loadImageFromGithubSingle').addEventListener('click', function() {
+      loadImageFromGithubToSticker(false);
+      document.getElementById('imageSingleMenu').classList.add('hidden');
+    });
+    
     document.getElementById('addWordToSelectedBtn').addEventListener('click', function() {
       addWordToSelectedSticker();
     });
@@ -2606,23 +2695,6 @@
         reader.readAsDataURL(file);
       });
 
-      e.target.value = '';
-    });
-
-    document.getElementById('elementsInput').addEventListener('change', function(e) {
-      const files = e.target.files;
-      if (files.length === 0) return;
-      
-      addElementsToLibrary(files);
-      e.target.value = '';
-    });
-
-    document.getElementById('elementsFolderInput').addEventListener('change', function(e) {
-      const files = e.target.files;
-      if (files.length === 0) return;
-      
-      const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
-      addElementsToLibrary(imageFiles);
       e.target.value = '';
     });
 
