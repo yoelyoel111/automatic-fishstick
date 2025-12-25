@@ -3,11 +3,12 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מחליף מילים במדבקות</title>
+  <title>הגרלומט</title>
   <script src="/_sdk/element_sdk.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     body {
       box-sizing: border-box;
@@ -291,10 +292,10 @@
       </div>
       
       <span id="fileCount" class="text-sm text-gray-600"></span>
-      <button id="downloadPdfBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+      <button id="downloadPdfBtn" title="חדות בנונית" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
         📥 הורד PDF
       </button>
-      <button id="downloadImageBtn" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
+      <button id="downloadImageBtn" title="איכות מצויינת" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
         🖼️ הורד תמונה
       </button>
       <button id="saveProjectBtn" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
@@ -515,10 +516,10 @@
        <button id="centerNumbersBtn" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
         📍 מרכז מספרים
        </button>
-       <button id="downloadNumbersPdfBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+       <button id="downloadNumbersPdfBtn" title="חדות בנונית" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
         📥 הורד PDF
        </button>
-       <button id="downloadNumbersImageBtn" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
+       <button id="downloadNumbersImageBtn" title="איכות מצויינת" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
         🖼️ הורד תמונה
        </button>
       </div>
@@ -552,11 +553,11 @@
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">מספר מקסימלי:</label>
-        <input type="number" id="lotteryMax" min="1" value="100" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+        <input type="number" id="lotteryMax" min="1" value="150" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">כמה מספרים להגריל:</label>
-        <input type="number" id="lotteryCount" min="1" value="10" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+        <input type="number" id="lotteryCount" min="1" value="150" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">מספרים בשורה:</label>
@@ -564,7 +565,7 @@
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">גודל פונט:</label>
-        <input type="number" id="lotteryFontSize" min="12" max="120" value="48" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+        <input type="number" id="lotteryFontSize" min="12" max="120" value="27" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">צבע מספר:</label>
@@ -573,7 +574,7 @@
        <button id="generateLotteryBtn" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
         🎲 הגרל מספרים
        </button>
-       <button id="downloadLotteryPdfBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+       <button id="downloadLotteryPdfBtn" title="חדות בנונית" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
         📥 הורד PDF
        </button>
       </div>
@@ -1070,8 +1071,8 @@
 
         document.body.appendChild(wrapper);
 
-        const canvas = await captureElementToCanvas(wrapper, { scale: 3 });
-        const imgData = canvas.toDataURL('image/png');
+        const canvas = await captureElementToCanvas(wrapper, { scale: 2 });
+        const imgData = canvas.toDataURL('image/jpeg', 0.82);
 
         document.body.removeChild(wrapper);
 
@@ -1094,7 +1095,7 @@
         const x = (pdfWidth - drawW) / 2;
         const y = (pdfHeight - drawH) / 2;
 
-        pdf.addImage(imgData, 'PNG', x, y, drawW, drawH);
+        pdf.addImage(imgData, 'JPEG', x, y, drawW, drawH);
         pdf.save('הגרלת-מספרים.pdf');
         showStatus('PDF הורד בהצלחה! ✓');
       } catch (error) {
@@ -1250,7 +1251,7 @@
         });
 
         const canvas = await html2canvas(element, {
-          scale: Number(options.scale) || 2,
+          scale: Number(options.scale) || 1.5,
           backgroundColor: '#ffffff',
           logging: false,
           useCORS: true
@@ -1450,15 +1451,16 @@
     function duplicateSticker(index) {
       const originalSticker = stickers[index];
       
-      const padding = 20;
+      const edgePadding = 20;
+      const gapPadding = 8;
       const pageWidth = 210 * 3.7795275591;
       const pageHeight = 297 * 3.7795275591;
       
       // Find next available position that doesn't overlap
       const startPage = Number.isFinite(originalSticker.page) ? originalSticker.page : 0;
-      const startX = (Number.isFinite(originalSticker.x) ? originalSticker.x : padding) + (Number.isFinite(originalSticker.width) ? originalSticker.width : 0) + padding;
-      const startY = Number.isFinite(originalSticker.y) ? originalSticker.y : padding;
-      const newPosition = findNextAvailablePosition(originalSticker.width, originalSticker.height, pageWidth, pageHeight, padding, startPage, startX, startY);
+      const startX = (Number.isFinite(originalSticker.x) ? originalSticker.x : edgePadding) + (Number.isFinite(originalSticker.width) ? originalSticker.width : 0) + gapPadding;
+      const startY = Number.isFinite(originalSticker.y) ? originalSticker.y : edgePadding;
+      const newPosition = findNextAvailablePosition(originalSticker.width, originalSticker.height, pageWidth, pageHeight, edgePadding, gapPadding, startPage, startX, startY);
       
       if (!newPosition) {
         showStatus('אין מספיק מקום לשכפול המדבקה!', true);
@@ -1521,7 +1523,7 @@
       showStatus(`המדבקה שוכפלה!`);
     }
 
-    function findNextAvailablePosition(stickerWidth, stickerHeight, pageWidth, pageHeight, padding, startPage = 0, startX = padding, startY = padding) {
+    function findNextAvailablePosition(stickerWidth, stickerHeight, pageWidth, pageHeight, edgePadding, gapPadding, startPage = 0, startX = edgePadding, startY = edgePadding) {
       const maxPages = 20; // Increase to 20 pages
       
       const startPageIndex = Math.max(0, Math.min(maxPages - 1, Number(startPage) || 0));
@@ -1532,11 +1534,11 @@
         // If this is an empty page, start from top-left
         if (stickersOnPage.length === 0) {
           // Check if sticker fits on page
-          if (stickerWidth + padding * 2 <= pageWidth && stickerHeight + padding * 2 <= pageHeight) {
+          if (stickerWidth + edgePadding * 2 <= pageWidth && stickerHeight + edgePadding * 2 <= pageHeight) {
             return {
               page: pageIndex,
-              x: padding,
-              y: padding
+              x: edgePadding,
+              y: edgePadding
             };
           } else {
             // Sticker too big for any page
@@ -1547,12 +1549,12 @@
         // Try different starting positions on this page
         const gridSize = 20;
 
-        const snapToGrid = (v) => Math.max(padding, Math.ceil(v / gridSize) * gridSize);
-        const initialY = pageIndex === startPageIndex ? snapToGrid(startY) : padding;
+        const snapToGrid = (v) => Math.max(edgePadding, Math.ceil(v / gridSize) * gridSize);
+        const initialY = pageIndex === startPageIndex ? snapToGrid(startY) : edgePadding;
         
-        for (let testY = initialY; testY + stickerHeight + padding <= pageHeight; testY += gridSize) {
-          const rowStartX = (pageIndex === startPageIndex && testY === initialY) ? snapToGrid(startX) : padding;
-          for (let testX = rowStartX; testX + stickerWidth + padding <= pageWidth; testX += gridSize) {
+        for (let testY = initialY; testY + stickerHeight + edgePadding <= pageHeight; testY += gridSize) {
+          const rowStartX = (pageIndex === startPageIndex && testY === initialY) ? snapToGrid(startX) : edgePadding;
+          for (let testX = rowStartX; testX + stickerWidth + edgePadding <= pageWidth; testX += gridSize) {
             const proposedRect = {
               x: testX,
               y: testY,
@@ -1567,7 +1569,7 @@
                 y: sticker.y,
                 width: sticker.width,
                 height: sticker.height
-              }, padding);
+              }, gapPadding);
             });
             
             if (!hasOverlap) {
@@ -2386,16 +2388,16 @@
 
         if (pages.length === 0) {
           const canvas = await captureElementToCanvas(preview);
-          const imgData = canvas.toDataURL('image/png');
-          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          const imgData = canvas.toDataURL('image/jpeg', 0.82);
+          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
         } else {
           for (let i = 0; i < pages.length; i++) {
             const canvas = await captureElementToCanvas(pages[i]);
-            const imgData = canvas.toDataURL('image/png');
+            const imgData = canvas.toDataURL('image/jpeg', 0.82);
             if (i > 0) {
               pdf.addPage();
             }
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
           }
         }
 
@@ -2417,22 +2419,85 @@
       showStatus('מכין תמונה...');
 
       try {
-        const canvas = await captureElementToCanvas(preview);
-        canvas.toBlob(function(blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'מדבקות.png';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          showStatus('תמונה הורדה בהצלחה! ✓');
-        });
+        await downloadPreviewAsZip(preview, 'מדבקות');
       } catch (error) {
         console.error('Image Error:', error);
         showStatus('תמונה הורדה בהצלחה!');
       }
+    }
+
+    async function downloadPreviewAsZip(preview, zipBaseName) {
+      if (typeof JSZip === 'undefined') {
+        showStatus('שגיאה: JSZip לא נטען', true);
+        return;
+      }
+
+      const pages = preview.querySelectorAll('.print-page');
+      const nodes = pages.length ? Array.from(pages) : [preview];
+      const zip = new JSZip();
+      const maxBytes = 2 * 1024 * 1024;
+
+      const canvasToJpegBlob = (c, quality) => new Promise((resolve) => {
+        c.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
+      });
+
+      const downscaleCanvas = (sourceCanvas, scaleFactor) => {
+        const target = document.createElement('canvas');
+        target.width = Math.max(1, Math.round(sourceCanvas.width * scaleFactor));
+        target.height = Math.max(1, Math.round(sourceCanvas.height * scaleFactor));
+        const ctx = target.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(sourceCanvas, 0, 0, target.width, target.height);
+        return target;
+      };
+
+      for (let i = 0; i < nodes.length; i++) {
+        showStatus(`מכין תמונה ${i + 1}/${nodes.length}...`);
+
+        const baseCanvas = await captureElementToCanvas(nodes[i], { scale: 3 });
+        let workingCanvas = baseCanvas;
+        let quality = 0.92;
+        let blob = null;
+
+        for (let attempt = 0; attempt < 24; attempt++) {
+          blob = await canvasToJpegBlob(workingCanvas, quality);
+
+          if (blob && blob.size <= maxBytes) {
+            break;
+          }
+
+          if (quality > 0.65) {
+            quality = Math.max(0.65, quality - 0.07);
+            continue;
+          }
+
+          workingCanvas = downscaleCanvas(workingCanvas, 0.9);
+          quality = 0.85;
+        }
+
+        if (!blob || blob.size > maxBytes) {
+          showStatus('לא הצלחתי להקטין את התמונה מתחת ל-2MB', true);
+          return;
+        }
+
+        const fileName = nodes.length === 1
+          ? `${zipBaseName}.jpg`
+          : `${zipBaseName}-עמוד-${i + 1}.jpg`;
+        zip.file(fileName, blob);
+      }
+
+      showStatus('מכין קובץ ZIP...');
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${zipBaseName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showStatus('ZIP הורד בהצלחה! ✓');
     }
 
     function switchTab(mode) {
@@ -2722,14 +2787,14 @@
 
         if (pages.length === 0) {
           const canvas = await captureElementToCanvas(preview);
-          const imgData = canvas.toDataURL('image/png');
-          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          const imgData = canvas.toDataURL('image/jpeg', 0.82);
+          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
         } else {
           for (let i = 0; i < pages.length; i++) {
             const canvas = await captureElementToCanvas(pages[i]);
-            const imgData = canvas.toDataURL('image/png');
+            const imgData = canvas.toDataURL('image/jpeg', 0.82);
             if (i > 0) pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
           }
         }
 
@@ -2751,18 +2816,7 @@
       showStatus('מכין תמונה...');
 
       try {
-        const canvas = await captureElementToCanvas(preview);
-        canvas.toBlob(function(blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'מדבקות-ממוספרות.png';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          showStatus('תמונה הורדה בהצלחה! ✓');
-        });
+        await downloadPreviewAsZip(preview, 'מדבקות-ממוספרות');
       } catch (error) {
         console.error('Image Error:', error);
         showStatus('תמונה הורדה בהצלחה!');
