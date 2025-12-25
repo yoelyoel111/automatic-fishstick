@@ -553,11 +553,11 @@
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">מספר מקסימלי:</label>
-        <input type="number" id="lotteryMax" min="1" value="100" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+        <input type="number" id="lotteryMax" min="1" value="150" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">כמה מספרים להגריל:</label>
-        <input type="number" id="lotteryCount" min="1" value="10" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+        <input type="number" id="lotteryCount" min="1" value="150" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">מספרים בשורה:</label>
@@ -565,7 +565,7 @@
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">גודל פונט:</label>
-        <input type="number" id="lotteryFontSize" min="12" max="120" value="48" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+        <input type="number" id="lotteryFontSize" min="12" max="120" value="27" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
        </div>
        <div class="flex items-center gap-2">
         <label class="text-sm font-medium text-gray-700">צבע מספר:</label>
@@ -1451,15 +1451,16 @@
     function duplicateSticker(index) {
       const originalSticker = stickers[index];
       
-      const padding = 20;
+      const edgePadding = 20;
+      const gapPadding = 8;
       const pageWidth = 210 * 3.7795275591;
       const pageHeight = 297 * 3.7795275591;
       
       // Find next available position that doesn't overlap
       const startPage = Number.isFinite(originalSticker.page) ? originalSticker.page : 0;
-      const startX = (Number.isFinite(originalSticker.x) ? originalSticker.x : padding) + (Number.isFinite(originalSticker.width) ? originalSticker.width : 0) + padding;
-      const startY = Number.isFinite(originalSticker.y) ? originalSticker.y : padding;
-      const newPosition = findNextAvailablePosition(originalSticker.width, originalSticker.height, pageWidth, pageHeight, padding, startPage, startX, startY);
+      const startX = (Number.isFinite(originalSticker.x) ? originalSticker.x : edgePadding) + (Number.isFinite(originalSticker.width) ? originalSticker.width : 0) + gapPadding;
+      const startY = Number.isFinite(originalSticker.y) ? originalSticker.y : edgePadding;
+      const newPosition = findNextAvailablePosition(originalSticker.width, originalSticker.height, pageWidth, pageHeight, edgePadding, gapPadding, startPage, startX, startY);
       
       if (!newPosition) {
         showStatus('אין מספיק מקום לשכפול המדבקה!', true);
@@ -1522,7 +1523,7 @@
       showStatus(`המדבקה שוכפלה!`);
     }
 
-    function findNextAvailablePosition(stickerWidth, stickerHeight, pageWidth, pageHeight, padding, startPage = 0, startX = padding, startY = padding) {
+    function findNextAvailablePosition(stickerWidth, stickerHeight, pageWidth, pageHeight, edgePadding, gapPadding, startPage = 0, startX = edgePadding, startY = edgePadding) {
       const maxPages = 20; // Increase to 20 pages
       
       const startPageIndex = Math.max(0, Math.min(maxPages - 1, Number(startPage) || 0));
@@ -1533,11 +1534,11 @@
         // If this is an empty page, start from top-left
         if (stickersOnPage.length === 0) {
           // Check if sticker fits on page
-          if (stickerWidth + padding * 2 <= pageWidth && stickerHeight + padding * 2 <= pageHeight) {
+          if (stickerWidth + edgePadding * 2 <= pageWidth && stickerHeight + edgePadding * 2 <= pageHeight) {
             return {
               page: pageIndex,
-              x: padding,
-              y: padding
+              x: edgePadding,
+              y: edgePadding
             };
           } else {
             // Sticker too big for any page
@@ -1548,12 +1549,12 @@
         // Try different starting positions on this page
         const gridSize = 20;
 
-        const snapToGrid = (v) => Math.max(padding, Math.ceil(v / gridSize) * gridSize);
-        const initialY = pageIndex === startPageIndex ? snapToGrid(startY) : padding;
+        const snapToGrid = (v) => Math.max(edgePadding, Math.ceil(v / gridSize) * gridSize);
+        const initialY = pageIndex === startPageIndex ? snapToGrid(startY) : edgePadding;
         
-        for (let testY = initialY; testY + stickerHeight + padding <= pageHeight; testY += gridSize) {
-          const rowStartX = (pageIndex === startPageIndex && testY === initialY) ? snapToGrid(startX) : padding;
-          for (let testX = rowStartX; testX + stickerWidth + padding <= pageWidth; testX += gridSize) {
+        for (let testY = initialY; testY + stickerHeight + edgePadding <= pageHeight; testY += gridSize) {
+          const rowStartX = (pageIndex === startPageIndex && testY === initialY) ? snapToGrid(startX) : edgePadding;
+          for (let testX = rowStartX; testX + stickerWidth + edgePadding <= pageWidth; testX += gridSize) {
             const proposedRect = {
               x: testX,
               y: testY,
@@ -1568,7 +1569,7 @@
                 y: sticker.y,
                 width: sticker.width,
                 height: sticker.height
-              }, padding);
+              }, gapPadding);
             });
             
             if (!hasOverlap) {
