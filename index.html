@@ -971,7 +971,7 @@
     let imageIdCounter = 0;
     let syncMoveEnabled = false;
     let syncDeleteEnabled = false;
-    let autoArrangeEnabled = false;
+    let autoArrangeEnabled = true;
     let initialDragPosition = null;
     let currentProjectFileName = null;
     const EXPORT_QUALITY = { pdfScale: 4, imageScale: 5, zipMaxBytes: 15 * 1024 * 1024, jpegQuality: 0.98, pdfCompression: 'NONE', pdfDpi: 360 };
@@ -4677,7 +4677,7 @@
       showStatus('סדר אוטומטי פעיל ✓');
     });
 
-    setLayoutMode(false);
+    setLayoutMode(true);
 
     document.getElementById('imageInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
