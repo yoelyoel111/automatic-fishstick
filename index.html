@@ -1109,6 +1109,8 @@
         <select id="namesUploadType" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
           <option value="simple">שמות בלבד (עמודה A)</option>
           <option value="groups">שמות לפי קבוצות</option>
+          <option value="tickets">שמות וכמות כרטיסים</option>
+          <option value="groupsTickets">שמות קבוצות וכרטיסים</option>
         </select>
        </div>
        <button id="downloadNamesTemplateBtn" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all shadow-md">
@@ -1855,8 +1857,17 @@
         }
 
         let displayText = item.name;
+        let ticketText = '';
+        
         if (uploadType === 'groups' && item.group) {
           displayText += `\n${item.group}`;
+        } else if (uploadType === 'tickets' && item.totalTickets > 1) {
+          ticketText = `${item.ticketNumber}/${item.totalTickets}`;
+        } else if (uploadType === 'groupsTickets' && item.group) {
+          displayText += `\n${item.group}`;
+          if (item.totalTickets > 1) {
+            ticketText = `${item.ticketNumber}/${item.totalTickets}`;
+          }
         }
 
         const note = {
@@ -1868,6 +1879,7 @@
           page: currentPage,
           backgroundImage: namesNoteTemplate.dataUrl,
           text: displayText,
+          ticketText: ticketText, // מספר הכרטיס בנפרד
           textColor: textColor,
           fontSize: fontSize,
           textX: noteWidth / 2, // Center horizontally
@@ -1942,6 +1954,23 @@
           textDiv.style.lineHeight = '1.1';
           textDiv.style.width = `${note.width * 0.85}px`;
           textDiv.textContent = note.text;
+
+          // הוסף מספר כרטיס בפינה השמאלית אם קיים
+          if (note.ticketText) {
+            const ticketDiv = document.createElement('div');
+            ticketDiv.style.position = 'absolute';
+            ticketDiv.style.left = '5px';
+            ticketDiv.style.top = '5px';
+            ticketDiv.style.fontSize = `${Math.max(8, note.fontSize * 0.4)}px`;
+            ticketDiv.style.color = note.textColor;
+            ticketDiv.style.fontWeight = 'bold';
+            ticketDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            ticketDiv.style.padding = '2px 4px';
+            ticketDiv.style.borderRadius = '3px';
+            ticketDiv.style.lineHeight = '1';
+            ticketDiv.textContent = note.ticketText;
+            noteDiv.appendChild(ticketDiv);
+          }
 
           // Add drag functionality
           textDiv.draggable = true;
@@ -2083,6 +2112,23 @@
             textDiv.style.width = `${note.width * 0.85}px`; // קצת יותר צר
             textDiv.textContent = note.text;
 
+            // הוסף מספר כרטיס בפינה השמאלית אם קיים
+            if (note.ticketText) {
+              const ticketDiv = document.createElement('div');
+              ticketDiv.style.position = 'absolute';
+              ticketDiv.style.left = '5px';
+              ticketDiv.style.top = '5px';
+              ticketDiv.style.fontSize = `${Math.max(8, note.fontSize * 0.4)}px`;
+              ticketDiv.style.color = note.textColor;
+              ticketDiv.style.fontWeight = 'bold';
+              ticketDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+              ticketDiv.style.padding = '2px 4px';
+              ticketDiv.style.borderRadius = '3px';
+              ticketDiv.style.lineHeight = '1';
+              ticketDiv.textContent = note.ticketText;
+              noteDiv.appendChild(ticketDiv);
+            }
+
             noteDiv.appendChild(textDiv);
             pageDiv.appendChild(noteDiv);
           });
@@ -2173,6 +2219,25 @@
           textDiv.style.zIndex = '2';
           textDiv.style.pointerEvents = 'none';
           textDiv.textContent = note.text;
+
+          // הוסף מספר כרטיס בפינה השמאלית אם קיים
+          if (note.ticketText) {
+            const ticketDiv = document.createElement('div');
+            ticketDiv.style.position = 'absolute';
+            ticketDiv.style.left = '5px';
+            ticketDiv.style.top = '5px';
+            ticketDiv.style.fontSize = `${Math.max(8, note.fontSize * 0.4)}px`;
+            ticketDiv.style.color = note.textColor;
+            ticketDiv.style.fontWeight = 'bold';
+            ticketDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            ticketDiv.style.padding = '2px 4px';
+            ticketDiv.style.borderRadius = '3px';
+            ticketDiv.style.lineHeight = '1';
+            ticketDiv.style.zIndex = '3';
+            ticketDiv.style.pointerEvents = 'none';
+            ticketDiv.textContent = note.ticketText;
+            noteDiv.appendChild(ticketDiv);
+          }
 
           noteDiv.appendChild(bgImg);
           noteDiv.appendChild(textDiv);
@@ -2441,7 +2506,7 @@
       
       if (type === 'simple') {
         instructions.innerHTML = '<p class="text-sm text-blue-700"><strong>שמות בלבד:</strong> הזן שמות בעמודה A מתא A2 ומטה (שורה 1 לכותרת)</p>';
-      } else {
+      } else if (type === 'groups') {
         instructions.innerHTML = `
           <p class="text-sm text-blue-700 mb-2"><strong>שמות לפי קבוצות:</strong></p>
           <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
@@ -2449,6 +2514,27 @@
             <li>שמות התלמידים מתחת לכל כיתה: C2, C3, C4... D2, D3, D4... וכן הלאה</li>
             <li>עמודות A ו-B יכולות להישאר ריקות</li>
             <li>בפתקים יופיע: שם התלמיד + שם הכיתה</li>
+          </ul>
+        `;
+      } else if (type === 'tickets') {
+        instructions.innerHTML = `
+          <p class="text-sm text-blue-700 mb-2"><strong>שמות וכמות כרטיסים:</strong></p>
+          <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
+            <li>שמות התלמידים בעמודה C: C2, C3, C4 וכן הלאה</li>
+            <li>כמות הכרטיסים בעמודה D: D2, D3, D4 וכן הלאה</li>
+            <li>עמודות A ו-B יכולות להישאר ריקות</li>
+            <li>לכל תלמיד יופיעו כרטיסים לפי הכמות שהוזנה</li>
+          </ul>
+        `;
+      } else if (type === 'groupsTickets') {
+        instructions.innerHTML = `
+          <p class="text-sm text-blue-700 mb-2"><strong>שמות קבוצות וכרטיסים:</strong></p>
+          <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
+            <li>שמות הקבוצות בשורה 1: C1, E1, G1 וכן הלאה (כל קבוצה תופסת 2 עמודות)</li>
+            <li>שמות התלמידים מתחת לכל קבוצה: C2, C3, C4... E2, E3, E4... וכן הלאה</li>
+            <li>כמות הכרטיסים לכל תלמיד: D2, D3, D4... F2, F3, F4... וכן הלאה</li>
+            <li>עמודות A ו-B יכולות להישאר ריקות</li>
+            <li>לכל תלמיד יופיעו כרטיסים לפי הכמות שהוזנה + שם הקבוצה</li>
           </ul>
         `;
       }
@@ -2460,14 +2546,21 @@
       let csvContent = '';
       if (uploadType === 'simple') {
         csvContent = '\uFEFFשם\nישראל ישראלי\nמשה כהן\nדוד לוי\nשרה אברהם\nרחל יעקב';
-      } else {
+      } else if (uploadType === 'groups') {
         csvContent = '\uFEFFבדיקה,,כיתה א,כיתה ב,כיתה ג\n,,ישראל ישראלי,משה כהן,דוד לוי\n,,שרה אברהם,רחל יעקב,לאה יצחק\n,,יוסף שמעון,אהרון בנימין,נפתלי גד\n,,אברהם יצחק,זבולון דן,יהודה ראובן\n,,שמעון לוי,,';
+      } else if (uploadType === 'tickets') {
+        csvContent = '\uFEFFבדיקה,,שם,כמות כרטיסים\n,,ישראל ישראלי,5\n,,משה כהן,3\n,,דוד לוי,7\n,,שרה אברהם,2\n,,רחל יעקב,4';
+      } else if (uploadType === 'groupsTickets') {
+        csvContent = '\uFEFFבדיקה,,קבוצה א,כמות,קבוצה ב,כמות,קבוצה ג,כמות\n,,ישראל ישראלי,5,משה כהן,3,דוד לוי,7\n,,שרה אברהם,2,רחל יעקב,4,לאה יצחק,6\n,,יוסף שמעון,3,אהרון בנימין,5,נפתלי גד,2\n,,אברהם יצחק,4,זבולון דן,3,יהודה ראובן,5\n,,שמעון לוי,2,,,';
       }
       
       // Create blob with UTF-8 BOM for Hebrew support
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8-sig;' });
       const link = document.createElement('a');
-      const fileName = uploadType === 'simple' ? 'תבנית-שמות-בלבד.csv' : 'תבנית-שמות-לפי-קבוצות.csv';
+      const fileName = uploadType === 'simple' ? 'תבנית-שמות-בלבד.csv' : 
+                       uploadType === 'groups' ? 'תבנית-שמות-לפי-קבוצות.csv' : 
+                       uploadType === 'tickets' ? 'תבנית-שמות-וכרטיסים.csv' :
+                       'תבנית-שמות-קבוצות-וכרטיסים.csv';
       link.download = fileName;
       link.href = URL.createObjectURL(blob);
       link.click();
@@ -2536,6 +2629,55 @@
             namesData.push({ name: studentName });
           }
         }
+      } else if (uploadType === 'tickets') {
+        // אפשרות 3: שמות וכמות כרטיסים - C=שם, D=כמות
+        for (let i = 1; i < lines.length; i++) {
+          const cells = lines[i].split(',').map(cell => cell.trim().replace(/^"|"$/g, ''));
+          const studentName = cells[2] ? cells[2].trim() : ''; // עמודה C
+          const ticketCount = cells[3] ? parseInt(cells[3].trim()) : 1; // עמודה D
+          
+          if (studentName && studentName.length > 0) {
+            // צור כמה רשומות לפי כמות הכרטיסים
+            for (let t = 0; t < Math.max(1, ticketCount); t++) {
+              namesData.push({ 
+                name: studentName,
+                ticketNumber: t + 1,
+                totalTickets: Math.max(1, ticketCount)
+              });
+            }
+          }
+        }
+      } else if (uploadType === 'groupsTickets') {
+        // אפשרות 4: שמות קבוצות וכרטיסים - C,D=קבוצה1, E,F=קבוצה2, וכן הלאה
+        const headers = lines[0] ? lines[0].split(',').map(cell => cell.trim().replace(/^"|"$/g, '')) : [];
+        
+        // התחל מעמודה C (אינדקס 2) ועבור על כל זוג עמודות (שם קבוצה, כמות)
+        for (let col = 2; col < headers.length; col += 2) {
+          const groupName = headers[col] ? headers[col].trim() : '';
+          
+          // דלג על קבוצות ריקות
+          if (!groupName || groupName.length === 0) continue;
+          
+          // קרא את כל השמות וכמויות תחת הקבוצה הזו (משורה 2 ואילך)
+          for (let row = 1; row < lines.length; row++) {
+            const cells = lines[row].split(',').map(cell => cell.trim().replace(/^"|"$/g, ''));
+            const studentName = cells[col] ? cells[col].trim() : ''; // עמודת השם
+            const ticketCount = cells[col + 1] ? parseInt(cells[col + 1].trim()) : 1; // עמודת הכמות
+            
+            // הוסף תלמיד אם השם קיים ולא ריק
+            if (studentName && studentName.length > 0) {
+              // צור כמה רשומות לפי כמות הכרטיסים
+              for (let t = 0; t < Math.max(1, ticketCount); t++) {
+                namesData.push({ 
+                  name: studentName, 
+                  group: groupName,
+                  ticketNumber: t + 1,
+                  totalTickets: Math.max(1, ticketCount)
+                });
+              }
+            }
+          }
+        }
       } else {
         // אפשרות 2: שמות לפי קבוצות
         // C1, D1, E1... = שמות הקבוצות
@@ -2591,6 +2733,39 @@
           previewHtml += `<div class="text-gray-700 text-sm leading-relaxed">${names.join(', ')}</div>`;
           previewHtml += `</div>`;
         }
+      } else if (uploadType === 'tickets') {
+        const students = {};
+        namesData.forEach(item => {
+          if (!students[item.name]) {
+            students[item.name] = item.totalTickets;
+          }
+        });
+        previewHtml += `<div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">`;
+        previewHtml += `<div class="font-bold text-indigo-800 text-base mb-2">שמות וכמות כרטיסים</div>`;
+        previewHtml += `<div class="text-gray-700 text-sm leading-relaxed">`;
+        for (const [name, count] of Object.entries(students)) {
+          previewHtml += `${name} (${count} כרטיסים), `;
+        }
+        previewHtml = previewHtml.slice(0, -2); // הסר את הפסיק האחרון
+        previewHtml += `</div></div>`;
+      } else if (uploadType === 'groupsTickets') {
+        const groups = {};
+        namesData.forEach(item => {
+          if (!groups[item.group]) groups[item.group] = {};
+          if (!groups[item.group][item.name]) {
+            groups[item.group][item.name] = item.totalTickets;
+          }
+        });
+        for (const [group, students] of Object.entries(groups)) {
+          previewHtml += `<div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">`;
+          previewHtml += `<div class="font-bold text-indigo-800 text-base mb-2">${group}</div>`;
+          previewHtml += `<div class="text-gray-700 text-sm leading-relaxed">`;
+          for (const [name, count] of Object.entries(students)) {
+            previewHtml += `${name} (${count} כרטיסים), `;
+          }
+          previewHtml = previewHtml.slice(0, -2); // הסר את הפסיק האחרון
+          previewHtml += `</div></div>`;
+        }
       } else {
         previewHtml = `<div class="text-gray-700">${namesData.map(item => item.name).join(', ')}</div>`;
       }
@@ -2615,11 +2790,11 @@
       if (mode === 'all') {
         // הגרלה אחת מכל השמות
         generateAllNamesLottery(winnersCount, startNum);
-      } else if (mode === 'byGroup' && uploadType === 'groups') {
+      } else if (mode === 'byGroup' && (uploadType === 'groups' || uploadType === 'groupsTickets')) {
         // הגרלה נפרדת לכל קבוצה
         generateGroupNamesLottery(winnersCount, startNum);
-      } else if (mode === 'byGroup' && uploadType === 'simple') {
-        showStatus('הגרלה לפי קבוצה זמינה רק כשמעלים קובץ "שמות לפי קבוצות"', true);
+      } else if (mode === 'byGroup' && (uploadType === 'simple' || uploadType === 'tickets')) {
+        showStatus('הגרלה לפי קבוצה זמינה רק כשמעלים קובץ עם קבוצות', true);
         return;
       }
       
