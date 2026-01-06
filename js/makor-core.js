@@ -534,6 +534,7 @@
         pageEl.dataset.pageIndex = 0;
         previewInner.replaceChildren(pageEl);
         applyPrintPreviewScale();
+        updateButtonStates(); // Update button states when no stickers
         return;
       }
 
@@ -653,6 +654,7 @@
 
         previewInner.replaceChildren(fragment);
         applyPrintPreviewScale();
+        updateButtonStates(); // Update button states after rendering
       } catch (error) {
         console.error('Error in renderStickers:', error);
         showStatus('שגיאה בהצגת המדבקות (ראה Console)', true);
@@ -929,7 +931,14 @@
       el.className = 'text-word';
       el.dataset.wordId = word.id;
       el.dataset.stickerIndex = stickerIndex;
-      el.textContent = word.text;
+      
+      // Apply curve if available using SVG text path
+      if (word.curve && word.curve !== 0) {
+        el.innerHTML = createCurvedText(word.text, word.curve, word);
+      } else {
+        el.textContent = word.text;
+      }
+      
       el.style.left = `${word.x}px`;
       el.style.top = `${word.y}px`;
       el.style.color = word.color || '#000000';
@@ -945,6 +954,11 @@
       el.style.fontSize = `${word.fontSize || 12}px`;
       el.style.fontFamily = word.fontFamily || 'Arial';
       el.style.fontWeight = word.fontWeight || '700';
+      
+      // Apply rotation if available
+      if (word.rotation) {
+        el.style.transform = `rotate(${word.rotation}deg)`;
+      }
       
       // Apply opacity - default to 1 (fully opaque) if not set
       // This ensures words have their own opacity independent of sticker
@@ -967,9 +981,29 @@
         startWordResize(e, stickerIndex, word.id);
       });
       el.appendChild(resizeHandle);
+      
+      // Rotation handle - appears below center of text
+      const rotateHandle = document.createElement('div');
+      rotateHandle.className = 'word-rotate-handle no-print';
+      rotateHandle.innerHTML = '↻';
+      rotateHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startWordRotate(e, stickerIndex, word.id, el);
+      });
+      el.appendChild(rotateHandle);
+      
+      // Curve handle - appears below left side of text
+      const curveHandle = document.createElement('div');
+      curveHandle.className = 'word-curve-handle no-print';
+      curveHandle.innerHTML = '⌒';
+      curveHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startWordCurve(e, stickerIndex, word.id, el);
+      });
+      el.appendChild(curveHandle);
 
       el.addEventListener('mousedown', (e) => {
-        if (e.target === deleteBtn || e.target === resizeHandle) return;
+        if (e.target === deleteBtn || e.target === resizeHandle || e.target === rotateHandle || e.target === curveHandle) return;
         e.stopPropagation();
         startWordDrag(e, stickerIndex, word.id);
       });
@@ -993,6 +1027,228 @@
       // });
 
       return el;
+    }
+    
+    // פונקציה ליצירת טקסט מקומר באמצעות SVG
+    function createCurvedText(text, curve, word) {
+      const fontSize = word.fontSize || 12;
+      const fontFamily = word.fontFamily || 'Arial';
+      const fontWeight = word.fontWeight || '700';
+      const color = word.color || '#000000';
+      const isGradient = word.isGradient;
+      
+      // חישוב רוחב משוער של הטקסט
+      const charWidth = fontSize * 0.6;
+      const textWidth = text.length * charWidth;
+      const svgWidth = Math.max(textWidth + 40, 100);
+      const svgHeight = Math.abs(curve) + fontSize * 2 + 20;
+      
+      // חישוב הקשת
+      const startX = 10;
+      const endX = svgWidth - 10;
+      const midX = svgWidth / 2;
+      
+      // curve חיובי = קימור למטה, curve שלילי = קימור למעלה
+      const baseY = curve > 0 ? fontSize + 10 : svgHeight - fontSize - 10;
+      const curveY = baseY + curve;
+      
+      const pathId = `curve-${word.id}`;
+      
+      let fillStyle = '';
+      let defsContent = '';
+      
+      if (isGradient && color) {
+        // יצירת גרדיאנט ב-SVG
+        const gradientId = `grad-${word.id}`;
+        defsContent = `
+          <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#FF0000"/>
+            <stop offset="100%" style="stop-color:#0000FF"/>
+          </linearGradient>
+        `;
+        fillStyle = `fill="url(#${gradientId})"`;
+      } else {
+        fillStyle = `fill="${color}"`;
+      }
+      
+      return `
+        <svg width="${svgWidth}" height="${svgHeight}" style="overflow: visible;">
+          <defs>
+            ${defsContent}
+            <path id="${pathId}" d="M ${startX},${baseY} Q ${midX},${curveY} ${endX},${baseY}" fill="none"/>
+          </defs>
+          <text ${fillStyle} font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}">
+            <textPath href="#${pathId}" startOffset="50%" text-anchor="middle">
+              ${text}
+            </textPath>
+          </text>
+        </svg>
+      `;
+    }
+    
+    // משתנה גלובלי לסיבוב
+    let rotatingWord = null;
+    
+    // משתנה גלובלי לקימור
+    let curvingWord = null;
+    
+    function startWordRotate(e, stickerIndex, wordId, wordEl) {
+      e.preventDefault();
+      
+      const sticker = stickers[stickerIndex];
+      if (!sticker) return;
+      
+      const word = sticker.words.find(w => w.id === wordId);
+      if (!word) return;
+      
+      // חישוב מרכז הטקסט
+      const rect = wordEl.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      rotatingWord = {
+        stickerIndex,
+        wordId,
+        wordEl,
+        word,
+        centerX,
+        centerY,
+        startAngle: word.rotation || 0,
+        startX: e.clientX
+      };
+      
+      pushHistory();
+      
+      document.addEventListener('mousemove', rotateWord);
+      document.addEventListener('mouseup', stopWordRotate);
+    }
+    
+    function rotateWord(e) {
+      if (!rotatingWord) return;
+      
+      const { word, wordEl, startAngle, startX } = rotatingWord;
+      
+      // חישוב הסיבוב לפי תנועה אופקית - כל 2 פיקסלים = מעלה אחת
+      const deltaX = e.clientX - startX;
+      const newRotation = startAngle + (deltaX * 0.5);
+      
+      // עדכון הסיבוב
+      word.rotation = newRotation;
+      wordEl.style.transform = `rotate(${newRotation}deg)`;
+    }
+    
+    function stopWordRotate() {
+      if (rotatingWord) {
+        renderStickers();
+      }
+      rotatingWord = null;
+      document.removeEventListener('mousemove', rotateWord);
+      document.removeEventListener('mouseup', stopWordRotate);
+    }
+    
+    function startWordCurve(e, stickerIndex, wordId, wordEl) {
+      e.preventDefault();
+      
+      const sticker = stickers[stickerIndex];
+      if (!sticker) return;
+      
+      const word = sticker.words.find(w => w.id === wordId);
+      if (!word) return;
+      
+      curvingWord = {
+        stickerIndex,
+        wordId,
+        wordEl,
+        word,
+        startCurve: word.curve || 0,
+        startY: e.clientY
+      };
+      
+      pushHistory();
+      
+      document.addEventListener('mousemove', curveWord);
+      document.addEventListener('mouseup', stopWordCurve);
+    }
+    
+    function curveWord(e) {
+      if (!curvingWord) return;
+      
+      const { word, wordEl, startCurve, startY } = curvingWord;
+      
+      // חישוב הקימור לפי תנועה אנכית - כל פיקסל = יחידת קימור
+      const deltaY = e.clientY - startY;
+      const newCurve = startCurve + deltaY;
+      
+      // הגבלת הקימור לטווח סביר
+      word.curve = Math.max(-100, Math.min(100, newCurve));
+      
+      // עדכון התצוגה
+      if (word.curve !== 0) {
+        wordEl.innerHTML = createCurvedText(word.text, word.curve, word);
+        // הוספה מחדש של הכפתורים
+        reattachWordControls(wordEl, curvingWord.stickerIndex, word.id);
+      } else {
+        wordEl.textContent = word.text;
+        reattachWordControls(wordEl, curvingWord.stickerIndex, word.id);
+      }
+    }
+    
+    function reattachWordControls(wordEl, stickerIndex, wordId) {
+      // הסרת כפתורים קיימים
+      const existingDelete = wordEl.querySelector('.delete-word-btn');
+      const existingResize = wordEl.querySelector('.word-resize-handle');
+      const existingRotate = wordEl.querySelector('.word-rotate-handle');
+      const existingCurve = wordEl.querySelector('.word-curve-handle');
+      if (existingDelete) existingDelete.remove();
+      if (existingResize) existingResize.remove();
+      if (existingRotate) existingRotate.remove();
+      if (existingCurve) existingCurve.remove();
+      
+      // הוספת כפתורים מחדש
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'delete-word-btn no-print';
+      deleteBtn.textContent = '×';
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteWord(stickerIndex, wordId);
+      });
+      wordEl.appendChild(deleteBtn);
+
+      const resizeHandle = document.createElement('div');
+      resizeHandle.className = 'word-resize-handle no-print';
+      resizeHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startWordResize(e, stickerIndex, wordId);
+      });
+      wordEl.appendChild(resizeHandle);
+      
+      const rotateHandle = document.createElement('div');
+      rotateHandle.className = 'word-rotate-handle no-print';
+      rotateHandle.innerHTML = '↻';
+      rotateHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startWordRotate(e, stickerIndex, wordId, wordEl);
+      });
+      wordEl.appendChild(rotateHandle);
+      
+      const curveHandle = document.createElement('div');
+      curveHandle.className = 'word-curve-handle no-print';
+      curveHandle.innerHTML = '⌒';
+      curveHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startWordCurve(e, stickerIndex, wordId, wordEl);
+      });
+      wordEl.appendChild(curveHandle);
+    }
+    
+    function stopWordCurve() {
+      if (curvingWord) {
+        renderStickers();
+      }
+      curvingWord = null;
+      document.removeEventListener('mousemove', curveWord);
+      document.removeEventListener('mouseup', stopWordCurve);
     }
 
     function showStatus(message, isError = false) {
@@ -1643,7 +1899,10 @@
           fontSize: word.fontSize,
           fontFamily: word.fontFamily,
           fontWeight: word.fontWeight,
-          opacity: word.opacity
+          opacity: word.opacity,
+          rotation: word.rotation,
+          curve: word.curve,
+          isGradient: word.isGradient
         };
         duplicatedSticker.words.push(newWord);
       });
@@ -1868,6 +2127,18 @@
         fontSizeInput.value = String(Math.round(baseWord.fontSize));
       }
       
+      // עדכן את בחירת הפונט לפי הטקסט הנבחר
+      const fontFamilyInput = document.getElementById('fontFamilyInput');
+      if (baseWord && fontFamilyInput && baseWord.fontFamily) {
+        fontFamilyInput.value = baseWord.fontFamily;
+      }
+      
+      // עדכן את בחירת המשקל לפי הטקסט הנבחר
+      const fontWeightInput = document.getElementById('fontWeightInput');
+      if (baseWord && fontWeightInput && baseWord.fontWeight) {
+        fontWeightInput.value = baseWord.fontWeight;
+      }
+      
       // Update opacity control
       updateOpacityControl('word', stickerIndex, wordId);
       
@@ -1884,6 +2155,55 @@
         wordInput.select(); // בחר את כל הטקסט כדי שיהיה קל לערוך
       }
     }
+    
+    // פונקציה לעדכון צבע של טקסט נבחר
+    function applyColorToSelectedWord(color, isGradient) {
+      if (selectedWord === null || selectedSticker === null) return false;
+      
+      const sticker = stickers[selectedSticker];
+      if (!sticker) return false;
+      
+      const word = sticker.words.find(w => w.id === selectedWord);
+      if (!word) return false;
+      
+      pushHistory();
+      word.color = color;
+      word.isGradient = isGradient;
+      renderStickers();
+      return true;
+    }
+    
+    // פונקציה לעדכון פונט של טקסט נבחר
+    function applyFontToSelectedWord(fontFamily) {
+      if (selectedWord === null || selectedSticker === null) return false;
+      
+      const sticker = stickers[selectedSticker];
+      if (!sticker) return false;
+      
+      const word = sticker.words.find(w => w.id === selectedWord);
+      if (!word) return false;
+      
+      pushHistory();
+      word.fontFamily = fontFamily;
+      renderStickers();
+      return true;
+    }
+    
+    // פונקציה לעדכון משקל פונט של טקסט נבחר
+    function applyFontWeightToSelectedWord(fontWeight) {
+      if (selectedWord === null || selectedSticker === null) return false;
+      
+      const sticker = stickers[selectedSticker];
+      if (!sticker) return false;
+      
+      const word = sticker.words.find(w => w.id === selectedWord);
+      if (!word) return false;
+      
+      pushHistory();
+      word.fontWeight = fontWeight;
+      renderStickers();
+      return true;
+    }
 
     function startInlineTextEdit(wordElement, stickerIndex, wordId) {
       // מנע עריכה כפולה
@@ -1897,55 +2217,118 @@
 
       // שמור את הטקסט המקורי
       const originalText = word.text;
+      const originalColor = word.color;
+      const originalIsGradient = word.isGradient;
       
       // יצור שדה קלט
       const input = document.createElement('input');
       input.type = 'text';
       input.value = originalText;
       input.className = 'inline-text-edit';
-      input.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: 2px solid #3b82f6;
-        border-radius: 4px;
-        background: rgba(255, 255, 255, 0.95);
-        color: ${word.color || '#000000'};
-        font-size: ${word.fontSize || 12}px;
-        font-family: ${word.fontFamily || 'Arial'};
-        font-weight: ${word.fontWeight || '700'};
-        text-align: center;
-        outline: none;
-        z-index: 1000;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-      `;
-
+      
+      // פונקציה לחישוב רוחב הטקסט
+      const calculateTextWidth = (text) => {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        context.font = `${word.fontWeight || '700'} ${word.fontSize || 12}px ${word.fontFamily || 'Arial'}`;
+        return Math.max(50, context.measureText(text || 'A').width + 20); // מינימום 50px + ריווח
+      };
+      
+      // פונקציה לעדכון סגנון השדה
+      const updateInputStyle = () => {
+        const textWidth = calculateTextWidth(input.value);
+        const currentColor = word.isGradient ? '#000000' : (word.color || '#000000');
+        
+        input.style.cssText = `
+          position: absolute !important;
+          top: -2px !important;
+          left: -2px !important;
+          width: ${textWidth}px !important;
+          height: ${(word.fontSize || 12) + 8}px !important;
+          border: 2px solid #3b82f6 !important;
+          border-radius: 4px !important;
+          background: rgba(255, 255, 255, 0.98) !important;
+          color: ${currentColor} !important;
+          font-size: ${word.fontSize || 12}px !important;
+          font-family: ${word.fontFamily || 'Arial'} !important;
+          font-weight: ${word.fontWeight || '700'} !important;
+          text-align: center !important;
+          outline: none !important;
+          z-index: 1001 !important;
+          box-shadow: 0 0 15px rgba(59, 130, 246, 0.8) !important;
+          padding: 2px 4px !important;
+          box-sizing: border-box !important;
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        `;
+      };
+      
       // הסתר את הטקסט המקורי
-      if (word.isGradient) {
-        wordElement.style.webkitTextFillColor = 'transparent';
-        wordElement.style.color = 'transparent';
-      } else {
-        wordElement.style.color = 'transparent';
-      }
+      wordElement.style.color = 'transparent !important';
+      wordElement.style.webkitTextFillColor = 'transparent !important';
+      wordElement.style.background = 'transparent !important';
       
       // הוסף את שדה הקלט
       wordElement.appendChild(input);
+      updateInputStyle();
       
       // פוקוס ובחירת הטקסט
-      input.focus();
-      input.select();
+      setTimeout(() => {
+        input.focus();
+        input.select();
+      }, 50);
 
+      // עדכון רוחב השדה בזמן הקלדה
+      input.addEventListener('input', () => {
+        updateInputStyle();
+      });
+
+      // מאזין לשינויי צבע בזמן עריכה - מאזין ספציפי לפלטת הצבעים
+      const handleColorChange = (e) => {
+        // בדוק אם הלחיצה הייתה על צבע בפלטה או על תצוגת הגרדיאנט
+        if (e.target.classList.contains('color-palette-color') || 
+            e.target.id === 'gradientPreview') {
+          
+          setTimeout(() => {
+            const textColorSwatch = document.getElementById('textColorSwatch');
+            const textColorPicker = document.getElementById('textColorPicker');
+            
+            if (textColorSwatch && textColorPicker) {
+              const isGradient = textColorSwatch.dataset.isGradient === 'true';
+              const gradientValue = textColorSwatch.dataset.gradientValue;
+              const regularColor = textColorPicker.value;
+              
+              // עדכן את המילה
+              if (isGradient && gradientValue) {
+                word.color = gradientValue;
+                word.isGradient = true;
+              } else {
+                word.color = regularColor;
+                word.isGradient = false;
+              }
+              
+              // עדכן את סגנון השדה
+              updateInputStyle();
+            }
+          }, 10);
+        }
+      };
+
+      // הוסף מאזין לשינויי צבע
+      document.addEventListener('click', handleColorChange, true);
+      
       // פונקציה לסיום העריכה
       const finishEdit = (save = true) => {
         if (!input.parentNode) return; // כבר הוסר
+        
+        // הסר את מאזין שינויי הצבע
+        document.removeEventListener('click', handleColorChange, true);
         
         if (save && input.value.trim() !== '') {
           // עדכן את הטקסט
           pushHistory();
           word.text = input.value.trim();
-          wordElement.textContent = word.text;
           
           // עדכן גם את שדה הקלט הראשי
           const wordInput = document.getElementById('wordInput');
@@ -1953,34 +2336,24 @@
             wordInput.value = word.text;
           }
         } else if (!save) {
-          // שחזר את הטקסט המקורי
-          wordElement.textContent = originalText;
+          // שחזר את הטקסט והצבע המקוריים
+          word.text = originalText;
+          word.color = originalColor;
+          word.isGradient = originalIsGradient;
         }
         
-        // הסר את שדה הקלט והחזר את הצבע
+        // הסר את שדה הקלט
         input.remove();
         
-        // החזר את הסגנון המקורי (צבע רגיל או גרדיאנט)
-        if (word.isGradient && word.color) {
-          wordElement.style.background = word.color;
-          wordElement.style.webkitBackgroundClip = 'text';
-          wordElement.style.backgroundClip = 'text';
-          wordElement.style.webkitTextFillColor = 'transparent';
-          wordElement.style.color = 'transparent';
-        } else {
-          wordElement.style.color = word.color || '#000000';
-          wordElement.style.background = '';
-          wordElement.style.webkitBackgroundClip = '';
-          wordElement.style.backgroundClip = '';
-          wordElement.style.webkitTextFillColor = '';
-        }
-        
-        // רנדר מחדש כדי לעדכן את כל המדבקות
+        // רנדר מחדש כדי לעדכן את כל המדבקות עם הטקסט והצבע החדשים
         renderStickers();
       };
 
       // אירועים לסיום העריכה
-      input.addEventListener('blur', () => finishEdit(true));
+      input.addEventListener('blur', () => {
+        setTimeout(() => finishEdit(true), 100); // עיכוב קטן כדי לאפשר לחיצה על צבעים
+      });
+      
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -2259,7 +2632,8 @@
       
       const textColorSwatch = document.getElementById('textColorSwatch');
       const color = document.getElementById('textColorPicker').value;
-      const gradient = textColorSwatch ? textColorSwatch.dataset.gradient : null;
+      const isGradient = textColorSwatch && textColorSwatch.dataset.isGradient === 'true';
+      const gradientValue = textColorSwatch ? textColorSwatch.dataset.gradientValue : null;
       const fontSize = parseInt(document.getElementById('fontSizeInput').value);
       const fontFamily = document.getElementById('fontFamilyInput').value;
       const fontWeight = document.getElementById('fontWeightInput').value;
@@ -2287,8 +2661,11 @@
       const textH = tempDiv.offsetHeight;
       document.body.removeChild(tempDiv);
 
-      const fixedX = Math.max(0, (sticker.width - textW) / 2);
-      const fixedY = Math.max(0, (sticker.height - textH) / 2);
+      // מיקום במרכז המדבקה - פשוט וישיר
+      const stickerW = sticker.width || 100;
+      const stickerH = sticker.height || 100;
+      const fixedX = (stickerW - textW) / 2;
+      const fixedY = (stickerH - textH) / 2;
 
       const seriesId = `series-${++wordSeriesCounter}`;
       
@@ -2298,11 +2675,11 @@
         text: text,
         x: fixedX,
         y: fixedY,
-        color: gradient || color, // Use gradient if available, otherwise regular color
+        color: isGradient ? gradientValue : color,
         fontSize: fontSize,
         fontFamily: fontFamily,
         fontWeight: fontWeight,
-        isGradient: !!gradient
+        isGradient: isGradient
       };
       
       stickers[selectedSticker].words.push(word);
@@ -2328,7 +2705,8 @@
       
       const textColorSwatch = document.getElementById('textColorSwatch');
       const color = document.getElementById('textColorPicker').value;
-      const gradient = textColorSwatch ? textColorSwatch.dataset.gradient : null;
+      const isGradient = textColorSwatch && textColorSwatch.dataset.isGradient === 'true';
+      const gradientValue = textColorSwatch ? textColorSwatch.dataset.gradientValue : null;
       const fontSize = parseInt(document.getElementById('fontSizeInput').value);
       const fontFamily = document.getElementById('fontFamilyInput').value;
       const fontWeight = document.getElementById('fontWeightInput').value;
@@ -2354,19 +2732,22 @@
       
       stickers.forEach(sticker => {
         sticker.words = sticker.words || [];
-        const fixedX = Math.max(0, (sticker.width - textW) / 2);
-        const fixedY = Math.max(0, (sticker.height - textH) / 2);
+        // מיקום במרכז המדבקה - פשוט וישיר
+        const stickerW = sticker.width || 100;
+        const stickerH = sticker.height || 100;
+        const fixedX = (stickerW - textW) / 2;
+        const fixedY = (stickerH - textH) / 2;
         const word = {
           id: `word-${++wordIdCounter}`,
           seriesId,
           text: text,
           x: fixedX,
           y: fixedY,
-          color: gradient || color, // Use gradient if available, otherwise regular color
+          color: isGradient ? gradientValue : color,
           fontSize: fontSize,
           fontFamily: fontFamily,
           fontWeight: fontWeight,
-          isGradient: !!gradient
+          isGradient: isGradient
         };
         sticker.words.push(word);
       });
@@ -2390,7 +2771,10 @@
         return;
       }
       
+      const textColorSwatch = document.getElementById('textColorSwatch');
       const color = document.getElementById('textColorPicker').value;
+      const isGradient = textColorSwatch && textColorSwatch.dataset.isGradient === 'true';
+      const gradientValue = textColorSwatch ? textColorSwatch.dataset.gradientValue : null;
       const fontSize = parseInt(document.getElementById('fontSizeInput').value);
       const fontFamily = document.getElementById('fontFamilyInput').value;
       const fontWeight = document.getElementById('fontWeightInput').value;
@@ -2437,10 +2821,11 @@
           
           // Update word properties
           lastWord.text = newText;
-          lastWord.color = color;
+          lastWord.color = isGradient ? gradientValue : color;
           lastWord.fontSize = fontSize;
           lastWord.fontFamily = fontFamily;
           lastWord.fontWeight = fontWeight;
+          lastWord.isGradient = isGradient;
           lastWord.x = Math.max(0, newX);
           lastWord.y = Math.max(0, newY);
           
@@ -2717,8 +3102,12 @@
       let newX = e.clientX - parentRect.left - offsetX;
       let newY = e.clientY - parentRect.top - offsetY;
       
-      newX = Math.max(0, Math.min(newX, parentRect.width - wordEl.offsetWidth));
-      newY = Math.max(0, Math.min(newY, parentRect.height - wordEl.offsetHeight));
+      // Allow 30% movement beyond sticker boundaries
+      const extraSpaceX = parentRect.width * 0.3;
+      const extraSpaceY = parentRect.height * 0.3;
+      
+      newX = Math.max(-extraSpaceX, Math.min(newX, parentRect.width + extraSpaceX - wordEl.offsetWidth));
+      newY = Math.max(-extraSpaceY, Math.min(newY, parentRect.height + extraSpaceY - wordEl.offsetHeight));
       
       const word = stickers[stickerIndex].words.find(w => w.id === wordId);
       if (word && initialDragPosition) {
@@ -4375,6 +4764,26 @@
     document.getElementById('replaceAllBtn').addEventListener('click', function() {
       replaceWordInAllStickers();
     });
+    
+    // Event listener לשינוי פונט - מעדכן טקסט נבחר
+    const fontFamilyInput = document.getElementById('fontFamilyInput');
+    if (fontFamilyInput) {
+      fontFamilyInput.addEventListener('change', function() {
+        if (selectedWord !== null) {
+          applyFontToSelectedWord(this.value);
+        }
+      });
+    }
+    
+    // Event listener לשינוי משקל פונט - מעדכן טקסט נבחר
+    const fontWeightInput = document.getElementById('fontWeightInput');
+    if (fontWeightInput) {
+      fontWeightInput.addEventListener('change', function() {
+        if (selectedWord !== null) {
+          applyFontWeightToSelectedWord(this.value);
+        }
+      });
+    }
 
     const syncElementsBtn = document.getElementById('syncElementsBtn');
     if (syncElementsBtn) syncElementsBtn.addEventListener('click', function() {
@@ -5108,20 +5517,88 @@
         return;
       }
 
-      const setSwatch = (color) => {
-        textColorSwatch.style.background = color;
-        textColorPicker.value = color;
+      // Gradient state
+      let selectedGradientType = 'horizontal';
+      let gradientColor1 = '#FF0000';
+      let gradientColor2 = '#0000FF';
+      let gradientColorMode = 0; // 0 = regular color mode, 1 = first gradient color, 2 = second gradient color
+
+      const setSwatch = (color, isGradient = false) => {
+        if (isGradient) {
+          textColorSwatch.style.background = color;
+          textColorSwatch.dataset.isGradient = 'true';
+          textColorSwatch.dataset.gradientValue = color;
+        } else {
+          textColorSwatch.style.background = color;
+          textColorSwatch.dataset.isGradient = 'false';
+          textColorPicker.value = color;
+        }
       };
 
       setSwatch(textColorPicker.value || '#000000');
 
       const paletteColors = [
-        '#000000', '#444444', '#777777', '#BBBBBB', '#FFFFFF',
-        '#FF0000', '#FF7A00', '#FFD400', '#00C853', '#00B0FF',
-        '#2962FF', '#651FFF', '#D500F9', '#FF4081', '#8D6E63',
-        '#1B5E20', '#004D40', '#01579B', '#1A237E', '#311B92',
-        '#B71C1C', '#E65100', '#F57F17', '#33691E', '#263238'
+        '#000000', '#444444', '#777777', '#BBBBBB', '#FFFFFF', '#FF0000',
+        '#FF7A00', '#FFD400', '#00C853', '#00B0FF', '#2962FF',
+        '#651FFF', '#D500F9', '#FF4081', '#8D6E63', '#1B5E20',
+        '#004D40', '#01579B', '#1A237E', '#311B92', '#B71C1C',
+        '#E65100', '#F57F17', '#33691E', '#263238', '#795548',
+        '#607D8B', '#9E9E9E', '#FF5722', '#FF9800'
       ];
+
+      const updateGradientPreview = () => {
+        const preview = document.getElementById('gradientPreview');
+        if (!preview) return;
+        
+        let gradientCSS = '';
+        switch (selectedGradientType) {
+          case 'horizontal':
+            gradientCSS = `linear-gradient(to left, ${gradientColor1}, ${gradientColor2})`;
+            break;
+          case 'vertical':
+            gradientCSS = `linear-gradient(to bottom, ${gradientColor1}, ${gradientColor2})`;
+            break;
+          case 'diagonal-down':
+            gradientCSS = `linear-gradient(135deg, ${gradientColor1}, ${gradientColor2})`;
+            break;
+          case 'diagonal-up':
+            gradientCSS = `linear-gradient(45deg, ${gradientColor1}, ${gradientColor2})`;
+            break;
+          case 'radial':
+            gradientCSS = `radial-gradient(circle, ${gradientColor1}, ${gradientColor2})`;
+            break;
+        }
+        preview.style.background = gradientCSS;
+        preview.dataset.gradientValue = gradientCSS;
+      };
+
+      const updateGradientColorButtons = () => {
+        const color1Btn = document.getElementById('gradientColor1Btn');
+        const color2Btn = document.getElementById('gradientColor2Btn');
+        if (color1Btn) {
+          color1Btn.style.background = gradientColor1;
+          // Update active state
+          if (gradientColorMode === 1) {
+            color1Btn.style.border = '3px solid #3b82f6';
+            color1Btn.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.2)';
+          } else {
+            color1Btn.style.border = '2px solid rgba(0,0,0,0.15)';
+            color1Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+          }
+        }
+        if (color2Btn) {
+          color2Btn.style.background = gradientColor2;
+          // Update active state
+          if (gradientColorMode === 2) {
+            color2Btn.style.border = '3px solid #3b82f6';
+            color2Btn.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.2)';
+          } else {
+            color2Btn.style.border = '2px solid rgba(0,0,0,0.15)';
+            color2Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+          }
+        }
+        updateGradientPreview();
+      };
 
       textColorPaletteGrid.innerHTML = '';
       
@@ -5134,17 +5611,208 @@
         btn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          setSwatch(c);
-          textColorPalette.classList.add('hidden');
+          
+          // Check if we're in gradient mode (gradientColorMode 1 or 2)
+          if (gradientColorMode === 1 || gradientColorMode === 2) {
+            // Update the selected gradient color slot
+            if (gradientColorMode === 1) {
+              gradientColor1 = c;
+            } else {
+              gradientColor2 = c;
+            }
+            updateGradientColorButtons();
+          } else {
+            // Regular color mode - set as solid color and close palette
+            setSwatch(c);
+            // עדכן טקסט נבחר אם יש
+            applyColorToSelectedWord(c, false);
+            textColorPalette.classList.add('hidden');
+          }
         });
         textColorPaletteGrid.appendChild(btn);
       });
+
+      // Add gradient section
+      const gradientSection = document.createElement('div');
+      gradientSection.className = 'gradient-section';
+      gradientSection.id = 'gradientSection';
+      
+      // Add click listener to gradient section for empty space clicks
+      gradientSection.addEventListener('click', (e) => {
+        // Check if click was on empty space within gradient section
+        const isEmptySpace = e.target === gradientSection ||
+                            e.target.classList.contains('gradient-separator') ||
+                            e.target.classList.contains('gradient-types') ||
+                            e.target.classList.contains('gradient-controls') ||
+                            e.target.classList.contains('gradient-color-pickers');
+        
+        if (isEmptySpace) {
+          // Reset gradient mode - hide visual indicators
+          const color1Btn = document.getElementById('gradientColor1Btn');
+          const color2Btn = document.getElementById('gradientColor2Btn');
+          if (color1Btn) {
+            color1Btn.style.border = '2px solid rgba(0,0,0,0.15)';
+            color1Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+          }
+          if (color2Btn) {
+            color2Btn.style.border = '2px solid rgba(0,0,0,0.15)';
+            color2Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+          }
+          // Reset gradient mode to 0 (regular color mode)
+          gradientColorMode = 0;
+        }
+      });
+      
+      const gradientSeparator = document.createElement('div');
+      gradientSeparator.className = 'gradient-separator';
+      gradientSeparator.textContent = 'גרדיאנט';
+      gradientSection.appendChild(gradientSeparator);
+
+      // Gradient type buttons
+      const gradientTypes = document.createElement('div');
+      gradientTypes.className = 'gradient-types';
+      
+      const gradientOptions = [
+        { type: 'horizontal', label: 'אופקי', bg: 'linear-gradient(to left, #FF6B6B, #4ECDC4)' },
+        { type: 'vertical', label: 'אנכי', bg: 'linear-gradient(to bottom, #FF6B6B, #4ECDC4)' },
+        { type: 'diagonal-down', label: '↘', bg: 'linear-gradient(135deg, #FF6B6B, #4ECDC4)' },
+        { type: 'diagonal-up', label: '↙', bg: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)' },
+        { type: 'radial', label: 'עגול', bg: 'radial-gradient(circle, #FF6B6B, #4ECDC4)' }
+      ];
+
+      gradientOptions.forEach(option => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'gradient-type-btn';
+        btn.textContent = option.label;
+        btn.style.background = option.bg;
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          selectedGradientType = option.type;
+          
+          // Update active state
+          gradientTypes.querySelectorAll('.gradient-type-btn').forEach(b => {
+            b.style.borderColor = 'rgba(0,0,0,0.15)';
+          });
+          btn.style.borderColor = '#3b82f6';
+          
+          updateGradientPreview();
+        });
+        gradientTypes.appendChild(btn);
+      });
+      
+      // Set default active state
+      gradientTypes.children[0].style.borderColor = '#3b82f6';
+      
+      gradientSection.appendChild(gradientTypes);
+
+      // Gradient controls
+      const gradientControls = document.createElement('div');
+      gradientControls.className = 'gradient-controls';
+
+      const gradientColorPickers = document.createElement('div');
+      gradientColorPickers.className = 'gradient-color-pickers';
+
+      // Color 1 picker
+      const color1Btn = document.createElement('button');
+      color1Btn.type = 'button';
+      color1Btn.id = 'gradientColor1Btn';
+      color1Btn.className = 'gradient-color-btn';
+      color1Btn.style.background = gradientColor1;
+      color1Btn.style.border = '2px solid rgba(0,0,0,0.15)'; // Not active by default
+      color1Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+      color1Btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        gradientColorMode = 1;
+        // Update active state
+        color1Btn.style.border = '3px solid #3b82f6';
+        color1Btn.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.2)';
+        color2Btn.style.border = '2px solid rgba(0,0,0,0.15)';
+        color2Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+      });
+
+      // Color 2 picker
+      const color2Btn = document.createElement('button');
+      color2Btn.type = 'button';
+      color2Btn.id = 'gradientColor2Btn';
+      color2Btn.className = 'gradient-color-btn';
+      color2Btn.style.background = gradientColor2;
+      color2Btn.style.border = '2px solid rgba(0,0,0,0.15)'; // Not active by default
+      color2Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+      color2Btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        gradientColorMode = 2;
+        // Update active state
+        color2Btn.style.border = '3px solid #3b82f6';
+        color2Btn.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.2)';
+        color1Btn.style.border = '2px solid rgba(0,0,0,0.15)';
+        color1Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+      });
+
+      gradientColorPickers.appendChild(color1Btn);
+      gradientColorPickers.appendChild(color2Btn);
+      gradientControls.appendChild(gradientColorPickers);
+
+      // Gradient preview
+      const gradientPreview = document.createElement('button');
+      gradientPreview.type = 'button';
+      gradientPreview.id = 'gradientPreview';
+      gradientPreview.className = 'gradient-preview';
+      gradientPreview.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const gradientValue = gradientPreview.dataset.gradientValue;
+        if (gradientValue) {
+          setSwatch(gradientValue, true);
+          // עדכן טקסט נבחר אם יש
+          applyColorToSelectedWord(gradientValue, true);
+          textColorPalette.classList.add('hidden');
+        }
+      });
+      gradientControls.appendChild(gradientPreview);
+
+      gradientSection.appendChild(gradientControls);
+      textColorPaletteGrid.appendChild(gradientSection);
+
+      // Initialize gradient preview
+      updateGradientPreview();
 
       // Event listeners
       textColorSwatch.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         textColorPalette.classList.toggle('hidden');
+      });
+
+      // Add click listener to palette background to exit gradient mode
+      textColorPalette.addEventListener('click', (e) => {
+        // Check if click was on empty space (not on any interactive element)
+        const isEmptySpace = e.target === textColorPalette || 
+                            e.target === textColorPaletteGrid ||
+                            e.target.classList.contains('gradient-section') ||
+                            e.target.classList.contains('gradient-separator') ||
+                            e.target.classList.contains('gradient-types') ||
+                            e.target.classList.contains('gradient-controls') ||
+                            e.target.classList.contains('gradient-color-pickers');
+        
+        if (isEmptySpace) {
+          // Reset gradient mode - hide visual indicators
+          const color1Btn = document.getElementById('gradientColor1Btn');
+          const color2Btn = document.getElementById('gradientColor2Btn');
+          if (color1Btn) {
+            color1Btn.style.border = '2px solid rgba(0,0,0,0.15)';
+            color1Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+          }
+          if (color2Btn) {
+            color2Btn.style.border = '2px solid rgba(0,0,0,0.15)';
+            color2Btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+          }
+          // Reset gradient mode to 0 (regular color mode)
+          gradientColorMode = 0;
+        }
       });
 
       document.addEventListener('click', (e) => {
@@ -5155,4 +5823,43 @@
 
       // Mark as initialized
       textColorSwatch.dataset.initialized = 'true';
+    }
+    // Function to update button states based on stickers count
+    function updateButtonStates() {
+      const hasStickers = stickers && stickers.length > 0;
+      
+      // List of buttons that should be disabled when no stickers
+      const buttonsToDisable = [
+        'downloadPdfBtn',
+        'downloadImageBtn', 
+        'printBtn',
+        'saveProjectBtn'
+      ];
+      
+      buttonsToDisable.forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        if (button) {
+          if (hasStickers) {
+            // Enable button - remove disabled styles
+            button.disabled = false;
+            button.classList.remove('btn-disabled');
+            button.style.pointerEvents = '';
+            button.style.opacity = '';
+          } else {
+            // Disable button - add disabled styles
+            button.disabled = true;
+            button.classList.add('btn-disabled');
+            button.style.pointerEvents = 'none';
+            button.style.opacity = '0.5';
+          }
+        }
+      });
+      
+      // Load project button should always be enabled
+      const loadProjectLabel = document.querySelector('label[for="loadProjectInput"]');
+      if (loadProjectLabel) {
+        loadProjectLabel.classList.remove('btn-disabled');
+        loadProjectLabel.style.pointerEvents = '';
+        loadProjectLabel.style.opacity = '';
+      }
     }
