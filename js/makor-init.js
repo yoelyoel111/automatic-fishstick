@@ -89,7 +89,7 @@
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-          showStatus('ניתן להעלות רק קבצי תמונה', true);
+          showStatus(t('onlyImageFiles'), true);
           e.target.value = '';
           return;
         }
@@ -106,7 +106,7 @@
             };
 
             document.getElementById('stickerFileName').textContent = `✓ ${file.name}`;
-            showStatus(`המדבקה "${file.name}" הועלתה בהצלחה!`);
+            showStatus(t('stickerUploadedSuccess', { name: file.name }));
             checkNumberStickerAndUpdateButtons();
           };
           img.src = event.target.result;
@@ -165,3 +165,67 @@
     window.addEventListener('resize', () => {
       applyPrintPreviewScale();
     });
+
+    // Google Drive Integration
+    const googleSignInBtn = document.getElementById('googleSignInBtn');
+    if (googleSignInBtn) {
+      googleSignInBtn.addEventListener('click', function() {
+        GoogleDriveManager.signIn();
+      });
+    }
+
+    const googleSignOutBtn = document.getElementById('googleSignOutBtn');
+    if (googleSignOutBtn) {
+      googleSignOutBtn.addEventListener('click', function() {
+        GoogleDriveManager.signOut();
+      });
+    }
+
+    // Save to Drive button (in header)
+    const saveToDriveBtn = document.getElementById('saveToDriveBtn');
+    if (saveToDriveBtn) {
+      saveToDriveBtn.addEventListener('click', function() {
+        if (typeof getProjectData === 'function') {
+          const projectData = getProjectData();
+          if (projectData) {
+            GoogleDriveManager.showSaveToDriverDialog(projectData);
+          } else {
+            showStatus(t('noProjectToSave'), true);
+          }
+        }
+      });
+    }
+
+    // Save to Drive button (in names section)
+    const saveToDriveNamesBtn = document.getElementById('saveToDriveNamesBtn');
+    if (saveToDriveNamesBtn) {
+      saveToDriveNamesBtn.addEventListener('click', function() {
+        // For names, we need to get names project data
+        if (typeof getNamesProjectData === 'function') {
+          const projectData = getNamesProjectData();
+          if (projectData) {
+            GoogleDriveManager.showSaveToDriverDialog(projectData);
+          } else {
+            showStatus(t('noDataToSave'), true);
+          }
+        } else {
+          showStatus(t('saveFuncNotAvailable'), true);
+        }
+      });
+    }
+
+    // Refresh projects
+    const refreshProjectsBtn = document.getElementById('refreshProjectsBtn');
+    if (refreshProjectsBtn) {
+      refreshProjectsBtn.addEventListener('click', function() {
+        GoogleDriveManager.refreshProjectsBanner();
+      });
+    }
+
+    // New project from banner
+    const newProjectBtn = document.getElementById('newProjectBtn');
+    if (newProjectBtn) {
+      newProjectBtn.addEventListener('click', function() {
+        GoogleDriveManager.showNewProjectDialog();
+      });
+    }

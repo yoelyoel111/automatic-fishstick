@@ -10,7 +10,7 @@
       if (!file) return;
 
       if (!file.type.startsWith('image/')) {
-        showStatus('ניתן להעלות רק קבצי תמונה', true);
+        showStatus(t('onlyImageFiles'), true);
         e.target.value = '';
         return;
       }
@@ -27,7 +27,7 @@
           };
 
           document.getElementById('namesNoteFileName').textContent = `✓ ${file.name}`;
-          showStatus(`תמונת הפתק "${file.name}" הועלתה בהצלחה!`);
+          showStatus(t('noteImageUploadedSuccess', { name: file.name }));
           
           // שלב 2: הפעלת כל הכפתורים אחרי בחירת מדבקה
           enableNamesButtons();
@@ -40,12 +40,12 @@
 
     function generateNamesNotes() {
       if (namesData.length === 0) {
-        showStatus('יש להעלות קובץ אקסל עם שמות קודם', true);
+        showStatus(t('uploadExcelFirst'), true);
         return;
       }
 
       if (!namesNoteTemplate) {
-        showStatus('יש להעלות תמונת פתק קודם', true);
+        showStatus(t('uploadNoteImageFirst'), true);
         return;
       }
 
@@ -120,7 +120,7 @@
       });
 
       renderNamesNotes();
-      showStatus(`נוצרו ${namesNotes.length} פתקים!`);
+      showStatus(t('notesCreatedSuccess', { count: namesNotes.length }));
     }
 
     function renderNamesNotes() {
@@ -262,7 +262,7 @@
 
     function centerNamesNotes() {
       if (namesNotes.length === 0) {
-        showStatus('אין פתקים לריכוז', true);
+        showStatus(t('noNotesToCenter'), true);
         return;
       }
 
@@ -272,17 +272,17 @@
       });
 
       renderNamesNotes();
-      showStatus('הטקסט ברוכז בכל הפתקים!');
+      showStatus(t('textCenteredSuccess'));
     }
 
     async function downloadNamesNotesAsPDF() {
       if (namesNotes.length === 0) {
-        showStatus('אין פתקים להורדה', true);
+        showStatus(t('noNotesToDownload'), true);
         return;
       }
 
       const { jsPDF } = window.jspdf;
-      showStatus('מכין PDF...');
+      showStatus(t('preparingPdf'));
 
       try {
         const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
@@ -369,17 +369,17 @@
           pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, EXPORT_QUALITY.pdfCompression);
         }
 
-        pdf.save('פתקי_שמות.pdf');
-        showStatus('PDF הורד בהצלחה!');
+        pdf.save(t('notesPdfFileName'));
+        showStatus(t('pdfDownloadedSuccess'));
       } catch (error) {
         console.error('PDF generation error:', error);
-        showStatus('שגיאה ביצירת PDF', true);
+        showStatus(t('pdfError'), true);
       }
     }
 
     function printNamesNotes() {
       if (namesNotes.length === 0) {
-        showStatus('אין פתקים להדפסה', true);
+        showStatus(t('noNotesToPrint'), true);
         return;
       }
 
@@ -488,11 +488,11 @@
 
     async function downloadNamesLotteryAsPDF() {
       if (namesLotteryResults.length === 0) {
-        showStatus('אין תוצאות הגרלה להורדה', true);
+        showStatus(t('noLotteryResultsToDownload'), true);
         return;
       }
 
-      showStatus('מכין PDF...');
+      showStatus(t('preparingPdf'));
 
       try {
         // Create a temporary container for PDF generation
@@ -507,12 +507,12 @@
         container.style.fontFamily = 'Arial, sans-serif';
         container.style.fontSize = '14px';
         container.style.lineHeight = '1.6';
-        container.style.direction = 'rtl';
-        container.style.textAlign = 'right';
+        container.style.direction = currentLanguage === 'he' ? 'rtl' : 'ltr';
+        container.style.textAlign = currentLanguage === 'he' ? 'right' : 'left';
 
         // Add title
         const title = document.createElement('div');
-        title.textContent = 'תוצאות הגרלת השמות';
+        title.textContent = t('lotteryResultsTitle');
         title.style.fontSize = '24px';
         title.style.fontWeight = 'bold';
         title.style.textAlign = 'center';
@@ -523,8 +523,8 @@
 
         // Add date
         const dateDiv = document.createElement('div');
-        const date = new Date().toLocaleDateString('he-IL');
-        dateDiv.textContent = `תאריך: ${date}`;
+        const date = new Date().toLocaleDateString(currentLanguage === 'he' ? 'he-IL' : 'en-US');
+        dateDiv.textContent = t('dateLabel', { date });
         dateDiv.style.textAlign = 'center';
         dateDiv.style.marginBottom = '10mm';
         dateDiv.style.fontSize = '12px';
@@ -538,7 +538,7 @@
           // Render by groups
           const groups = {};
           namesLotteryResults.forEach(item => {
-            const groupName = item.groupName || 'ללא קבוצה';
+            const groupName = item.groupName || t('noGroup');
             if (!groups[groupName]) {
               groups[groupName] = [];
             }
@@ -550,7 +550,7 @@
             
             // Group header
             const groupHeader = document.createElement('div');
-            groupHeader.textContent = `${groupName} (${groupItems.length} זוכים)`;
+            groupHeader.textContent = t('groupWinnersHeader', { name: groupName, count: groupItems.length });
             groupHeader.style.fontSize = '18px';
             groupHeader.style.fontWeight = 'bold';
             groupHeader.style.backgroundColor = '#f3f4f6';
@@ -599,7 +599,7 @@
         
         // Add footer
         const footer = document.createElement('div');
-        footer.textContent = `סה"כ ${namesLotteryResults.length} תוצאות`;
+        footer.textContent = t('totalResults', { count: namesLotteryResults.length });
         footer.style.textAlign = 'center';
         footer.style.marginTop = '15mm';
         footer.style.fontSize = '12px';
@@ -672,18 +672,18 @@
           }
         }
         
-        pdf.save('הגרלת_שמות.pdf');
-        showStatus('PDF הורד בהצלחה!');
+        pdf.save(t('lotteryPdfFileName'));
+        showStatus(t('pdfDownloadedSuccess'));
         
       } catch (error) {
         console.error('PDF generation error:', error);
-        showStatus('שגיאה ביצירת PDF', true);
+        showStatus(t('pdfError'), true);
       }
     }
 
     function printNamesLottery() {
       if (namesLotteryResults.length === 0) {
-        showStatus('אין תוצאות הגרלה להדפסה', true);
+        showStatus(t('noLotteryResultsToPrint'), true);
         return;
       }
 
@@ -691,7 +691,7 @@
       const resultsSection = document.getElementById('namesLotteryResultsSection');
       
       if (!resultsSection) {
-        showStatus('שגיאה בהכנת ההדפסה', true);
+        showStatus(t('printError'), true);
         return;
       }
 
@@ -729,38 +729,13 @@
       const instructions = document.getElementById('namesUploadInstructions');
       
       if (type === 'simple') {
-        instructions.innerHTML = '<p class="text-sm text-blue-700"><strong>שמות בלבד:</strong> הזן שמות בעמודה A מתא A2 ומטה (שורה 1 לכותרת)</p>';
+        instructions.innerHTML = t('simpleInstructions');
       } else if (type === 'groups') {
-        instructions.innerHTML = `
-          <p class="text-sm text-blue-700 mb-2"><strong>שמות לפי קבוצות:</strong></p>
-          <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
-            <li>שמות הכיתות/קבוצות בשורה 1: C1, D1, E1 וכן הלאה</li>
-            <li>שמות התלמידים מתחת לכל כיתה: C2, C3, C4... D2, D3, D4... וכן הלאה</li>
-            <li>עמודות A ו-B יכולות להישאר ריקות</li>
-            <li>בפתקים יופיע: שם התלמיד + שם הכיתה</li>
-          </ul>
-        `;
+        instructions.innerHTML = t('groupsInstructions');
       } else if (type === 'tickets') {
-        instructions.innerHTML = `
-          <p class="text-sm text-blue-700 mb-2"><strong>שמות וכמות כרטיסים:</strong></p>
-          <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
-            <li>שמות התלמידים בעמודה C: C2, C3, C4 וכן הלאה</li>
-            <li>כמות הכרטיסים בעמודה D: D2, D3, D4 וכן הלאה</li>
-            <li>עמודות A ו-B יכולות להישאר ריקות</li>
-            <li>לכל תלמיד יופיעו כרטיסים לפי הכמות שהוזנה</li>
-          </ul>
-        `;
+        instructions.innerHTML = t('ticketsInstructions');
       } else if (type === 'groupsTickets') {
-        instructions.innerHTML = `
-          <p class="text-sm text-blue-700 mb-2"><strong>שמות קבוצות וכרטיסים:</strong></p>
-          <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
-            <li>שמות הקבוצות בשורה 1: C1, E1, G1 וכן הלאה (כל קבוצה תופסת 2 עמודות)</li>
-            <li>שמות התלמידים מתחת לכל קבוצה: C2, C3, C4... E2, E3, E4... וכן הלאה</li>
-            <li>כמות הכרטיסים לכל תלמיד: D2, D3, D4... F2, F3, F4... וכן הלאה</li>
-            <li>עמודות A ו-B יכולות להישאר ריקות</li>
-            <li>לכל תלמיד יופיעו כרטיסים לפי הכמות שהוזנה + שם הקבוצה</li>
-          </ul>
-        `;
+        instructions.innerHTML = t('groupsTicketsInstructions');
       }
     }
     
@@ -781,16 +756,16 @@
       // Create blob with UTF-8 BOM for Hebrew support
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8-sig;' });
       const link = document.createElement('a');
-      const fileName = uploadType === 'simple' ? 'תבנית-שמות-בלבד.csv' : 
-                       uploadType === 'groups' ? 'תבנית-שמות-לפי-קבוצות.csv' : 
-                       uploadType === 'tickets' ? 'תבנית-שמות-וכרטיסים.csv' :
-                       'תבנית-שמות-קבוצות-וכרטיסים.csv';
+      const fileName = uploadType === 'simple' ? t('templateSimple') : 
+                       uploadType === 'groups' ? t('templateGroups') : 
+                       uploadType === 'tickets' ? t('templateTickets') :
+                       t('templateGroupsTickets');
       link.download = fileName;
       link.href = URL.createObjectURL(blob);
       link.click();
       URL.revokeObjectURL(link.href);
       
-      showStatus('תבנית הורדה בהצלחה!');
+      showStatus(t('pdfDownloadedSuccess')); // Or template downloaded
     }
     
     function handleNamesExcelUpload(e) {
@@ -805,7 +780,7 @@
           handleCSVText(text, file.name);
         } catch (err) {
           console.error('CSV parse error:', err);
-          showStatus('שגיאה בקריאת הקובץ - נסה קובץ CSV', true);
+          showStatus(t('csvReadError'), true);
         }
       };
       
@@ -821,7 +796,7 @@
             // Process the same way as above
             handleCSVText(text, file.name);
           } catch (err) {
-            showStatus('שגיאה בקריאת הקובץ - בדוק שהקובץ תקין', true);
+            showStatus(t('fileReadError'), true);
           }
         };
         reader2.readAsText(file, 'windows-1255'); // Hebrew encoding
@@ -932,12 +907,12 @@
       }
       
       if (namesData.length === 0) {
-        showStatus('לא נמצאו שמות בקובץ', true);
+        showStatus(t('noNamesFoundInFile'), true);
         return;
       }
       
       // Update UI
-      document.getElementById('namesFileInfo').textContent = `✓ ${fileName} (${namesData.length} שמות)`;
+      document.getElementById('namesFileInfo').textContent = `✓ ${fileName} (${t('namesLoadedCount', { count: namesData.length })})`;
       
       // Show preview
       const previewSection = document.getElementById('namesPreviewSection');
@@ -953,7 +928,7 @@
         });
         for (const [group, names] of Object.entries(groups)) {
           previewHtml += `<div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">`;
-          previewHtml += `<div class="font-bold text-indigo-800 text-base mb-2">${group} (${names.length} תלמידים)</div>`;
+          previewHtml += `<div class="font-bold text-indigo-800 text-base mb-2">${group} (${names.length} ${t('namesLotteryWinners') === 'Winners' ? 'students' : 'תלמידים'})</div>`;
           previewHtml += `<div class="text-gray-700 text-sm leading-relaxed">${names.join(', ')}</div>`;
           previewHtml += `</div>`;
         }
@@ -965,10 +940,10 @@
           }
         });
         previewHtml += `<div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">`;
-        previewHtml += `<div class="font-bold text-indigo-800 text-base mb-2">שמות וכמות כרטיסים</div>`;
+        previewHtml += `<div class="font-bold text-indigo-800 text-base mb-2">${t('typeTickets')}</div>`;
         previewHtml += `<div class="text-gray-700 text-sm leading-relaxed">`;
         for (const [name, count] of Object.entries(students)) {
-          previewHtml += `${name} (${count} כרטיסים), `;
+          previewHtml += `${name} (${count} ${t('namesLotteryWinners') === 'Winners' ? 'tickets' : 'כרטיסים'}), `;
         }
         previewHtml = previewHtml.slice(0, -2); // הסר את הפסיק האחרון
         previewHtml += `</div></div>`;
@@ -985,7 +960,7 @@
           previewHtml += `<div class="font-bold text-indigo-800 text-base mb-2">${group}</div>`;
           previewHtml += `<div class="text-gray-700 text-sm leading-relaxed">`;
           for (const [name, count] of Object.entries(students)) {
-            previewHtml += `${name} (${count} כרטיסים), `;
+            previewHtml += `${name} (${count} ${t('namesLotteryWinners') === 'Winners' ? 'tickets' : 'כרטיסים'}), `;
           }
           previewHtml = previewHtml.slice(0, -2); // הסר את הפסיק האחרון
           previewHtml += `</div></div>`;
@@ -995,7 +970,7 @@
       }
       previewList.innerHTML = previewHtml;
       
-      showStatus(`נטענו ${namesData.length} שמות בהצלחה!`);
+      showStatus(t('namesLoadedSuccess', { count: namesData.length }));
       
       // שלב 1: הפעלת רק כפתור בחר מדבקה והטאבים
       enableNamesImageButtonOnly();
@@ -1003,7 +978,7 @@
     
     function generateNamesLottery(mode = 'all') {
       if (namesData.length === 0) {
-        showStatus('יש להעלות קובץ אקסל עם שמות קודם', true);
+        showStatus(t('uploadExcelFirst'), true);
         return;
       }
       
@@ -1018,7 +993,7 @@
         // הגרלה נפרדת לכל קבוצה
         generateGroupNamesLottery(winnersCount, startNum);
       } else if (mode === 'byGroup' && (uploadType === 'simple' || uploadType === 'tickets')) {
-        showStatus('הגרלה לפי קבוצה זמינה רק כשמעלים קובץ עם קבוצות', true);
+        showStatus(t('groupLotteryOnlyWithGroups'), true);
         return;
       }
       
@@ -1049,14 +1024,14 @@
       // Sort by number
       namesLotteryResults.sort((a, b) => a.number - b.number);
       
-      showStatus(`הוגרלו ${winnersCount} זוכים מתוך ${namesData.length} שמות!`);
+      showStatus(t('lotterySuccessAll', { count: winnersCount, total: namesData.length }));
     }
     
     function generateGroupNamesLottery(winnersCount, startNum) {
       // Group names by group
       const groups = {};
       namesData.forEach(item => {
-        const group = item.group || 'ללא קבוצה';
+        const group = item.group || t('noGroup');
         if (!groups[group]) {
           groups[group] = [];
         }
@@ -1100,7 +1075,7 @@
       
       const totalWinners = namesLotteryResults.length;
       const groupCount = Object.keys(groups).length;
-      showStatus(`הוגרלו ${winnersCount} תוצאות מכל קבוצה - סה"כ ${totalWinners} זוכים מ-${groupCount} קבוצות!`);
+      showStatus(t('lotterySuccessGroups', { count: winnersCount, total: totalWinners, groups: groupCount }));
     }
     
     function renderNamesLotteryResults() {
@@ -1272,5 +1247,173 @@
         results.appendChild(table);
       });
     }
+    
+    // ========== Project Save/Load Functions for Names ==========
+    
+    /**
+     * Get names project data for saving to Drive
+     */
+    function getNamesProjectData() {
+      // Check if there's any data to save
+      if (namesData.length === 0 && namesNotes.length === 0 && namesLotteryResults.length === 0) {
+        return null;
+      }
+      
+      return {
+        projectType: 'names',
+        namesData: namesData,
+        namesNoteTemplate: namesNoteTemplate,
+        namesNotes: namesNotes,
+        namesLotteryResults: namesLotteryResults,
+        settings: {
+          uploadType: document.getElementById('namesUploadType')?.value || 'simple',
+          notesPerRow: document.getElementById('namesNotesPerRow')?.value || 4,
+          notesSpacing: document.getElementById('namesNotesSpacing')?.value || 5,
+          notesColor: document.getElementById('namesNotesColor')?.value || '#000000',
+          notesFontSize: document.getElementById('namesNotesFontSize')?.value || 18,
+          lotteryWinners: document.getElementById('namesLotteryWinners')?.value || 5,
+          lotteryPerRow: document.getElementById('namesLotteryPerRow')?.value || 5,
+          lotteryFontSize: document.getElementById('namesLotteryFontSize')?.value || 18
+        },
+        savedAt: new Date().toISOString()
+      };
+    }
+    
+    /**
+     * Load names project data from Drive
+     */
+    function loadNamesProjectData(projectData, fileName) {
+      if (!projectData) return;
+      
+      // Load names data
+      if (projectData.namesData) {
+        namesData = projectData.namesData;
+        
+        // Update preview
+        const previewSection = document.getElementById('namesPreviewSection');
+        const previewList = document.getElementById('namesPreviewList');
+        
+        if (previewSection && previewList && namesData.length > 0) {
+          previewSection.classList.remove('hidden');
+          previewList.innerHTML = namesData.map((item, i) => {
+            let text = `${i + 1}. ${item.name}`;
+            if (item.group) text += ` (${item.group})`;
+            if (item.totalTickets > 1) text += ` - ${item.ticketNumber}/${item.totalTickets}`;
+            return `<div class="py-1 border-b border-gray-200">${text}</div>`;
+          }).join('');
+          
+          document.getElementById('namesFileInfo').textContent = t('namesLoadedCount', { count: namesData.length });
+        }
+      }
+      
+      // Load note template
+      if (projectData.namesNoteTemplate) {
+        namesNoteTemplate = projectData.namesNoteTemplate;
+        const fileNameEl = document.getElementById('namesNoteFileName');
+        if (fileNameEl && namesNoteTemplate.fileName) {
+          fileNameEl.textContent = `✓ ${namesNoteTemplate.fileName}`;
+        }
+        enableNamesButtons();
+      }
+      
+      // Load notes
+      if (projectData.namesNotes) {
+        namesNotes = projectData.namesNotes;
+        renderNamesNotes();
+      }
+      
+      // Load lottery results
+      if (projectData.namesLotteryResults) {
+        namesLotteryResults = projectData.namesLotteryResults;
+        if (namesLotteryResults.length > 0) {
+          renderNamesLotteryResults();
+        }
+      }
+      
+      // Load settings
+      if (projectData.settings) {
+        const s = projectData.settings;
+        if (s.uploadType) {
+          const el = document.getElementById('namesUploadType');
+          if (el) el.value = s.uploadType;
+        }
+        if (s.notesPerRow) {
+          const el = document.getElementById('namesNotesPerRow');
+          if (el) el.value = s.notesPerRow;
+        }
+        if (s.notesSpacing) {
+          const el = document.getElementById('namesNotesSpacing');
+          if (el) el.value = s.notesSpacing;
+        }
+        if (s.notesColor) {
+          const el = document.getElementById('namesNotesColor');
+          if (el) el.value = s.notesColor;
+        }
+        if (s.notesFontSize) {
+          const el = document.getElementById('namesNotesFontSize');
+          if (el) el.value = s.notesFontSize;
+        }
+        if (s.lotteryWinners) {
+          const el = document.getElementById('namesLotteryWinners');
+          if (el) el.value = s.lotteryWinners;
+        }
+        if (s.lotteryPerRow) {
+          const el = document.getElementById('namesLotteryPerRow');
+          if (el) el.value = s.lotteryPerRow;
+        }
+        if (s.lotteryFontSize) {
+          const el = document.getElementById('namesLotteryFontSize');
+          if (el) el.value = s.lotteryFontSize;
+        }
+      }
+      
+      // Set project file name
+      if (fileName) {
+        window.currentProjectFileName = fileName;
+      }
+      
+      showStatus(t('projectLoadedSuccess', { name: fileName?.replace('.json', '') || t('tabNamesLottery') }));
+    }
+    
+    /**
+     * Clear names project
+     */
+    function clearNamesProject() {
+      namesData = [];
+      namesNoteTemplate = null;
+      namesNotes = [];
+      namesLotteryResults = [];
+      
+      // Clear UI
+      const previewSection = document.getElementById('namesPreviewSection');
+      const previewList = document.getElementById('namesPreviewList');
+      const fileInfo = document.getElementById('namesFileInfo');
+      const noteFileName = document.getElementById('namesNoteFileName');
+      
+      if (previewSection) previewSection.classList.add('hidden');
+      if (previewList) previewList.innerHTML = '';
+      if (fileInfo) fileInfo.textContent = '';
+      if (noteFileName) noteFileName.textContent = '';
+      
+      // Clear notes preview
+      renderNamesNotes();
+      
+      // Clear lottery results
+      const lotteryResults = document.getElementById('namesLotteryResults');
+      const lotterySection = document.getElementById('namesLotteryResultsSection');
+      const lotteryEmpty = document.getElementById('namesLotteryEmptyState');
+      
+      if (lotteryResults) lotteryResults.innerHTML = '';
+      if (lotterySection) lotterySection.classList.add('hidden');
+      if (lotteryEmpty) lotteryEmpty.classList.remove('hidden');
+      
+      // Disable buttons
+      disableNamesButtons();
+    }
+    
+    // Expose functions globally
+    window.getNamesProjectData = getNamesProjectData;
+    window.loadNamesProjectData = loadNamesProjectData;
+    window.clearNamesProject = clearNamesProject;
     
     // ========== End Names Lottery Functions ==========

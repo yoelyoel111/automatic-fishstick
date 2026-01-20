@@ -88,7 +88,7 @@
       margin: 0 auto;
       width: 100%;
       overflow-x: auto;
-      overflow-y: hidden;
+      overflow-y: visible; /* שונה מ-hidden כדי לאפשר גרירה מחוץ לגבולות */
       direction: ltr;
     }
 
@@ -97,23 +97,38 @@
       justify-content: flex-end;
       width: 100%;
       overflow: hidden;
+      margin-bottom: 0 !important;
     }
 
     #printRulerTrack {
-      height: 28px;
-      border: 2px solid rgba(99, 102, 241, 0.35);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.65);
+      height: 44px;
+      border: 1px solid rgba(17, 24, 39, 0.35);
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.9);
       position: relative;
       box-sizing: border-box;
       max-width: 100%;
       overflow: hidden;
+      transform: translateX(0);
+    }
+
+    #printRulerCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #printRulerTicks,
+    #printRulerLabel {
+      display: none !important;
     }
 
     #printRulerTicks {
       position: absolute;
       inset: 0;
-      display: flex;
+      display: none !important;
       justify-content: flex-end;
       align-items: flex-start;
       gap: 0;
@@ -191,18 +206,54 @@
     }
     
     .print-page {
-      width: 210mm;
-      height: 297mm;
-      background: white;
-      position: relative;
-      margin: 0 0 16px 0;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      width: 210mm !important;
+      height: 297mm !important;
+      min-width: 210mm !important;
+      min-height: 297mm !important;
+      max-width: 210mm !important;
+      max-height: 297mm !important;
+      background: white !important;
+      position: relative !important;
+      margin: 0 0 16px 0 !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
+      overflow: visible !important;
+      box-sizing: border-box !important;
+      flex-shrink: 0 !important;
+      display: block !important;
+    }
+    
+    .print-page.portrait {
+      width: 210mm !important;
+      height: 297mm !important;
+      min-width: 210mm !important;
+      min-height: 297mm !important;
+      max-width: 210mm !important;
+      max-height: 297mm !important;
+      box-sizing: border-box !important;
+      flex-shrink: 0 !important;
+      display: block !important;
     }
     
     .print-page.landscape {
-      width: 297mm;
-      height: 210mm;
-      margin: 0 0 16px 0;
+      width: 297mm !important;
+      height: 210mm !important;
+      min-width: 297mm !important;
+      min-height: 210mm !important;
+      max-width: 297mm !important;
+      max-height: 210mm !important;
+      margin: 0 0 16px 0 !important;
+      box-sizing: border-box !important;
+      flex-shrink: 0 !important;
+      display: block !important;
+    }
+    
+    /* Force A4 dimensions even more aggressively */
+    .print-page[data-forced-width] {
+      width: attr(data-forced-width px) !important;
+    }
+    
+    .print-page[data-forced-height] {
+      height: attr(data-forced-height px) !important;
     }
     
     /* Orientation buttons styling */
@@ -297,6 +348,41 @@
       border: 2px solid transparent;
       transition: border-color 0.2s;
     }
+
+    /* תצוגת מידות המדבקה */
+    .sticker-dimension {
+      position: absolute;
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      font-family: Arial, sans-serif;
+      direction: ltr;
+    }
+
+    .sticker-dimension-width {
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .sticker-dimension-height {
+      right: -8px;
+      top: 50%;
+      transform: translateX(100%) translateY(-50%);
+    }
+
+    .sticker-container.selected .sticker-dimension {
+      opacity: 1;
+    }
     
     .sticker-container.selected {
       border: 3px solid #3b82f6;
@@ -360,6 +446,12 @@
     .duplicate-sticker-btn {
       background: #10b981;
       color: white;
+    }
+
+    .remove-bg-btn {
+      background: #3b82f6;
+      color: white;
+      font-size: 12px;
     }
     
     .sticker-resize-handle {
@@ -454,6 +546,28 @@
     
     .sticker-image:hover .delete-image-btn,
     .sticker-image.selected .delete-image-btn {
+      display: block;
+    }
+
+    .remove-bg-btn-small {
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      width: 20px;
+      height: 20px;
+      background: #3b82f6;
+      color: white;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      display: none;
+      z-index: 10;
+    }
+
+    .sticker-image:hover .remove-bg-btn-small,
+    .sticker-image.selected .remove-bg-btn-small {
       display: block;
     }
     
@@ -926,28 +1040,39 @@
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
       transform: translateY(-2px);
     }
-    /* Inline text editing */
+    /* Inline text editing - transparent input for live editing */
     .inline-text-edit {
       position: absolute !important;
-      border: 2px solid #3b82f6 !important;
-      border-radius: 4px !important;
-      background: rgba(255, 255, 255, 0.98) !important;
+      border: none !important;
+      background: transparent !important;
+      color: transparent !important;
+      caret-color: #3b82f6 !important;
       outline: none !important;
       z-index: 1001 !important;
-      box-shadow: 0 0 15px rgba(59, 130, 246, 0.8) !important;
       text-align: center !important;
-      padding: 2px 4px !important;
+      padding: 0 !important;
       box-sizing: border-box !important;
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      min-width: 50px !important;
+      width: 100% !important;
+      height: 100% !important;
+      cursor: text !important;
     }
 
     .inline-text-edit:focus {
-      box-shadow: 0 0 20px rgba(59, 130, 246, 1) !important;
-      border-color: #1d4ed8 !important;
-      background: rgba(255, 255, 255, 1) !important;
+      outline: none !important;
+    }
+
+    /* מצב עריכה - מסגרת כחולה זוהרת סביב הטקסט */
+    .text-word.editing-mode {
+      outline: 3px solid #3b82f6 !important;
+      outline-offset: 4px !important;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.6) !important;
+      border-radius: 4px !important;
+    }
+
+    /* span של תוכן הטקסט */
+    .word-text-content {
+      display: inline;
+      pointer-events: none;
     }
 
     .text-word.editing {
@@ -1068,3 +1193,84 @@
       outline-offset: 2px;
       background-color: rgba(251, 191, 36, 0.1);
     }
+
+
+/* Google Drive Integration Styles */
+#driveFilePickerModal .drive-file-item:hover {
+  transform: translateY(-2px);
+}
+
+#driveFilePickerModal .drive-file-item.selected {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+#googleUserInfo {
+  max-width: 200px;
+}
+
+#googleUserName {
+  max-width: 120px;
+}
+
+/* Google Sign-In Button Animation */
+#googleSignInBtn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+#googleSignInBtn:disabled {
+  cursor: wait;
+}
+
+/* Drive buttons styling */
+#driveButtons button {
+  font-size: 13px;
+}
+
+#driveButtons button svg {
+  flex-shrink: 0;
+}
+
+/* Projects Banner Styles */
+#driveProjectsBanner {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#driveProjectsBanner .project-card:hover {
+  transform: translateY(-2px);
+}
+
+#driveProjectsBanner #projectsContainer::-webkit-scrollbar {
+  height: 6px;
+}
+
+#driveProjectsBanner #projectsContainer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+#driveProjectsBanner #projectsContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+#driveProjectsBanner #projectsContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+@media print {
+  #driveProjectsBanner {
+    display: none !important;
+  }
+}

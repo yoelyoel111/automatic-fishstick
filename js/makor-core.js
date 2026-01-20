@@ -1,7 +1,7 @@
 ﻿
     const defaultConfig = {
-      page_title: 'מחליף מילים במדבקות',
-      default_word: 'שם',
+      page_title: t('projectTitle'),
+      default_word: t('defaultWord'),
       primary_color: '#3b82f6',
       secondary_color: '#8b5cf6',
       text_color: '#1f2937',
@@ -100,6 +100,18 @@
       }
     };
 
+    const categoryTranslations = {
+      'מלבנים': 'catRectangles',
+      'מקומות קדושים': 'catHolyPlaces',
+      'נופים': 'catLandscapes',
+      'עיגולים': 'catCircles',
+      'ריבועים': 'catSquares',
+      'מאכלים': 'catFood',
+      'ספרים': 'catBooks',
+      'פרסים': 'catPrizes',
+      'רבנים': 'catRabbis'
+    };
+
     function cloneHistoryState() {
       return {
         stickers: JSON.parse(JSON.stringify(stickers)),
@@ -143,6 +155,11 @@
       undoStack.push(cloneHistoryState());
       if (undoStack.length > 20) undoStack.shift();
       updateUndoRedoButtons();
+      
+      // Trigger auto-save
+      if (typeof GoogleDriveManager !== 'undefined' && GoogleDriveManager.markUnsavedChanges) {
+        GoogleDriveManager.markUnsavedChanges();
+      }
     }
 
     function restoreFromHistoryState(state) {
@@ -187,7 +204,7 @@
 
     function undoLastAction() {
       if (undoStack.length === 0) {
-        showStatus('אין פעולות לביטול', true);
+        showStatus(t('noActionsToUndo'), true);
         return;
       }
 
@@ -203,7 +220,7 @@
 
     function redoLastAction() {
       if (redoStack.length === 0) {
-        showStatus('אין פעולות לביצוע מחדש', true);
+        showStatus(t('noActionsToRedo'), true);
         return;
       }
 
@@ -234,7 +251,7 @@
 
     async function loadStickersFromGithub() {
       try {
-        showStatus('טוען מדבקות מהמאגר...');
+        showStatus(t('loadingFromRepo'));
         
         // Flatten all sticker files from all categories
         const allFiles = [];
@@ -250,7 +267,7 @@
         }
         
         if (allFiles.length === 0) {
-          showStatus('לא נמצאו קבצים לטעינה מהמאגר', true);
+          showStatus(t('noFilesToLoad'), true);
           return;
         }
 
@@ -299,10 +316,10 @@
         }
         renderStickers();
         updateFileCount();
-        showStatus(`${filesToLoad} מדבקות נטענו מהמאגר בהצלחה!`);
+        showStatus(t('filesLoadedSuccess', { count: filesToLoad }));
       } catch (error) {
         console.error('GitHub Stickers Error:', error);
-        showStatus('שגיאה בטעינת מדבקות מהמאגר', true);
+        showStatus(t('errorLoadingFromRepo'), true);
       }
     }
 
@@ -530,7 +547,7 @@
       if (stickers.length === 0) {
         // Show empty page with correct orientation
         const pageEl = document.createElement('div');
-        pageEl.className = pageOrientation === 'landscape' ? 'print-page landscape' : 'print-page';
+        pageEl.className = pageOrientation === 'landscape' ? 'print-page landscape' : 'print-page portrait';
         pageEl.dataset.pageIndex = 0;
         previewInner.replaceChildren(pageEl);
         applyPrintPreviewScale();
@@ -547,7 +564,7 @@
         const pages = [];
         for (let p = 0; p < pageCount; p++) {
           const pageEl = document.createElement('div');
-          pageEl.className = pageOrientation === 'landscape' ? 'print-page landscape' : 'print-page';
+          pageEl.className = pageOrientation === 'landscape' ? 'print-page landscape' : 'print-page portrait';
           pageEl.dataset.pageIndex = p;
           fragment.appendChild(pageEl);
           pages.push(pageEl);
@@ -583,7 +600,7 @@
           img.className = 'sticker-main-image';
           img.style.width = '100%';
           img.style.height = '100%';
-          img.style.objectFit = 'contain';
+          img.style.objectFit = 'fill';
           img.style.pointerEvents = 'none';
           
           // Apply opacity only to the main sticker image, not the container
@@ -615,6 +632,9 @@
           
           controlsDiv.appendChild(duplicateBtn);
           controlsDiv.appendChild(deleteBtn);
+          
+          // הסרנו את כפתור הסרת הרקע - עכשיו הוא בסרגל העליון
+
           stickerDiv.appendChild(controlsDiv);
           
           const resizeHandle = document.createElement('div');
@@ -624,6 +644,20 @@
             startStickerResize(e, index);
           });
           stickerDiv.appendChild(resizeHandle);
+          
+          // תצוגת מידות המדבקה (רוחב למעלה, גובה בצד ימין)
+          const widthInCm = (sticker.width / MM_TO_PX / 10).toFixed(1);
+          const heightInCm = (sticker.height / MM_TO_PX / 10).toFixed(1);
+          
+          const widthLabel = document.createElement('div');
+          widthLabel.className = 'sticker-dimension sticker-dimension-width no-print';
+          widthLabel.textContent = `${widthInCm} ס"מ`;
+          stickerDiv.appendChild(widthLabel);
+          
+          const heightLabel = document.createElement('div');
+          heightLabel.className = 'sticker-dimension sticker-dimension-height no-print';
+          heightLabel.textContent = `${heightInCm} ס"מ`;
+          stickerDiv.appendChild(heightLabel);
           
           sticker.images = sticker.images || [];
           sticker.images.forEach(image => {
@@ -681,12 +715,50 @@
       preview.style.width = '';
       preview.style.height = '';
 
-      const pageWidths = Array.from(pages).map((p) => p.offsetWidth || 0);
-      const naturalWidth = Math.max(inner.scrollWidth, ...pageWidths);
-      const naturalHeight = inner.scrollHeight;
+      // Always use A4 dimensions for scaling, not content dimensions
+      const A4_WIDTH_PX = pageOrientation === 'landscape' ? 297 * MM_TO_PX : 210 * MM_TO_PX;
+      const A4_HEIGHT_PX = pageOrientation === 'landscape' ? 210 * MM_TO_PX : 297 * MM_TO_PX;
+      
+      // Force pages to maintain A4 dimensions with aggressive CSS enforcement
+      pages.forEach(page => {
+        // Remove any existing inline styles that might interfere
+        page.style.cssText = '';
+        
+        // Apply A4 dimensions with maximum specificity and force override
+        page.style.setProperty('width', `${A4_WIDTH_PX}px`, 'important');
+        page.style.setProperty('height', `${A4_HEIGHT_PX}px`, 'important');
+        page.style.setProperty('min-width', `${A4_WIDTH_PX}px`, 'important');
+        page.style.setProperty('min-height', `${A4_HEIGHT_PX}px`, 'important');
+        page.style.setProperty('max-width', `${A4_WIDTH_PX}px`, 'important');
+        page.style.setProperty('max-height', `${A4_HEIGHT_PX}px`, 'important');
+        page.style.setProperty('box-sizing', 'border-box', 'important');
+        page.style.setProperty('flex-shrink', '0', 'important');
+        page.style.setProperty('overflow', 'visible', 'important');
+        page.style.setProperty('position', 'relative', 'important');
+        page.style.setProperty('background', 'white', 'important');
+        
+        // Force dimensions using attributes as well (backup method)
+        page.setAttribute('data-forced-width', A4_WIDTH_PX);
+        page.setAttribute('data-forced-height', A4_HEIGHT_PX);
+        
+        // Ensure correct class is applied
+        if (pageOrientation === 'landscape') {
+          page.classList.add('landscape');
+          page.classList.remove('portrait');
+        } else {
+          page.classList.remove('landscape');
+          page.classList.add('portrait');
+        }
+      });
+
+      // Force a reflow to ensure styles are applied
+      pages.forEach(page => {
+        page.offsetHeight; // Force reflow
+      });
+
       const maxScale = 1;
       const availableWidth = Math.max(0, preview.clientWidth - 2);
-      const scale = naturalWidth > 0 ? Math.min(maxScale, availableWidth / naturalWidth) : 1;
+      const scale = A4_WIDTH_PX > 0 ? Math.min(maxScale, availableWidth / A4_WIDTH_PX) : 1;
 
       inner.style.transformOrigin = 'top right';
       inner.style.transform = `scale(${scale})`;
@@ -694,6 +766,17 @@
       preview.style.height = '';
 
       updatePrintRuler();
+      
+      // Double-check after a short delay to ensure dimensions stick
+      setTimeout(() => {
+        pages.forEach(page => {
+          if (page.offsetWidth !== A4_WIDTH_PX || page.offsetHeight !== A4_HEIGHT_PX) {
+            console.log('Re-forcing A4 dimensions');
+            page.style.setProperty('width', `${A4_WIDTH_PX}px`, 'important');
+            page.style.setProperty('height', `${A4_HEIGHT_PX}px`, 'important');
+          }
+        });
+      }, 100);
     }
 
     function updatePrintRuler() {
@@ -702,52 +785,143 @@
       const ticks = document.getElementById('printRulerTicks');
       const label = document.getElementById('printRulerLabel');
       const inner = document.getElementById('printPreviewInner');
+      const preview = document.getElementById('printPreview');
+      const canvas = document.getElementById('printRulerCanvas');
       if (!ruler || !track || !ticks || !label || !inner) return;
 
       const page = inner.querySelector('.print-page');
       if (!page) {
         track.style.width = '0px';
+        track.style.transform = 'translateX(0px)';
+        if (canvas) {
+          canvas.width = 0;
+          canvas.height = 0;
+        }
         ticks.replaceChildren();
         label.textContent = '';
         return;
       }
 
       const rect = page.getBoundingClientRect();
-      const w = Math.max(0, Math.floor(rect.width));
-      track.style.width = `${w}px`;
+      const w = Math.max(0, rect.width);
+      const h = Math.max(0, track.clientHeight || 44);
+
+      track.style.width = `${Math.floor(w)}px`;
+
+      if (preview) {
+        const previewRect = preview.getBoundingClientRect();
+        const rulerRect = ruler.getBoundingClientRect();
+        // הסרגל צריך להיות מיושר עם הדף
+        // הדף מיושר לימין בתוך ה-preview (בגלל align-items: flex-end ו-direction: rtl)
+        // צריך לחשב את המרחק מצד ימין של הסרגל לצד ימין של הדף
+        const pageRight = rect.right;
+        const rulerRight = rulerRect.right;
+        // ה-offset הוא כמה צריך להזיז את ה-track כדי שהצד הימני שלו יהיה באותו מקום כמו הצד הימני של הדף
+        // ב-flex עם justify-content: flex-end, ה-track מתחיל מימין
+        // אם הדף יותר שמאלה מהסרגל, צריך להזיז את ה-track שמאלה (offset שלילי)
+        const offsetFromRight = rulerRight - pageRight;
+        // ב-justify-content: flex-end, ה-track מיושר לימין
+        // צריך להזיז אותו שמאלה ב-offsetFromRight
+        track.style.marginRight = `${Math.round(offsetFromRight)}px`;
+        track.style.transform = '';
+      } else {
+        track.style.marginRight = '0';
+        track.style.transform = '';
+      }
+
+      label.textContent = '';
+      ticks.replaceChildren();
+
+      if (!canvas) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.floor(w * dpr));
+      canvas.height = Math.max(1, Math.floor(h * dpr));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
 
       const cmTotal = (pageOrientation === 'landscape') ? 29.7 : 21;
-      label.textContent = (pageOrientation === 'landscape') ? '29.7 ס"מ' : '21 ס"מ';
+      const hasFraction = Math.abs(cmTotal - Math.round(cmTotal)) > 1e-6;
+      const totalMm = Math.round(cmTotal * 10);
+      const pxPerMm = totalMm > 0 ? (w / totalMm) : 0;
+      if (pxPerMm <= 0) return;
 
-      // Build visual ticks: 0 at right edge, increasing leftwards.
-      ticks.replaceChildren();
-      const pxPerCm = cmTotal > 0 ? (w / cmTotal) : 0;
-      if (pxPerCm <= 0) return;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.fillRect(0, 0, w, h);
 
-      // 0.5 cm resolution, with 1cm major ticks.
-      const halfSteps = Math.floor(cmTotal * 2 + 1e-6);
-      for (let i = 0; i <= halfSteps; i++) {
-        const cmValue = i * 0.5;
-        const isMajor = Math.abs(cmValue - Math.round(cmValue)) < 1e-9;
+      ctx.strokeStyle = 'rgba(17, 24, 39, 0.85)';
+      ctx.lineWidth = 1;
 
-        const tick = document.createElement('div');
-        tick.className = isMajor ? 'ruler-tick major' : 'ruler-tick';
-        tick.style.marginRight = `${Math.round(pxPerCm * 0.5)}px`;
+      const topPad = 3;
+      const majorH = 22;
+      const halfH = 15;
+      const minorH = 10;
 
-        if (isMajor) {
-          const t = document.createElement('div');
-          t.className = 'ruler-tick-label';
-          t.textContent = String(Math.round(cmValue));
-          tick.appendChild(t);
+      ctx.beginPath();
+      for (let mm = 0; mm <= totalMm; mm++) {
+        const x = Math.round(mm * pxPerMm) + 0.5;
+        const isMajor = (mm % 10 === 0);
+        const isHalf = (!isMajor && mm % 5 === 0);
+        const tickH = isMajor ? majorH : (isHalf ? halfH : minorH);
+        ctx.moveTo(x, topPad);
+        ctx.lineTo(x, topPad + tickH);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(17, 24, 39, 0.95)';
+      ctx.font = '700 11px Arial';
+      ctx.textBaseline = 'bottom';
+
+      const labelY = h - 4;
+      for (let mm = 0; mm <= totalMm; mm += 10) {
+        if (hasFraction && mm === totalMm) continue;
+        let x = mm * pxPerMm;
+        const text = String(Math.round(mm / 10));
+
+        if (mm === 0) {
+          ctx.textAlign = 'left';
+          x = 2;
+        } else if (mm === totalMm) {
+          ctx.textAlign = 'right';
+          // להזיז את המספר האחרון מילימטר אחד שמאלה
+          x = Math.max(0, w - 2 - pxPerMm);
+        } else {
+          ctx.textAlign = 'center';
         }
 
-        ticks.appendChild(tick);
+        ctx.fillText(text, x, labelY);
+      }
+
+      if (hasFraction) {
+        ctx.textAlign = 'right';
+        // גם את 29.7 להזיז מילימטר אחד שמאלה
+        ctx.fillText(String(cmTotal), Math.max(0, w - 2 - pxPerMm), labelY);
       }
     }
+
+    setTimeout(() => {
+      const preview = document.getElementById('printPreview');
+      if (preview) {
+        preview.addEventListener('scroll', updatePrintRuler, { passive: true });
+      }
+      window.addEventListener('resize', updatePrintRuler);
+    }, 0);
 
     async function captureElementToCanvas(element, options = {}) {
       const noPrintElements = element.querySelectorAll('.no-print');
       noPrintElements.forEach(el => el.style.display = 'none');
+
+      // הסרת סימון הבחירה מכל האלמנטים לפני הצילום
+      const selectedStickers = element.querySelectorAll('.sticker-container.selected');
+      const selectedWords = element.querySelectorAll('.text-word.selected');
+      const selectedImages = element.querySelectorAll('.sticker-image.selected');
+      
+      selectedStickers.forEach(el => el.classList.remove('selected'));
+      selectedWords.forEach(el => el.classList.remove('selected'));
+      selectedImages.forEach(el => el.classList.remove('selected'));
 
       const rootPreview = (element && element.id === 'printPreview')
         ? element
@@ -833,6 +1007,11 @@
       } finally {
         noPrintElements.forEach(el => el.style.display = '');
 
+        // החזרת סימון הבחירה לאלמנטים שהיו מסומנים
+        selectedStickers.forEach(el => el.classList.add('selected'));
+        selectedWords.forEach(el => el.classList.add('selected'));
+        selectedImages.forEach(el => el.classList.add('selected'));
+
         savedPageStyles.forEach(s => {
           s.el.style.boxShadow = s.boxShadow;
           s.el.style.margin = s.margin;
@@ -904,6 +1083,8 @@
       });
       wrapper.appendChild(deleteBtn);
 
+      // הסרנו את כפתור הסרת הרקע - עכשיו הוא בסרגל העליון
+
       const resizeHandle = document.createElement('div');
       resizeHandle.className = 'resize-handle no-print';
       resizeHandle.addEventListener('mousedown', (e) => {
@@ -936,7 +1117,11 @@
       if (word.curve && word.curve !== 0) {
         el.innerHTML = createCurvedText(word.text, word.curve, word);
       } else {
-        el.textContent = word.text;
+        // טקסט רגיל - שים ב-span נפרד לעדכון קל בזמן עריכה
+        const textSpan = document.createElement('span');
+        textSpan.className = 'word-text-content';
+        textSpan.textContent = word.text;
+        el.appendChild(textSpan);
       }
       
       el.style.left = `${word.x}px`;
@@ -1037,20 +1222,24 @@
       const color = word.color || '#000000';
       const isGradient = word.isGradient;
       
-      // חישוב רוחב משוער של הטקסט
+      // חישוב רוחב משוער של הטקסט - מינימלי יותר
+      const absCurve = Math.abs(curve);
       const charWidth = fontSize * 0.6;
       const textWidth = text.length * charWidth;
-      const svgWidth = Math.max(textWidth + 40, 100);
-      const svgHeight = Math.abs(curve) + fontSize * 2 + 20;
+      const svgWidth = Math.max(textWidth + 20, 80);
       
-      // חישוב הקשת
-      const startX = 10;
-      const endX = svgWidth - 10;
+      // גובה מינימלי - רק מה שצריך לקימור
+      const svgHeight = fontSize + absCurve * 0.8 + 10;
+      
+      // חישוב הקשת - קומפקטי יותר
+      const pathPadding = 5;
+      const startX = pathPadding;
+      const endX = svgWidth - pathPadding;
       const midX = svgWidth / 2;
       
-      // curve חיובי = קימור למטה, curve שלילי = קימור למעלה
-      const baseY = curve > 0 ? fontSize + 10 : svgHeight - fontSize - 10;
-      const curveY = baseY + curve;
+      // curve חיובי = קימור למטה (חיוך), curve שלילי = קימור למעלה
+      const baseY = curve > 0 ? fontSize * 0.8 : svgHeight - fontSize * 0.3;
+      const curveY = baseY + curve * 0.7;
       
       const pathId = `curve-${word.id}`;
       
@@ -1058,14 +1247,36 @@
       let defsContent = '';
       
       if (isGradient && color) {
-        // יצירת גרדיאנט ב-SVG
+        // פירוק הגרדיאנט לצבעים
         const gradientId = `grad-${word.id}`;
-        defsContent = `
-          <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#FF0000"/>
-            <stop offset="100%" style="stop-color:#0000FF"/>
-          </linearGradient>
-        `;
+        let color1 = '#FF0000';
+        let color2 = '#0000FF';
+        
+        // ניסיון לחלץ צבעים מהגרדיאנט
+        const colorMatch = color.match(/(#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}|rgb\([^)]+\)|rgba\([^)]+\))/g);
+        if (colorMatch && colorMatch.length >= 2) {
+          color1 = colorMatch[0];
+          color2 = colorMatch[1];
+        }
+        
+        // בדיקה אם זה גרדיאנט רדיאלי
+        const isRadial = color.includes('radial');
+        
+        if (isRadial) {
+          defsContent = `
+            <radialGradient id="${gradientId}" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" style="stop-color:${color1}"/>
+              <stop offset="100%" style="stop-color:${color2}"/>
+            </radialGradient>
+          `;
+        } else {
+          defsContent = `
+            <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:${color1}"/>
+              <stop offset="100%" style="stop-color:${color2}"/>
+            </linearGradient>
+          `;
+        }
         fillStyle = `fill="url(#${gradientId})"`;
       } else {
         fillStyle = `fill="${color}"`;
@@ -1188,7 +1399,12 @@
         // הוספה מחדש של הכפתורים
         reattachWordControls(wordEl, curvingWord.stickerIndex, word.id);
       } else {
-        wordEl.textContent = word.text;
+        // טקסט רגיל - שים ב-span נפרד
+        const textSpan = document.createElement('span');
+        textSpan.className = 'word-text-content';
+        textSpan.textContent = word.text;
+        wordEl.innerHTML = '';
+        wordEl.appendChild(textSpan);
         reattachWordControls(wordEl, curvingWord.stickerIndex, word.id);
       }
     }
@@ -1423,6 +1639,47 @@
         sticker.words = sticker.words || [];
         sticker.images = sticker.images || [];
 
+        // מדבקות מדויקות - שמירה על הגודל המקורי במילימטרים (עם כיול אם קיים)
+        if (sticker.precisionCut && sticker.precisionWidthMM && sticker.precisionHeightMM) {
+          // החלת כיול מדפסת אם קיים
+          let precisionW, precisionH;
+          if (typeof getCalibratedPxFromMM === 'function') {
+            const calibrated = getCalibratedPxFromMM(sticker.precisionWidthMM, sticker.precisionHeightMM, MM_TO_PX);
+            precisionW = calibrated.widthPx;
+            precisionH = calibrated.heightPx;
+          } else {
+            precisionW = sticker.precisionWidthMM * MM_TO_PX;
+            precisionH = sticker.precisionHeightMM * MM_TO_PX;
+          }
+          
+          if (colIndex >= cols) {
+            colIndex = 0;
+            y = y + rowMaxHeight + gap;
+            rowMaxHeight = 0;
+          }
+
+          if (y + precisionH > pageHeight - edge) {
+            page += 1;
+            colIndex = 0;
+            y = edge;
+            rowMaxHeight = 0;
+          }
+
+          const xPos = pageWidth - edge - (colIndex * (cellWidth + gap)) - cellWidth + Math.max(0, (cellWidth - precisionW) / 2);
+
+          sticker.page = page;
+          sticker.x = xPos;
+          sticker.y = y;
+          sticker.width = precisionW;
+          sticker.height = precisionH;
+          sticker.originalWidth = precisionW;
+          sticker.originalHeight = precisionH;
+
+          rowMaxHeight = Math.max(rowMaxHeight, precisionH);
+          colIndex += 1;
+          continue; // מעבר למדבקה הבאה
+        }
+
         if (!Number.isFinite(sticker.originalWidth) || !Number.isFinite(sticker.originalHeight) || sticker.originalWidth <= 0 || sticker.originalHeight <= 0) {
           const fallbackCell = cellWidth;
           sticker.originalWidth = fallbackCell;
@@ -1526,6 +1783,18 @@
         let maxW = 1;
         stickers.forEach((sticker) => {
           if (!sticker) return;
+          // מדבקות מדויקות - שמירה על הגודל המקורי (עם כיול אם קיים)
+          if (sticker.precisionCut && sticker.precisionWidthMM && sticker.precisionHeightMM) {
+            let precisionW;
+            if (typeof getCalibratedPxFromMM === 'function') {
+              const calibrated = getCalibratedPxFromMM(sticker.precisionWidthMM, sticker.precisionHeightMM, MM_TO_PX);
+              precisionW = calibrated.widthPx;
+            } else {
+              precisionW = sticker.precisionWidthMM * MM_TO_PX;
+            }
+            if (Number.isFinite(precisionW) && precisionW > 0) maxW = Math.max(maxW, precisionW);
+            return;
+          }
           if (!Number.isFinite(sticker.originalWidth) || !Number.isFinite(sticker.originalHeight) || sticker.originalWidth <= 0 || sticker.originalHeight <= 0) {
             const fallbackW = Number.isFinite(sticker.width) && sticker.width > 0 ? sticker.width : 1;
             const fallbackH = Number.isFinite(sticker.height) && sticker.height > 0 ? sticker.height : 1;
@@ -1552,6 +1821,50 @@
       stickers.forEach((sticker) => {
         sticker.words = sticker.words || [];
         sticker.images = sticker.images || [];
+
+        // מדבקות מדויקות - שמירה על הגודל המקורי במילימטרים (עם כיול אם קיים)
+        if (sticker.precisionCut && sticker.precisionWidthMM && sticker.precisionHeightMM) {
+          // החלת כיול מדפסת אם קיים
+          let precisionW, precisionH;
+          if (typeof getCalibratedPxFromMM === 'function') {
+            const calibrated = getCalibratedPxFromMM(sticker.precisionWidthMM, sticker.precisionHeightMM, MM_TO_PX);
+            precisionW = calibrated.widthPx;
+            precisionH = calibrated.heightPx;
+          } else {
+            precisionW = sticker.precisionWidthMM * MM_TO_PX;
+            precisionH = sticker.precisionHeightMM * MM_TO_PX;
+          }
+          
+          // בדיקה אם צריך לעבור לעמוד חדש
+          if (colIndex >= derivedCols) {
+            colIndex = 0;
+            y = y + rowMaxHeight + gap;
+            rowMaxHeight = 0;
+          }
+
+          if (y + precisionH > pageHeight - edge) {
+            page += 1;
+            colIndex = 0;
+            y = edge;
+            rowMaxHeight = 0;
+          }
+
+          const usedCellWidth = (mode === 'height') ? derivedCellWidth : cellWidth;
+          const xPos = pageWidth - edge - (colIndex * (usedCellWidth + gap)) - usedCellWidth + Math.max(0, (usedCellWidth - precisionW) / 2);
+
+          sticker.page = page;
+          sticker.x = xPos;
+          sticker.y = y;
+          // שמירה על הגודל המדויק - לא משנים!
+          sticker.width = precisionW;
+          sticker.height = precisionH;
+          sticker.originalWidth = precisionW;
+          sticker.originalHeight = precisionH;
+
+          rowMaxHeight = Math.max(rowMaxHeight, precisionH);
+          colIndex += 1;
+          return; // מעבר למדבקה הבאה
+        }
 
         if (!Number.isFinite(sticker.originalWidth) || !Number.isFinite(sticker.originalHeight) || sticker.originalWidth <= 0 || sticker.originalHeight <= 0) {
           const fallbackCell = (mode === 'height') ? derivedCellWidth : cellWidth;
@@ -1642,6 +1955,22 @@
         if (!sticker) return;
         sticker.words = sticker.words || [];
         sticker.images = sticker.images || [];
+
+        // מדבקות מדויקות - שמירה על הגודל המקורי במילימטרים (עם כיול אם קיים)
+        if (sticker.precisionCut && sticker.precisionWidthMM && sticker.precisionHeightMM) {
+          // החלת כיול מדפסת אם קיים
+          if (typeof getCalibratedPxFromMM === 'function') {
+            const calibrated = getCalibratedPxFromMM(sticker.precisionWidthMM, sticker.precisionHeightMM, MM_TO_PX);
+            sticker.width = calibrated.widthPx;
+            sticker.height = calibrated.heightPx;
+          } else {
+            sticker.width = sticker.precisionWidthMM * MM_TO_PX;
+            sticker.height = sticker.precisionHeightMM * MM_TO_PX;
+          }
+          sticker.originalWidth = sticker.width;
+          sticker.originalHeight = sticker.height;
+          return; // לא משנים את הגודל של מדבקות מדויקות
+        }
 
         if (!Number.isFinite(sticker.width) || sticker.width <= 1) {
           sticker.width = 100;
@@ -2072,6 +2401,18 @@
       stickerEl.style.height = `${calculatedHeight}px`;
       stickerEl.style.top = `${startTop}px`;
       stickerEl.style.left = `${sticker.x}px`;
+      
+      // עדכון תצוגת המידות בזמן אמת
+      const widthLabel = stickerEl.querySelector('.sticker-dimension-width');
+      const heightLabel = stickerEl.querySelector('.sticker-dimension-height');
+      if (widthLabel) {
+        const widthInCm = (newWidth / MM_TO_PX / 10).toFixed(1);
+        widthLabel.textContent = `${widthInCm} ס"מ`;
+      }
+      if (heightLabel) {
+        const heightInCm = (calculatedHeight / MM_TO_PX / 10).toFixed(1);
+        heightLabel.textContent = `${heightInCm} ס"מ`;
+      }
     }
 
     function stopStickerResize() {
@@ -2207,7 +2548,7 @@
 
     function startInlineTextEdit(wordElement, stickerIndex, wordId) {
       // מנע עריכה כפולה
-      if (wordElement.querySelector('input')) return;
+      if (wordElement.querySelector('.inline-text-edit')) return;
       
       const sticker = stickers[stickerIndex];
       if (!sticker) return;
@@ -2220,58 +2561,40 @@
       const originalColor = word.color;
       const originalIsGradient = word.isGradient;
       
-      // יצור שדה קלט
+      // יצור שדה קלט שקוף לחלוטין - רק לקליטת הקלדה
       const input = document.createElement('input');
       input.type = 'text';
       input.value = originalText;
       input.className = 'inline-text-edit';
       
-      // פונקציה לחישוב רוחב הטקסט
-      const calculateTextWidth = (text) => {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        context.font = `${word.fontWeight || '700'} ${word.fontSize || 12}px ${word.fontFamily || 'Arial'}`;
-        return Math.max(50, context.measureText(text || 'A').width + 20); // מינימום 50px + ריווח
-      };
+      // הוסף מסגרת עריכה לאלמנט הטקסט
+      wordElement.classList.add('editing-mode');
       
-      // פונקציה לעדכון סגנון השדה
-      const updateInputStyle = () => {
-        const textWidth = calculateTextWidth(input.value);
-        const currentColor = word.isGradient ? '#000000' : (word.color || '#000000');
-        
-        input.style.cssText = `
-          position: absolute !important;
-          top: -2px !important;
-          left: -2px !important;
-          width: ${textWidth}px !important;
-          height: ${(word.fontSize || 12) + 8}px !important;
-          border: 2px solid #3b82f6 !important;
-          border-radius: 4px !important;
-          background: rgba(255, 255, 255, 0.98) !important;
-          color: ${currentColor} !important;
-          font-size: ${word.fontSize || 12}px !important;
-          font-family: ${word.fontFamily || 'Arial'} !important;
-          font-weight: ${word.fontWeight || '700'} !important;
-          text-align: center !important;
-          outline: none !important;
-          z-index: 1001 !important;
-          box-shadow: 0 0 15px rgba(59, 130, 246, 0.8) !important;
-          padding: 2px 4px !important;
-          box-sizing: border-box !important;
-          display: block !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-        `;
-      };
-      
-      // הסתר את הטקסט המקורי
-      wordElement.style.color = 'transparent !important';
-      wordElement.style.webkitTextFillColor = 'transparent !important';
-      wordElement.style.background = 'transparent !important';
+      // סגנון שדה הקלט - שקוף לחלוטין, רק לקליטת הקלדה
+      input.style.cssText = `
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+        background: transparent !important;
+        color: transparent !important;
+        caret-color: #3b82f6 !important;
+        font-size: ${word.fontSize || 12}px !important;
+        font-family: ${word.fontFamily || 'Arial'} !important;
+        font-weight: ${word.fontWeight || '700'} !important;
+        text-align: center !important;
+        outline: none !important;
+        z-index: 1001 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        cursor: text !important;
+      `;
       
       // הוסף את שדה הקלט
       wordElement.appendChild(input);
-      updateInputStyle();
       
       // פוקוס ובחירת הטקסט
       setTimeout(() => {
@@ -2279,14 +2602,46 @@
         input.select();
       }, 50);
 
-      // עדכון רוחב השדה בזמן הקלדה
-      input.addEventListener('input', () => {
-        updateInputStyle();
-      });
+      // פונקציה לעדכון הטקסט בזמן אמת
+      const updateTextRealtime = () => {
+        const newText = input.value;
+        if (newText !== word.text) {
+          word.text = newText;
+          
+          // עדכן את התצוגה בזמן אמת
+          if (word.curve && word.curve !== 0) {
+            // טקסט מקומר - עדכן את ה-SVG
+            const svgContainer = wordElement.querySelector('svg');
+            if (svgContainer) {
+              const textPath = svgContainer.querySelector('textPath');
+              if (textPath) {
+                textPath.textContent = newText;
+              }
+            }
+          } else {
+            // טקסט רגיל - עדכן את ה-span
+            const textSpan = wordElement.querySelector('.word-text-content');
+            if (textSpan) {
+              textSpan.textContent = newText;
+            } else {
+              // אם אין span, חפש טקסט ישיר
+              const childNodes = Array.from(wordElement.childNodes);
+              for (const node of childNodes) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                  node.textContent = newText;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      };
 
-      // מאזין לשינויי צבע בזמן עריכה - מאזין ספציפי לפלטת הצבעים
+      // עדכון בזמן הקלדה
+      input.addEventListener('input', updateTextRealtime);
+
+      // מאזין לשינויי צבע בזמן עריכה
       const handleColorChange = (e) => {
-        // בדוק אם הלחיצה הייתה על צבע בפלטה או על תצוגת הגרדיאנט
         if (e.target.classList.contains('color-palette-color') || 
             e.target.id === 'gradientPreview') {
           
@@ -2299,7 +2654,6 @@
               const gradientValue = textColorSwatch.dataset.gradientValue;
               const regularColor = textColorPicker.value;
               
-              // עדכן את המילה
               if (isGradient && gradientValue) {
                 word.color = gradientValue;
                 word.isGradient = true;
@@ -2308,29 +2662,33 @@
                 word.isGradient = false;
               }
               
-              // עדכן את סגנון השדה
-              updateInputStyle();
+              // רנדר מחדש כדי לעדכן את הצבע
+              renderStickers();
+              // בחר מחדש את הטקסט לעריכה
+              setTimeout(() => {
+                const newWordEl = document.querySelector(`[data-sticker-index="${stickerIndex}"] [data-word-id="${wordId}"]`);
+                if (newWordEl) {
+                  startInlineTextEdit(newWordEl, stickerIndex, wordId);
+                }
+              }, 50);
             }
           }, 10);
         }
       };
 
-      // הוסף מאזין לשינויי צבע
       document.addEventListener('click', handleColorChange, true);
       
       // פונקציה לסיום העריכה
       const finishEdit = (save = true) => {
-        if (!input.parentNode) return; // כבר הוסר
+        if (!input.parentNode) return;
         
-        // הסר את מאזין שינויי הצבע
         document.removeEventListener('click', handleColorChange, true);
+        wordElement.classList.remove('editing-mode');
         
         if (save && input.value.trim() !== '') {
-          // עדכן את הטקסט
           pushHistory();
           word.text = input.value.trim();
           
-          // עדכן גם את שדה הקלט הראשי
           const wordInput = document.getElementById('wordInput');
           if (wordInput) {
             wordInput.value = word.text;
@@ -2465,12 +2823,51 @@
 
       const next = Math.max(8, Math.min(240, Math.round(startFontSize + delta)));
       applyWordFontSize(stickerIndex, wordId, next);
+      
+      // Show font size indicator
+      showFontSizeIndicator(next, e.clientX, e.clientY);
     }
 
     function stopWordResize() {
       resizingWord = null;
       document.removeEventListener('mousemove', resizeWordFont);
       document.removeEventListener('mouseup', stopWordResize);
+      
+      // Hide font size indicator
+      hideFontSizeIndicator();
+    }
+    
+    // Font size indicator functions
+    function showFontSizeIndicator(size, x, y) {
+      let indicator = document.getElementById('fontSizeIndicator');
+      if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'fontSizeIndicator';
+        indicator.style.cssText = `
+          position: fixed;
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 18px;
+          font-weight: bold;
+          z-index: 10000;
+          pointer-events: none;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+        document.body.appendChild(indicator);
+      }
+      indicator.textContent = `${size}px`;
+      indicator.style.left = `${x + 20}px`;
+      indicator.style.top = `${y - 40}px`;
+      indicator.style.display = 'block';
+    }
+    
+    function hideFontSizeIndicator() {
+      const indicator = document.getElementById('fontSizeIndicator');
+      if (indicator) {
+        indicator.style.display = 'none';
+      }
     }
 
     function selectImage(stickerIndex, imageId) {
@@ -2500,8 +2897,11 @@
       const wrapper = document.getElementById('opacityControlWrapper');
       const slider = document.getElementById('opacitySlider');
       const valueDisplay = document.getElementById('opacityValue');
+      const removeBackgroundBtn = document.getElementById('removeBackgroundBtn');
+      const eraserBtn = document.getElementById('eraserBtn');
+      const opacitySection = document.getElementById('opacitySection');
       
-      if (!wrapper || !slider || !valueDisplay) return;
+      if (!wrapper || !slider || !valueDisplay || !removeBackgroundBtn) return;
       
       currentOpacityTarget = { type, stickerIndex, elementId };
       
@@ -2524,14 +2924,122 @@
       
       slider.value = currentOpacity;
       valueDisplay.textContent = `${currentOpacity}%`;
-      wrapper.classList.remove('hidden');
+      
+      // הפעלת הסליידר והסרת המצב המושבת
+      slider.disabled = false;
+      if (opacitySection) {
+        opacitySection.classList.remove('opacity-section-disabled');
+      }
+      
+      // הגדרת כפתור הסרת רקע
+      removeBackgroundBtn.onclick = async () => {
+        // הפעלת אנימציית טעינה
+        const loader = document.getElementById('removeBackgroundLoader');
+        const content = document.getElementById('removeBackgroundContent');
+        
+        if (loader && content) {
+          loader.classList.remove('hidden');
+          content.classList.add('opacity-0');
+          removeBackgroundBtn.disabled = true;
+        }
+        
+        // עצירת שמירה אוטומטית ל-25 שניות
+        if (typeof GoogleDriveManager !== 'undefined' && GoogleDriveManager.setProcessingBackground) {
+          GoogleDriveManager.setProcessingBackground(true);
+          
+          // ביטול אוטומטי אחרי 25 שניות
+          setTimeout(() => {
+            if (typeof GoogleDriveManager !== 'undefined' && GoogleDriveManager.setProcessingBackground) {
+              GoogleDriveManager.setProcessingBackground(false);
+              console.log('Auto-save resumed after 25 seconds');
+            }
+          }, 25000);
+        }
+        
+        try {
+          if (type === 'sticker') {
+            await removeBackgroundFromSelected(stickerIndex, 'sticker');
+          } else if (type === 'image') {
+            await removeBackgroundFromSelected(stickerIndex, 'image', elementId);
+          }
+        } catch (error) {
+          console.error('Background removal failed:', error);
+        } finally {
+          // הסתרת אנימציית טעינה
+          if (loader && content) {
+            loader.classList.add('hidden');
+            content.classList.remove('opacity-0');
+            removeBackgroundBtn.disabled = false;
+          }
+        }
+      };
+      
+      // הפעלה/השבתה של כפתורים בהתאם לסוג האלמנט
+      if (type === 'sticker' || type === 'image') {
+        // הפעלת כפתור הסרת רקע
+        removeBackgroundBtn.disabled = false;
+        removeBackgroundBtn.className = 'px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg shadow-md hover:from-red-600 hover:to-pink-700 transition-all flex items-center gap-2 relative overflow-hidden cursor-pointer';
+      } else {
+        // השבתת כפתור הסרת רקע
+        removeBackgroundBtn.disabled = true;
+        removeBackgroundBtn.className = 'px-4 py-2 bg-gray-300 text-gray-500 font-bold rounded-lg shadow-md cursor-not-allowed flex items-center gap-2 relative overflow-hidden';
+      }
+      
+      // כפתור המחק פעיל רק עבור תמונות
+      if (eraserBtn) {
+        if (type === 'image') {
+          // הפעלת כפתור המחק - הכפתור תמיד מופעל כשתמונה נבחרת
+          // גם אם המחק כבר פעיל, המשתמש יכול ללחוץ עליו כדי לכבות אותו
+          eraserBtn.disabled = false;
+          eraserBtn.className = 'px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold rounded-lg shadow-md hover:from-orange-600 hover:to-amber-700 transition-all flex items-center gap-2 cursor-pointer';
+        } else {
+          // השבתת כפתור המחק עבור מדבקות וטקסט
+          eraserBtn.disabled = true;
+          eraserBtn.className = 'px-4 py-2 bg-gray-300 text-gray-500 font-bold rounded-lg shadow-md cursor-not-allowed flex items-center gap-2';
+          
+          // כיבוי המחק אם הוא פעיל
+          if (typeof window.deactivateEraserTool === 'function') {
+            window.deactivateEraserTool();
+          }
+        }
+      }
     }
     
     function hideOpacityControl() {
-      const wrapper = document.getElementById('opacityControlWrapper');
-      if (wrapper) {
-        wrapper.classList.add('hidden');
+      const slider = document.getElementById('opacitySlider');
+      const removeBackgroundBtn = document.getElementById('removeBackgroundBtn');
+      const eraserBtn = document.getElementById('eraserBtn');
+      const opacitySection = document.getElementById('opacitySection');
+      const eraserSizeControl = document.getElementById('eraserSizeControl');
+      
+      // כיבוי כלי המחק אם הוא פעיל
+      if (typeof window.deactivateEraserTool === 'function') {
+        window.deactivateEraserTool();
       }
+      
+      // הסתרת סקלת גודל המחק
+      if (eraserSizeControl) {
+        eraserSizeControl.classList.add('hidden');
+      }
+      
+      // השבתת כל הכפתורים והסליידר
+      if (slider) slider.disabled = true;
+      
+      // הוספת class למצב מושבת
+      if (opacitySection) {
+        opacitySection.classList.add('opacity-section-disabled');
+      }
+      
+      if (removeBackgroundBtn) {
+        removeBackgroundBtn.disabled = true;
+        removeBackgroundBtn.className = 'px-4 py-2 bg-gray-300 text-gray-500 font-bold rounded-lg shadow-md cursor-not-allowed flex items-center gap-2 relative overflow-hidden';
+      }
+      
+      if (eraserBtn) {
+        eraserBtn.disabled = true;
+        eraserBtn.className = 'px-4 py-2 bg-gray-300 text-gray-500 font-bold rounded-lg shadow-md cursor-not-allowed flex items-center gap-2';
+      }
+      
       currentOpacityTarget = { type: null, stickerIndex: null, elementId: null };
     }
     
@@ -3307,6 +3815,12 @@
     }
 
     function startImageDrag(e, stickerIndex, imageId) {
+      // בדיקה אם כלי המחק פעיל - אם כן, לא לגרור
+      if (typeof window.isEraserToolActive === 'function' && window.isEraserToolActive()) {
+        console.log('Eraser is active, preventing drag');
+        return;
+      }
+      
       pushHistory();
       const imageEl = e.currentTarget;
       const rect = imageEl.getBoundingClientRect();
@@ -3455,6 +3969,96 @@
       resizingImage = null;
       document.removeEventListener('mousemove', resizeImage);
       document.removeEventListener('mouseup', stopImageResize);
+    }
+
+    async function removeBackgroundFromSelected(stickerIndex, type, elementId) {
+      let target;
+      if (type === 'sticker') {
+        target = stickers[stickerIndex];
+      } else if (type === 'image') {
+        target = stickers[stickerIndex].images.find(img => img.id === elementId);
+      }
+
+      if (type === 'sticker') {
+        const images = (stickers[stickerIndex] && stickers[stickerIndex].images) ? stickers[stickerIndex].images : [];
+        const preferredImageId = (typeof selectedSticker !== 'undefined' && typeof selectedImage !== 'undefined' && selectedSticker === stickerIndex && selectedImage)
+          ? selectedImage
+          : ((images.length === 1 && images[0] && images[0].id) ? images[0].id : null);
+        if (preferredImageId) {
+          type = 'image';
+          elementId = preferredImageId;
+          target = images.find(img => img.id === preferredImageId);
+        }
+      }
+
+      if (!target || !target.dataUrl) {
+        showStatus('לא נמצאה תמונה לעיבוד', true);
+        return;
+      }
+
+      // Don't process SVGs as they usually don't have backgrounds in the same way
+      if (target.dataUrl.startsWith('data:image/svg+xml')) {
+        showStatus('הסרת רקע אינה נתמכת בקבצי SVG', true);
+        return;
+      }
+
+      // בדיקה אם הספרייה זמינה (מקומית או CDN)
+      showStatus('טוען כלי הסרת רקע (AI)...');
+      let removeFunc = window.imglyRemoveBackground || window.removeBackground;
+      if (typeof removeFunc === 'undefined' && typeof window.ensureBackgroundRemovalLibraryLoaded === 'function') {
+        try {
+          removeFunc = await window.ensureBackgroundRemovalLibraryLoaded();
+        } catch (e) {
+          console.error('Failed to load background removal library:', e);
+          showStatus('שגיאה בטעינת כלי הסרת הרקע. בדוק חיבור/חסימה לרשת.', true);
+          return;
+        }
+      }
+      if (typeof removeFunc === 'undefined') {
+        showStatus('ספריית הסרת הרקע לא זמינה. אנא רענן את הדף ונסה שוב.', true);
+        console.error('Background removal library not available');
+        return;
+      }
+
+      showStatus('מעבד תמונה להסרת רקע... (עשוי לקחת כמה שניות)');
+      
+      try {
+        // Convert dataURL to Blob/File for the library
+        const response = await fetch(target.dataUrl);
+        const blob = await response.blob();
+        
+        // Run AI removal - עובד גם עם CDN וגם עם קבצים מקומיים
+        const config = {
+          publicPath: window.IMGLY_BG_REMOVAL_PUBLIC_PATH,
+          debug: false,
+          progress: (key, current, total) => {
+            const percent = Math.round((current / total) * 100);
+            showStatus(`מסיר רקע... ${percent}%`);
+          }
+        };
+
+        const resultBlob = await removeFunc(blob, config);
+
+        // Convert back to dataURL
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          pushHistory();
+          target.dataUrl = reader.result;
+          renderStickers();
+          showStatus('הרקע הוסר בהצלחה! (התוצאה שקופה - על רקע לבן זה יכול להיראות דומה)');
+        };
+        reader.readAsDataURL(resultBlob);
+
+      } catch (error) {
+        console.error('Background removal error:', error);
+        
+        let errorMessage = error.message;
+        if (errorMessage.includes('fetch') || errorMessage.includes('model') || error.name === 'TypeError') {
+          errorMessage = 'שגיאה בטעינת מודל ה-AI. ייתכן שהחיבור לאינטרנט איטי או שחסימת "נטפרי" מונעת את הורדת המודל.';
+        }
+        
+        showStatus('שגיאה: ' + errorMessage, true);
+      }
     }
 
     function updateFileCount() {
@@ -3668,6 +4272,7 @@
       const downloadImageBtn = document.getElementById('downloadImageBtn');
       const printBtn = document.getElementById('printBtn');
       const saveProjectBtn = document.getElementById('saveProjectBtn');
+      const saveToDriveBtn = document.getElementById('saveToDriveBtn');
       const loadProjectLabel = document.querySelector('label[for="loadProjectInput"]');
 
       // הסרת active מכל הטאבים
@@ -3690,6 +4295,10 @@
         if (printBtn) printBtn.classList.remove('hidden');
         if (saveProjectBtn) saveProjectBtn.classList.remove('hidden');
         if (loadProjectLabel) loadProjectLabel.classList.remove('hidden');
+        // Show save to drive if signed in
+        if (saveToDriveBtn && typeof GoogleDriveManager !== 'undefined' && GoogleDriveManager.isSignedIn()) {
+          saveToDriveBtn.classList.remove('hidden');
+        }
       } else if (mode === 'numbers') {
         tabNumbers.classList.add('active');
         numbersContent.classList.remove('hidden');
@@ -3702,6 +4311,8 @@
         if (printBtn) printBtn.classList.add('hidden');
         if (saveProjectBtn) saveProjectBtn.classList.add('hidden');
         if (loadProjectLabel) loadProjectLabel.classList.add('hidden');
+        // Hide save to drive in numbers mode
+        if (saveToDriveBtn) saveToDriveBtn.classList.add('hidden');
       } else if (mode === 'namesLottery') {
         if (tabNamesLottery) tabNamesLottery.classList.add('active');
         const namesLotteryContent = document.getElementById('namesLotteryContent');
@@ -3709,12 +4320,20 @@
         printPreviewSection.classList.add('hidden');
         document.getElementById('pageTitle').textContent = 'הגרלת שמות';
         
-        // Hide word mode buttons
+        // Hide most buttons
         if (downloadPdfBtn) downloadPdfBtn.classList.add('hidden');
         if (downloadImageBtn) downloadImageBtn.classList.add('hidden');
         if (printBtn) printBtn.classList.add('hidden');
         if (saveProjectBtn) saveProjectBtn.classList.add('hidden');
         if (loadProjectLabel) loadProjectLabel.classList.add('hidden');
+        // Hide header save to drive (we have one in names section)
+        if (saveToDriveBtn) saveToDriveBtn.classList.add('hidden');
+        
+        // Show names-specific save to drive button if signed in
+        const saveToDriveNamesBtn = document.getElementById('saveToDriveNamesBtn');
+        if (saveToDriveNamesBtn && typeof GoogleDriveManager !== 'undefined' && GoogleDriveManager.isSignedIn()) {
+          saveToDriveNamesBtn.classList.remove('hidden');
+        }
       }
     }
     
@@ -3763,7 +4382,7 @@
       const pages = [];
       for (let p = 0; p < pageCount; p++) {
         const pageEl = document.createElement('div');
-        pageEl.className = 'print-page';
+        pageEl.className = pageOrientation === 'landscape' ? 'print-page landscape' : 'print-page portrait';
         pageEl.dataset.pageIndex = p;
         fragment.appendChild(pageEl);
         pages.push(pageEl);
@@ -3998,13 +4617,8 @@
         return;
       }
       
-      const projectData = {
-        version: '1.2',
-        stickers: stickers,
-        layout: stickerLayoutConfig,
-        pageOrientation: pageOrientation,
-        savedAt: new Date().toISOString()
-      };
+      const projectData = getProjectData();
+      if (!projectData) return;
       
       const jsonString = JSON.stringify(projectData, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
@@ -4020,6 +4634,132 @@
       showStatus('הפרויקט נשמר בהצלחה! ✓');
     }
 
+    // Get project data for saving (used by both local save and Google Drive)
+    function getProjectData() {
+      if (stickers.length === 0) {
+        return null;
+      }
+      
+      return {
+        version: '1.2',
+        stickers: stickers,
+        layout: stickerLayoutConfig,
+        pageOrientation: pageOrientation,
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    // Clear current project (used for new project)
+    function clearProject() {
+      pushHistory();
+      stickers = [];
+      selectedSticker = null;
+      selectedWord = null;
+      selectedImage = null;
+      wordIdCounter = 0;
+      wordSeriesCounter = 0;
+      imageIdCounter = 0;
+      imageSeriesCounter = 0;
+      currentProjectFileName = null;
+      
+      renderStickers();
+      updateFileCount();
+      updateUndoRedoButtons();
+    }
+
+    // Load project data (used by both local load and Google Drive)
+    function loadProjectData(projectData, fileName) {
+      try {
+        if (!projectData.stickers || !Array.isArray(projectData.stickers)) {
+          showStatus('קובץ לא תקין!', true);
+          return false;
+        }
+        
+        if (fileName) {
+          currentProjectFileName = fileName;
+        }
+        
+        stickers = projectData.stickers;
+        if (projectData.layout && typeof projectData.layout === 'object') {
+          stickerLayoutConfig = {
+            uploadLimit: Number.isFinite(projectData.layout.uploadLimit) ? projectData.layout.uploadLimit : 0,
+            stickersPerRow: Number.isFinite(projectData.layout.stickersPerRow) ? projectData.layout.stickersPerRow : 2,
+            edgeMargin: Number.isFinite(projectData.layout.edgeMargin) ? projectData.layout.edgeMargin : 1,
+            gap: Number.isFinite(projectData.layout.gap) ? projectData.layout.gap : 1,
+            sizeMode: (String(projectData.layout.sizeMode || 'width').toLowerCase() === 'height') ? 'height' : 'width'
+          };
+        }
+        
+        // Load page orientation
+        if (projectData.pageOrientation === 'landscape' || projectData.pageOrientation === 'portrait') {
+          pageOrientation = projectData.pageOrientation;
+          const orientationDropdownIcon = document.getElementById('orientationDropdownIcon');
+          const orientationDropdownText = document.getElementById('orientationDropdownText');
+          if (orientationDropdownIcon && orientationDropdownText) {
+            if (pageOrientation === 'portrait') {
+              orientationDropdownIcon.textContent = '📄';
+              orientationDropdownText.textContent = 'כיוון הדף: לאורך';
+            } else {
+              orientationDropdownIcon.textContent = '📃';
+              orientationDropdownText.textContent = 'כיוון הדף: לרוחב';
+            }
+          }
+        }
+
+        stickers.forEach(s => {
+          s.words = s.words || [];
+          s.images = s.images || [];
+          if (!Number.isFinite(s.originalWidth) || !Number.isFinite(s.originalHeight) || s.originalWidth <= 0 || s.originalHeight <= 0) {
+            const fallbackW = Number.isFinite(s.width) && s.width > 0 ? s.width : 1;
+            const fallbackH = Number.isFinite(s.height) && s.height > 0 ? s.height : 1;
+            s.originalWidth = fallbackW;
+            s.originalHeight = fallbackH;
+          }
+        });
+
+        wordIdCounter = Math.max(...stickers.flatMap(s => 
+          s.words.map(w => parseInt(w.id.split('-')[1]) || 0)
+        ), 0);
+
+        wordSeriesCounter = Math.max(0, ...stickers.flatMap(s =>
+          (s.words || []).map(w => {
+            const raw = (w && w.seriesId) ? String(w.seriesId) : '';
+            const m = raw.match(/^series-(\d+)$/);
+            return m ? (parseInt(m[1], 10) || 0) : 0;
+          })
+        ));
+
+        imageIdCounter = Math.max(...stickers.flatMap(s => 
+          (s.images || []).map(i => parseInt(i.id.split('-')[1]) || 0)
+        ), 0);
+        
+        applyStickerLayoutConfigToUI();
+        if (autoArrangeEnabled) {
+          reflowStickersPositionsOnly();
+        } else {
+          reflowStickers();
+        }
+        renderStickers();
+        
+        // Force A4 dimensions after loading project - multiple calls to ensure it works
+        applyPrintPreviewScale();
+        setTimeout(() => {
+          applyPrintPreviewScale();
+        }, 50);
+        setTimeout(() => {
+          applyPrintPreviewScale();
+        }, 200);
+        
+        updateFileCount();
+        showStatus(`הפרויקט נטען בהצלחה! ${stickers.length} מדבקות`);
+        return true;
+      } catch (error) {
+        console.error('Load Error:', error);
+        showStatus('שגיאה בטעינת הפרויקט', true);
+        return false;
+      }
+    }
+
     function loadProject(file) {
       if (!file) return;
       
@@ -4029,76 +4769,7 @@
       reader.onload = function(e) {
         try {
           const projectData = JSON.parse(e.target.result);
-          
-          if (!projectData.stickers || !Array.isArray(projectData.stickers)) {
-            showStatus('קובץ לא תקין!', true);
-            return;
-          }
-          
-          stickers = projectData.stickers;
-          if (projectData.layout && typeof projectData.layout === 'object') {
-            stickerLayoutConfig = {
-              uploadLimit: Number.isFinite(projectData.layout.uploadLimit) ? projectData.layout.uploadLimit : 0,
-              stickersPerRow: Number.isFinite(projectData.layout.stickersPerRow) ? projectData.layout.stickersPerRow : 2,
-              edgeMargin: Number.isFinite(projectData.layout.edgeMargin) ? projectData.layout.edgeMargin : 1,
-              gap: Number.isFinite(projectData.layout.gap) ? projectData.layout.gap : 1,
-              sizeMode: (String(projectData.layout.sizeMode || 'width').toLowerCase() === 'height') ? 'height' : 'width'
-            };
-          }
-          
-          // Load page orientation
-          if (projectData.pageOrientation === 'landscape' || projectData.pageOrientation === 'portrait') {
-            pageOrientation = projectData.pageOrientation;
-            // Update orientation dropdown
-            const orientationDropdownIcon = document.getElementById('orientationDropdownIcon');
-            const orientationDropdownText = document.getElementById('orientationDropdownText');
-            if (orientationDropdownIcon && orientationDropdownText) {
-              if (pageOrientation === 'portrait') {
-                orientationDropdownIcon.textContent = '📄';
-                orientationDropdownText.textContent = 'כיוון הדף: לאורך';
-              } else {
-                orientationDropdownIcon.textContent = '📃';
-                orientationDropdownText.textContent = 'כיוון הדף: לרוחב';
-              }
-            }
-          }
-
-          stickers.forEach(s => {
-            s.words = s.words || [];
-            s.images = s.images || [];
-            if (!Number.isFinite(s.originalWidth) || !Number.isFinite(s.originalHeight) || s.originalWidth <= 0 || s.originalHeight <= 0) {
-              const fallbackW = Number.isFinite(s.width) && s.width > 0 ? s.width : 1;
-              const fallbackH = Number.isFinite(s.height) && s.height > 0 ? s.height : 1;
-              s.originalWidth = fallbackW;
-              s.originalHeight = fallbackH;
-            }
-          });
-
-          wordIdCounter = Math.max(...stickers.flatMap(s => 
-            s.words.map(w => parseInt(w.id.split('-')[1]) || 0)
-          ), 0);
-
-          wordSeriesCounter = Math.max(0, ...stickers.flatMap(s =>
-            (s.words || []).map(w => {
-              const raw = (w && w.seriesId) ? String(w.seriesId) : '';
-              const m = raw.match(/^series-(\d+)$/);
-              return m ? (parseInt(m[1], 10) || 0) : 0;
-            })
-          ));
-
-          imageIdCounter = Math.max(...stickers.flatMap(s => 
-            (s.images || []).map(i => parseInt(i.id.split('-')[1]) || 0)
-          ), 0);
-          
-          applyStickerLayoutConfigToUI();
-          if (autoArrangeEnabled) {
-            reflowStickersPositionsOnly();
-          } else {
-            reflowStickers();
-          }
-          renderStickers();
-          updateFileCount();
-          showStatus(`הפרויקט "${file.name}" נטען בהצלחה! ${stickers.length} מדבקות`);
+          loadProjectData(projectData, file.name);
         } catch (error) {
           console.error('Load Error:', error);
           showStatus('שגיאה בטעינת הפרויקט', true);
@@ -4127,7 +4798,7 @@
         // Create category header
         const categoryHeader = document.createElement('div');
         categoryHeader.className = 'category-header col-span-full text-lg font-bold text-gray-800 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-2 rounded-lg border-2 border-indigo-200 mb-2';
-        categoryHeader.textContent = category;
+        categoryHeader.textContent = t(categoryTranslations[category] || category);
         grid.appendChild(categoryHeader);
 
         // Create buttons for files in this category
@@ -4197,7 +4868,7 @@
         // Create category header
         const categoryHeader = document.createElement('div');
         categoryHeader.className = 'category-header col-span-full text-lg font-bold text-gray-800 bg-gradient-to-r from-pink-100 to-rose-100 px-4 py-2 rounded-lg border-2 border-pink-200 mb-2';
-        categoryHeader.textContent = category;
+        categoryHeader.textContent = t(categoryTranslations[category] || category);
         grid.appendChild(categoryHeader);
 
         // Create buttons for files in this category
@@ -4955,9 +5626,11 @@
       if (stickers.length > 0) {
         pushHistory();
         if (autoArrangeEnabled) {
+          // במצב סידור אוטומטי - מחשב מחדש מיקומים וגדלים
           reflowStickersPositionsOnly();
         } else {
-          reflowStickers();
+          // במצב עריכה חופשית - רק מחליף את כיוון הדף בלי לשנות גדלים
+          console.log('Free edit mode - only changing page orientation, keeping sticker sizes');
         }
         renderStickers();
       } else {
@@ -4993,7 +5666,7 @@
       // Create empty page if no stickers
       if (stickers.length === 0) {
         const pageEl = document.createElement('div');
-        pageEl.className = pageOrientation === 'landscape' ? 'print-page landscape' : 'print-page';
+        pageEl.className = pageOrientation === 'landscape' ? 'print-page landscape' : 'print-page portrait';
         pageEl.dataset.pageIndex = 0;
         previewInner.replaceChildren(pageEl);
         applyPrintPreviewScale();
@@ -5067,9 +5740,165 @@
       downloadAsImage();
     });
 
-    document.getElementById('printBtn').addEventListener('click', function() {
-      window.print();
+    document.getElementById('printBtn').addEventListener('click', async function() {
+      await printAsImage();
     });
+
+    // פונקציה להדפסה באמצעות תמונה
+    async function printAsImage() {
+      if (stickers.length === 0) {
+        showStatus('אין מדבקות להדפסה', true);
+        return;
+      }
+
+      const preview = document.getElementById('printPreview');
+      showStatus('מכין להדפסה...');
+
+      try {
+        // החלת כיול מדפסת על המדבקות לפני ההדפסה
+        const originalSizes = [];
+        let calibrationApplied = false;
+        
+        if (typeof getCalibrationScale === 'function') {
+          const scale = getCalibrationScale();
+          if (scale.scaleX !== 1 || scale.scaleY !== 1) {
+            calibrationApplied = true;
+            console.log('Applying printer calibration:', scale);
+            
+            // שמירת הגדלים המקוריים והחלת הכיול
+            stickers.forEach((sticker, index) => {
+              originalSizes[index] = {
+                width: sticker.width,
+                height: sticker.height,
+                x: sticker.x,
+                y: sticker.y
+              };
+              
+              // החלת הכיול
+              sticker.width = sticker.width * scale.scaleX;
+              sticker.height = sticker.height * scale.scaleY;
+            });
+            
+            // רענון התצוגה עם הגדלים המכוילים
+            renderStickers();
+            
+            // המתנה קצרה לעדכון ה-DOM
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        }
+
+        const pages = preview.querySelectorAll('.print-page');
+        const nodes = pages.length ? Array.from(pages) : [preview];
+        
+        // יצירת חלון הדפסה חדש
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+          // שחזור הגדלים המקוריים אם נכשל
+          if (calibrationApplied) {
+            stickers.forEach((sticker, index) => {
+              if (originalSizes[index]) {
+                sticker.width = originalSizes[index].width;
+                sticker.height = originalSizes[index].height;
+                sticker.x = originalSizes[index].x;
+                sticker.y = originalSizes[index].y;
+              }
+            });
+            renderStickers();
+          }
+          showStatus('נא לאפשר חלונות קופצים להדפסה', true);
+          return;
+        }
+
+        // הכנת ה-HTML של חלון ההדפסה
+        const pageOrientation = document.querySelector('.print-page.landscape') ? 'landscape' : 'portrait';
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>הדפסת מדבקות</title>
+            <style>
+              @page {
+                size: A4 ${pageOrientation};
+                margin: 0;
+              }
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+                background: white;
+              }
+              .print-page-img {
+                width: ${pageOrientation === 'landscape' ? '297mm' : '210mm'};
+                height: ${pageOrientation === 'landscape' ? '210mm' : '297mm'};
+                display: block;
+                page-break-after: always;
+                object-fit: contain;
+              }
+              .print-page-img:last-child {
+                page-break-after: auto;
+              }
+              @media print {
+                body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                .print-page-img { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+              }
+            </style>
+          </head>
+          <body>
+        `);
+
+        // יצירת תמונות לכל עמוד
+        for (let i = 0; i < nodes.length; i++) {
+          showStatus(`מכין עמוד ${i + 1}/${nodes.length}...`);
+          
+          const canvas = await captureElementToCanvas(nodes[i], { scale: EXPORT_QUALITY.imageScale });
+          const dataUrl = canvas.toDataURL('image/png');
+          
+          printWindow.document.write(`<img class="print-page-img" src="${dataUrl}" />`);
+        }
+
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+
+        // שחזור הגדלים המקוריים אחרי יצירת התמונות
+        if (calibrationApplied) {
+          stickers.forEach((sticker, index) => {
+            if (originalSizes[index]) {
+              sticker.width = originalSizes[index].width;
+              sticker.height = originalSizes[index].height;
+              sticker.x = originalSizes[index].x;
+              sticker.y = originalSizes[index].y;
+            }
+          });
+          renderStickers();
+        }
+
+        // המתנה לטעינת התמונות ואז הדפסה
+        printWindow.onload = function() {
+          setTimeout(() => {
+            printWindow.print();
+            // סגירת החלון אחרי ההדפסה
+            printWindow.onafterprint = function() {
+              printWindow.close();
+            };
+            // גיבוי - סגירה אחרי 60 שניות אם המשתמש ביטל
+            setTimeout(() => {
+              if (!printWindow.closed) {
+                printWindow.close();
+              }
+            }, 60000);
+          }, 500);
+        };
+
+        showStatus('מדפיס...');
+      } catch (error) {
+        console.error('Print Error:', error);
+        showStatus('שגיאה בהדפסה', true);
+      }
+    }
 
     document.getElementById('saveProjectBtn').addEventListener('click', function() {
       saveProject();
@@ -5234,9 +6063,14 @@
     });
 
     // Names Upload Type change
-    document.getElementById('namesUploadType').addEventListener('change', function() {
-      updateNamesUploadInstructions();
-    });
+    const namesUploadType = document.getElementById('namesUploadType');
+    if (namesUploadType) {
+      namesUploadType.addEventListener('change', function() {
+        if (typeof updateNamesUploadInstructions === 'function') {
+          updateNamesUploadInstructions();
+        }
+      });
+    }
 
     // Names Excel Input
     document.getElementById('namesExcelInput').addEventListener('change', function(e) {
@@ -5244,19 +6078,28 @@
     });
 
     // Download Names Template
-    document.getElementById('downloadNamesTemplateBtn').addEventListener('click', function() {
-      downloadNamesTemplate();
-    });
+    const downloadNamesTemplateBtn = document.getElementById('downloadNamesTemplateBtn');
+    if (downloadNamesTemplateBtn) {
+      downloadNamesTemplateBtn.addEventListener('click', function() {
+        downloadNamesTemplate();
+      });
+    }
 
     // Generate Names Lottery - All
-    document.getElementById('generateNamesLotteryAllBtn').addEventListener('click', function() {
-      generateNamesLottery('all');
-    });
+    const generateNamesLotteryAllBtn = document.getElementById('generateNamesLotteryAllBtn');
+    if (generateNamesLotteryAllBtn) {
+      generateNamesLotteryAllBtn.addEventListener('click', function() {
+        generateNamesLottery('all');
+      });
+    }
 
     // Generate Names Lottery - By Group
-    document.getElementById('generateNamesLotteryByGroupBtn').addEventListener('click', function() {
-      generateNamesLottery('byGroup');
-    });
+    const generateNamesLotteryByGroupBtn = document.getElementById('generateNamesLotteryByGroupBtn');
+    if (generateNamesLotteryByGroupBtn) {
+      generateNamesLotteryByGroupBtn.addEventListener('click', function() {
+        generateNamesLottery('byGroup');
+      });
+    }
 
 
     // Element SDK Integration
@@ -5312,7 +6155,9 @@
     }
     
     // Initialize names upload instructions on page load
-    updateNamesUploadInstructions();
+    if (typeof updateNamesUploadInstructions === 'function') {
+      updateNamesUploadInstructions();
+    }
 
     // ========== פונקציות לניהול מצב כפתורים ==========
     
@@ -5863,3 +6708,16 @@
         loadProjectLabel.style.opacity = '';
       }
     }
+
+
+    // Expose functions globally for Google Drive integration
+    window.getProjectData = getProjectData;
+    window.loadProjectData = loadProjectData;
+    window.clearProject = clearProject;
+    window.currentProjectFileName = null;
+    
+    // Getter/setter for currentProjectFileName
+    Object.defineProperty(window, 'currentProjectFileName', {
+      get: function() { return currentProjectFileName; },
+      set: function(val) { currentProjectFileName = val; }
+    });
