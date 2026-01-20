@@ -3,358 +3,34 @@
  * מבוסס על precision-sticker.js אבל מוסיף תמונה למדבקה
  */
 
-// קבועי כיוונון לדיוק הקואורדינטות (שמות ייחודיים למניעת התנגשות)
-const IMG_X_OFFSET_CORRECTION = 13;
-const IMG_Y_OFFSET_CORRECTION = 0;
+(function() {
+  'use strict';
+  
+  console.log('Precision Image script loaded');
 
-console.log('Precision Image script loaded');
-console.log('IMG_X_OFFSET_CORRECTION:', IMG_X_OFFSET_CORRECTION);
-console.log('IMG_Y_OFFSET_CORRECTION:', IMG_Y_OFFSET_CORRECTION);
+  // כל פונקציות הכיול כבר קיימות מ-precision-sticker.js
+  // משתמשים בהן ישירות
 
-// ========== כיול מדפסת ==========
-// מידות מדבקת הכיול (במ"מ) - מלבן ארוך מגלה סטיות טוב יותר
-const CALIBRATION_TARGET_WIDTH = 200;  // 20 ס"מ
-const CALIBRATION_TARGET_HEIGHT = 50;  // 5 ס"מ
+  // המרות בין יחידות
+  const MM_TO_PX_IMG = 3.7795275591;
 
-// טעינת נתוני כיול מ-localStorage
-function loadCalibrationData() {
-  try {
-    const saved = localStorage.getItem('printerCalibration');
-    if (saved) {
-      const data = JSON.parse(saved);
-      console.log('Loaded calibration data:', data);
-      return data;
-    }
-  } catch (e) {
-    console.error('Error loading calibration data:', e);
+  function precisionImageImageMmToPx(mm) {
+    const scale = typeof getCalibrationScale === 'function' ? getCalibrationScale() : { scaleX: 1, scaleY: 1 };
+    return mm * MM_TO_PX_IMG * scale.scaleX;
   }
-  return { scaleX: 1, scaleY: 1, calibrated: false };
-}
 
-// שמירת נתוני כיול ל-localStorage
-function saveCalibrationData(data) {
-  try {
-    localStorage.setItem('printerCalibration', JSON.stringify(data));
-    console.log('Saved calibration data:', data);
-  } catch (e) {
-    console.error('Error saving calibration data:', e);
+  function precisionImageImagePxToMm(px) {
+    const scale = typeof getCalibrationScale === 'function' ? getCalibrationScale() : { scaleX: 1, scaleY: 1 };
+    return px / MM_TO_PX_IMG / scale.scaleX;
   }
-}
 
-// קבלת יחסי הכיול הנוכחיים
-function getCalibrationScale() {
-  const data = loadCalibrationData();
-  return { scaleX: data.scaleX || 1, scaleY: data.scaleY || 1 };
-}
+  // משתנים מקומיים לתמונה מדויקת (לא גלובליים - בתוך IIFE)
+  let originalImageData = null;
+  let imageZoom = 100;
 
-// פתיחת מודל כיול מדפסת
-function openCalibrationModal() {
-  console.log('Opening calibration modal');
-  const modal = document.getElementById('printerCalibrationModal');
-  if (modal) {
-    // איפוס השדות
-    const measuredWidth = document.getElementById('calibrationMeasuredWidth');
-    const measuredHeight = document.getElementById('calibrationMeasuredHeight');
-    if (measuredWidth) measuredWidth.value = '';
-    if (measuredHeight) measuredHeight.value = '';
-    
-    // הצגת המידות הנוכחיות
-    updateCalibrationStatus();
-    
-    modal.classList.remove('hidden');
-  } else {
-    console.error('Calibration modal not found');
-  }
-}
-
-// סגירת מודל כיול
-function closeCalibrationModal() {
-  const modal = document.getElementById('printerCalibrationModal');
-  if (modal) {
-    modal.classList.add('hidden');
-  }
-}
-
-// עדכון סטטוס הכיול בממשק
-function updateCalibrationStatus() {
-  const data = loadCalibrationData();
-  const statusEl = document.getElementById('calibrationStatus');
-  
-  if (statusEl) {
-    if (data.calibrated) {
-      statusEl.innerHTML = `
-        <span class="text-green-600 font-bold">✓ ${t('calibrated')}</span>
-        <span class="text-sm text-gray-600 mr-2">
-          (ratio: ${data.scaleX.toFixed(3)})
-        </span>
-      `;
-    } else {
-      statusEl.innerHTML = `<span class="text-orange-500 font-bold">⚠ ${t('notCalibrated')}</span>`;
-    }
-  }
-}
-
-// הדפסת מדבקת כיול - מוסיף מדבקה אמיתית לעורך ומדפיס
-function printCalibrationSticker() {
-  console.log('Creating calibration sticker');
-  
-  // סגירת מודל הכיול זמנית
-  closeCalibrationModal();
-  
-  // יצירת מדבקת כיול כתמונה (canvas)
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  
-  // גודל הקנבס בפיקסלים (ברזולוציה גבוהה)
-  const scale = 3;
-  const widthPx = CALIBRATION_TARGET_WIDTH * 3.78 * scale;
-  const heightPx = CALIBRATION_TARGET_HEIGHT * 3.78 * scale;
-  
-  canvas.width = widthPx;
-  canvas.height = heightPx;
-  
-  // רקע לבן
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, widthPx, heightPx);
-  
-  // מסגרת שחורה
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 4 * scale;
-  ctx.strokeRect(2 * scale, 2 * scale, widthPx - 4 * scale, heightPx - 4 * scale);
-  
-  // מסגרת פנימית מקווקוות
-  ctx.strokeStyle = '#666666';
-  ctx.lineWidth = 2 * scale;
-  ctx.setLineDash([10 * scale, 5 * scale]);
-  const innerMargin = 15 * scale;
-  ctx.strokeRect(innerMargin, innerMargin, widthPx - 2 * innerMargin, heightPx - 2 * innerMargin);
-  ctx.setLineDash([]);
-  
-  // טקסט במרכז
-  ctx.fillStyle = '#333333';
-  ctx.font = `bold ${14 * scale}px Arial`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('מדבקת כיול', widthPx / 2, heightPx / 2 - 12 * scale);
-  ctx.font = `${12 * scale}px Arial`;
-  ctx.fillText(`${CALIBRATION_TARGET_WIDTH}×${CALIBRATION_TARGET_HEIGHT} מ"מ`, widthPx / 2, heightPx / 2 + 12 * scale);
-  
-  // המרה ל-dataURL
-  const dataUrl = canvas.toDataURL('image/png');
-  
-  // שמירת המדבקות הקיימות
-  const savedStickers = typeof stickers !== 'undefined' ? [...stickers] : [];
-  const savedOrientation = typeof pageOrientation !== 'undefined' ? pageOrientation : 'portrait';
-  
-  // ניקוי המדבקות והוספת מדבקת הכיול בלבד
-  if (typeof stickers !== 'undefined') {
-    stickers.length = 0;
-  }
-  
-  // שינוי לרוחב אם צריך (200 מ"מ רוחב)
-  if (typeof pageOrientation !== 'undefined' && CALIBRATION_TARGET_WIDTH > 200) {
-    pageOrientation = 'landscape';
-  }
-  
-  // הוספת מדבקת הכיול
-  const calibrationSticker = {
-    id: `sticker-calibration-${Date.now()}`,
-    dataUrl: dataUrl,
-    fileName: 'מדבקת-כיול.png',
-    page: 0,
-    x: 20,
-    y: 20,
-    width: CALIBRATION_TARGET_WIDTH * 3.78,
-    height: CALIBRATION_TARGET_HEIGHT * 3.78,
-    originalWidth: CALIBRATION_TARGET_WIDTH * 3.78,
-    originalHeight: CALIBRATION_TARGET_HEIGHT * 3.78,
-    words: [],
-    images: [],
-    precisionImageCut: true,
-    precisionImageWidthMM: CALIBRATION_TARGET_WIDTH,
-    precisionImageHeightMM: CALIBRATION_TARGET_HEIGHT,
-    isCalibrationSticker: true
-  };
-  
-  if (typeof stickers !== 'undefined') {
-    stickers.push(calibrationSticker);
-  }
-  
-  // רענון התצוגה
-  if (typeof renderStickers === 'function') {
-    renderStickers();
-  }
-  if (typeof updateFileCount === 'function') {
-    updateFileCount();
-  }
-  
-  // הודעה למשתמש
-  const message = `מדבקת כיול נוספה לעורך!\n\nלחץ על כפתור ההדפסה הרגיל להדפסה.\nאחרי ההדפסה, מדוד את המלבן והזן את המידות.\n\nהמידה הצפויה: ${CALIBRATION_TARGET_WIDTH}×${CALIBRATION_TARGET_HEIGHT} מ"מ`;
-  
-  // שמירת המדבקות המקוריות לשחזור אחר כך
-  window._calibrationBackup = {
-    stickers: savedStickers,
-    orientation: savedOrientation
-  };
-  
-  alert(message);
-  
-  // הצגת כפתור לשחזור המדבקות המקוריות
-  showCalibrationRestoreButton();
-}
-
-// הצגת כפתור לשחזור המדבקות המקוריות אחרי כיול
-function showCalibrationRestoreButton() {
-  // בדיקה אם כבר קיים
-  let restoreBtn = document.getElementById('calibrationRestoreBtn');
-  if (restoreBtn) return;
-  
-  // יצירת הכפתור
-  restoreBtn = document.createElement('button');
-  restoreBtn.id = 'calibrationRestoreBtn';
-  restoreBtn.className = 'fixed bottom-4 left-4 z-[9999] px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold rounded-lg shadow-lg hover:from-orange-600 hover:to-amber-700 transition-all';
-  restoreBtn.innerHTML = '🔄 סיימתי כיול - שחזר מדבקות';
-  restoreBtn.onclick = restoreStickersAfterCalibration;
-  
-  document.body.appendChild(restoreBtn);
-}
-
-// שחזור המדבקות המקוריות אחרי כיול
-function restoreStickersAfterCalibration() {
-  if (!window._calibrationBackup) {
-    alert('אין מדבקות לשחזור');
-    return;
-  }
-  
-  // שחזור המדבקות
-  if (typeof stickers !== 'undefined') {
-    stickers.length = 0;
-    window._calibrationBackup.stickers.forEach(s => stickers.push(s));
-  }
-  
-  // שחזור הכיוון
-  if (typeof pageOrientation !== 'undefined') {
-    pageOrientation = window._calibrationBackup.orientation;
-  }
-  
-  // רענון התצוגה
-  if (typeof renderStickers === 'function') {
-    renderStickers();
-  }
-  if (typeof updateFileCount === 'function') {
-    updateFileCount();
-  }
-  
-  // הסרת הכפתור
-  const restoreBtn = document.getElementById('calibrationRestoreBtn');
-  if (restoreBtn) {
-    restoreBtn.remove();
-  }
-  
-  // ניקוי הגיבוי
-  delete window._calibrationBackup;
-  
-  // פתיחת מודל הכיול להזנת המידות
-  openCalibrationModal();
-  
-  if (typeof showStatus === 'function') {
-    showStatus(t('sizeDisplay', { w: (CALIBRATION_TARGET_WIDTH / 10), h: (CALIBRATION_TARGET_HEIGHT / 10) }));
-  }
-}
-
-// החלת כיול על סמך המידות שהוזנו
-function applyCalibration() {
-  const measuredWidthInput = document.getElementById('calibrationMeasuredWidth');
-  
-  if (!measuredWidthInput) {
-    alert('שגיאה: שדה המידה לא נמצא');
-    return;
-  }
-  
-  const measuredWidthCM = parseFloat(measuredWidthInput.value.replace(',', '.'));
-  
-  if (!measuredWidthCM || measuredWidthCM <= 0) {
-    alert(t('invalidNumber'));
-    return;
-  }
-  
-  // המרה מס"מ למ"מ
-  const measuredWidthMM = measuredWidthCM * 10;
-  const targetWidthCM = CALIBRATION_TARGET_WIDTH / 10; // 200mm = 20cm
-  
-  // חישוב יחס הכיול - אותו יחס לשני הצירים
-  // אם המדפסת הדפיסה 19.9 ס"מ במקום 20 ס"מ, צריך להגדיל ב-20/19.9 = 1.005
-  const scale = CALIBRATION_TARGET_WIDTH / measuredWidthMM;
-  
-  console.log('Calibration calculated:', {
-    targetWidthCM,
-    targetWidthMM: CALIBRATION_TARGET_WIDTH,
-    measuredWidthCM,
-    measuredWidthMM,
-    scale
-  });
-  
-  // בדיקת סבירות - יחס הכיול צריך להיות קרוב ל-1
-  if (scale < 0.8 || scale > 1.2) {
-    const confirm = window.confirm(`יחס הכיול שחושב (${scale.toFixed(3)}) נראה קיצוני.\n\nהאם הזנת את המידה בס"מ? (צפוי: ${targetWidthCM} ס"מ)\n\nלחץ אישור להמשיך בכל זאת, או ביטול לתיקון.`);
-    if (!confirm) return;
-  }
-  
-  // שמירת הכיול
-  saveCalibrationData({
-    scaleX: scale,
-    scaleY: scale,
-    calibrated: true,
-    measuredWidthCM,
-    measuredWidthMM,
-    targetWidthMM: CALIBRATION_TARGET_WIDTH,
-    calibrationDate: new Date().toISOString()
-  });
-  
-  // עדכון הסטטוס
-  updateCalibrationStatus();
-  
-  // הודעת הצלחה
-  const percentChange = ((scale - 1) * 100).toFixed(1);
-  const direction = scale > 1 ? 'הגדלה' : 'הקטנה';
-  alert(`הכיול הוחל בהצלחה!\n\nיחס כיול: ${scale.toFixed(4)}\n(${direction} של ${Math.abs(percentChange)}%)\n\nמעכשיו כל ההדפסות יותאמו אוטומטית.`);
-  
-  // סגירת המודל
-  closeCalibrationModal();
-}
-
-// איפוס כיול
-function resetCalibration() {
-  if (confirm(t('confirmResetCalibration'))) {
-    saveCalibrationData({ scaleX: 1, scaleY: 1, calibrated: false });
-    updateCalibrationStatus();
-    alert(t('calibrationReset'));
-  }
-}
-
-// החלת כיול על מידות (להשתמש בפונקציות ההדפסה)
-function applyCalibratedSize(widthMM, heightMM) {
-  const scale = getCalibrationScale();
-  return {
-    width: widthMM * scale.scaleX,
-    height: heightMM * scale.scaleY
-  };
-}
-
-// החלת כיול על מידות בפיקסלים (MM_TO_PX = 3.7795275591)
-function getCalibratedPxFromMM(widthMM, heightMM, mmToPx) {
-  const scale = getCalibrationScale();
-  const calibratedWidth = widthMM * scale.scaleX;
-  const calibratedHeight = heightMM * scale.scaleY;
-  return {
-    widthPx: calibratedWidth * mmToPx,
-    heightPx: calibratedHeight * mmToPx
-  };
-}
-
-// פונקציה פשוטה לפתיחת המודל
-function openPrecisionImageModal(e) {
-  if (e) e.stopPropagation(); // מניעת התפשטות האירוע
+  // פונקציה פשוטה לפתיחת המודל
+  function openPrecisionImageModal(e) {
+    if (e) e.stopPropagation(); // מניעת התפשטות האירוע
   console.log('openPrecisionImageModal called');
   
   // עיכוב קטן כדי לוודא שהמודל לא ייסגר מיד
@@ -439,19 +115,7 @@ function syncMmInputsFromCropPx() {
 
 // הוספת event listeners כשהדף נטען
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded, setting up Precision Image');
-  
-  // כפתור פתיחת המודל
-  const openBtn = document.getElementById('precisionImageBtn');
-  if (openBtn) {
-    openBtn.onclick = function(e) {
-      console.log('Precision Image button clicked');
-      openPrecisionImageModal(e);
-    };
-    console.log('Open button listener added to precisionImageBtn');
-  } else {
-    console.error('precisionImageBtn not found!');
-  }
+  console.log('DOM loaded, setting up precision sticker');
   
   // עדכון סטטוס כיול מדפסת
   updateCalibrationStatus();
@@ -459,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // סגירה עם מקש ESC
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      const modal = document.getElementById('precisionImageModal');
+      const modal = document.getElementById('precisionImageImageModal');
       if (modal && !modal.classList.contains('hidden')) {
         closePrecisionImageModal();
       }
@@ -472,14 +136,14 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // כפתור סגירה
-  const closeBtn = document.getElementById('precisionImageModalClose');
+  const closeBtn = document.getElementById('precisionImageImageModalClose');
   if (closeBtn) {
     closeBtn.onclick = closePrecisionImageModal;
     console.log('Close button listener added');
   }
   
   // רקע המודל - רק אם לוחצים על הרקע עצמו
-  const backdrop = document.getElementById('precisionImageModalBackdrop');
+  const backdrop = document.getElementById('precisionImageImageModalBackdrop');
   if (backdrop) {
     backdrop.onclick = function(e) {
       if (e.target === backdrop) { // רק אם לוחצים על הרקע עצמו
@@ -1067,7 +731,7 @@ setTimeout(function() {
   
   if (btn && !btn.onclick) {
     console.log('Adding onclick to button as fallback');
-    btn.onclick = openprecisionImageModal;
+    btn.onclick = openPrecisionImageModal;
   }
 }, 2000);
 
@@ -1342,8 +1006,8 @@ function fitCropToMaxHeight() {
   console.log('Fit proportion to max height:', clampedProportion.toFixed(3));
 }
 
-// משתנה לשמירת זום התמונה
-let imageZoom = 100;
+// משתנה לשמירת זום התמונה (כבר מוגדר למעלה)
+// let imageZoom = 100;
 
 function updateCropAreaShape() {
   const cropArea = document.getElementById('precisionImageCropShape');
@@ -1424,8 +1088,8 @@ function setupImageZoom() {
   });
 }
 
-// משתנה לשמירת התמונה המקורית
-let originalImageData = null;
+// משתנה לשמירת התמונה המקורית (כבר מוגדר למעלה)
+// let originalImageData = null;
 
 function applyprecisionImageCrop() {
   const cropArea = document.getElementById('precisionImageCropShape');
@@ -1815,4 +1479,7 @@ function showprecisionImagePreview() {
 window.openPrecisionImageModal = openPrecisionImageModal;
 window.closePrecisionImageModal = closePrecisionImageModal;
 
-console.log('Precision Image tool loaded - functions are now global');
+console.log('Precision Image tool - functions are now global');
+
+})(); // סגירת IIFE
+
