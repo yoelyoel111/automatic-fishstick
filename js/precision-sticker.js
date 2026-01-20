@@ -1156,40 +1156,41 @@ function constrainCropAreaToImage() {
   // בדיקה אם הריבוע גדול מהתמונה
   if (cropWidth > imgWidth || cropHeight > imgHeight) {
     // אם הריבוע גדול מהתמונה, נצמצם אותו למקסימום האפשרי
-    const maxWidth = imgWidth;
-    const maxHeight = imgHeight;
     
-    // שמירה על יחס הפרופורציה המקורי
-    const aspectRatio = cropWidth / cropHeight;
+    // שמירה על יחס הפרופורציה המבוקש (מהשדות קלט), לא מהמידות הנוכחיות
+    const desiredAspectRatio = widthMM / heightMM;
     
     let newWidth, newHeight;
     if (cropWidth > imgWidth && cropHeight > imgHeight) {
       // שני הממדים גדולים מדי - נבחר את ההגבלה המחמירה יותר
-      if (imgWidth / aspectRatio <= imgHeight) {
+      if (imgWidth / desiredAspectRatio <= imgHeight) {
         newWidth = imgWidth;
-        newHeight = imgWidth / aspectRatio;
+        newHeight = imgWidth / desiredAspectRatio;
       } else {
         newHeight = imgHeight;
-        newWidth = imgHeight * aspectRatio;
+        newWidth = imgHeight * desiredAspectRatio;
       }
     } else if (cropWidth > imgWidth) {
       // רק הרוחב גדול מדי
       newWidth = imgWidth;
-      newHeight = imgWidth / aspectRatio;
+      newHeight = imgWidth / desiredAspectRatio;
     } else {
       // רק הגובה גדול מדי
       newHeight = imgHeight;
-      newWidth = imgHeight * aspectRatio;
+      newWidth = imgHeight * desiredAspectRatio;
     }
     
     cropArea.style.width = newWidth + 'px';
     cropArea.style.height = newHeight + 'px';
     
+    // כפיית reflow כדי שהדפדפן יעדכן את המידות
+    void cropArea.offsetHeight;
+    
     // מרכוז הריבוע בתמונה
     currentLeft = imgOffsetX + (imgWidth - newWidth) / 2;
     currentTop = imgOffsetY + (imgHeight - newHeight) / 2;
     
-    console.log('Crop area was too large, resized to fit:', { newWidth, newHeight });
+    console.log('Crop area was too large, resized to fit:', { newWidth, newHeight, desiredAspectRatio });
     
     // החזרת הפרופורציה המקסימלית
     return maxProportion;

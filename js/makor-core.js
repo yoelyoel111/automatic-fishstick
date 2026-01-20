@@ -273,7 +273,8 @@
 
         const cfg = getStickerLayoutConfigFromUI();
         const desiredCount = Number.isFinite(cfg.uploadLimit) && cfg.uploadLimit > 0 ? cfg.uploadLimit : 0;
-        const filesToLoad = desiredCount > 0 ? desiredCount : allFiles.length;
+        const actualCount = calculateActualStickerCount(desiredCount);
+        const filesToLoad = actualCount > 0 ? actualCount : allFiles.length;
 
         pushHistory();
 
@@ -300,8 +301,8 @@
             page: 0,
             x: 0,
             y: 0,
-            width: 1,
-            height: 1,
+            width: originalWidth,
+            height: originalHeight,
             originalWidth,
             originalHeight,
             words: [],
@@ -309,11 +310,8 @@
           });
         }
 
-        if (autoArrangeEnabled) {
-          reflowStickersPositionsOnly();
-        } else {
-          reflowStickers();
-        }
+        // תמיד קוראים ל-reflowStickers כדי לחשב גדלים נכון
+        reflowStickers();
         renderStickers();
         updateFileCount();
         showStatus(t('filesLoadedSuccess', { count: filesToLoad }));
@@ -923,6 +921,234 @@
       selectedWords.forEach(el => el.classList.remove('selected'));
       selectedImages.forEach(el => el.classList.remove('selected'));
 
+      // תיקון טקסט עם גרדיאנט לייצוא - html2canvas לא תומך ב-background-clip: text
+      const gradientTextElements = element.querySelectorAll('.text-word');
+      const gradientTextBackup = [];
+
+      const extractFirstColorFromGradient = (value) => {
+        if (!value || typeof value !== 'string') return null;
+        const hex = value.match(/#[0-9a-fA-F]{3,8}/);
+        if (hex) return hex[0];
+        const rgb = value.match(/rgba?\([^\)]+\)/);
+        if (rgb) return rgb[0];
+        const hsl = value.match(/hsla?\([^\)]+\)/);
+        if (hsl) return hsl[0];
+        return null;
+      };
+
+      const escapeXml = (s) => String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+
+      const splitGradientArgs = (s) => {
+        const out = [];
+        let current = '';
+        let depth = 0;
+        for (let i = 0; i < s.length; i++) {
+          const ch = s[i];
+          if (ch === '(') depth++;
+          if (ch === ')') depth = Math.max(0, depth - 1);
+          if (ch === ',' && depth === 0) {
+            out.push(current.trim());
+            current = '';
+            continue;
+          }
+          current += ch;
+        }
+        if (current.trim()) out.push(current.trim());
+        return out;
+      };
+
+      const directionToEndpoints = (dir) => {
+        const v = String(dir || '').trim().toLowerCase();
+        if (!v) return { x1: 0, y1: 0.5, x2: 1, y2: 0.5 };
+        if (v.startsWith('to ')) {
+          const t = v.slice(3).trim();
+          if (t === 'left') return { x1: 1, y1: 0.5, x2: 0, y2: 0.5 };
+          if (t === 'right') return { x1: 0, y1: 0.5, x2: 1, y2: 0.5 };
+          if (t === 'top') return { x1: 0.5, y1: 1, x2: 0.5, y2: 0 };
+          if (t === 'bottom') return { x1: 0.5, y1: 0, x2: 0.5, y2: 1 };
+          if (t === 'top left' || t === 'left top') return { x1: 1, y1: 1, x2: 0, y2: 0 };
+          if (t === 'top right' || t === 'right top') return { x1: 0, y1: 1, x2: 1, y2: 0 };
+          if (t === 'bottom left' || t === 'left bottom') return { x1: 1, y1: 0, x2: 0, y2: 1 };
+          if (t === 'bottom right' || t === 'right bottom') return { x1: 0, y1: 0, x2: 1, y2: 1 };
+        }
+
+        const degMatch = v.match(/(-?\d+(?:\.\d+)?)deg/);
+        if (degMatch) {
+          const deg = parseFloat(degMatch[1]);
+          const rad = (deg * Math.PI) / 180;
+          const dx = Math.sin(rad);
+          const dy = -Math.cos(rad);
+          return {
+            x1: 0.5 - dx / 2,
+            y1: 0.5 - dy / 2,
+            x2: 0.5 + dx / 2,
+            y2: 0.5 + dy / 2
+          };
+        }
+
+        return { x1: 0, y1: 0.5, x2: 1, y2: 0.5 };
+      };
+
+      const extractGradientCallArgs = (bg, fnName) => {
+        const hay = String(bg || '');
+        const needle = String(fnName || '').toLowerCase();
+        const idx = hay.toLowerCase().indexOf(needle);
+        if (idx < 0) return null;
+        let i = idx + needle.length;
+        let depth = 1;
+        let out = '';
+        for (; i < hay.length; i++) {
+          const ch = hay[i];
+          if (ch === '(') depth++;
+          if (ch === ')') {
+            depth = Math.max(0, depth - 1);
+            if (depth === 0) break;
+          }
+          out += ch;
+        }
+        if (depth !== 0) return null;
+        return out.trim();
+      };
+
+      const buildGradientSvgDataUrl = (el, cs, computedBg, gradientIndex) => {
+        const bg = String(computedBg || '').trim();
+        const linearArgs = extractGradientCallArgs(bg, 'linear-gradient(');
+        const radialArgs = extractGradientCallArgs(bg, 'radial-gradient(');
+        if (!linearArgs && !radialArgs) return null;
+
+        const boxW = Math.max(1, Math.round(el.offsetWidth || el.getBoundingClientRect().width || 1));
+        const boxH = Math.max(1, Math.round(el.offsetHeight || el.getBoundingClientRect().height || 1));
+
+        const fontFamily = cs.fontFamily || 'sans-serif';
+        const fontSize = cs.fontSize || '16px';
+        const fontWeight = cs.fontWeight || 'normal';
+        const fontStyle = cs.fontStyle || 'normal';
+        const letterSpacing = cs.letterSpacing && cs.letterSpacing !== 'normal' ? cs.letterSpacing : '';
+
+        const lh = (cs.lineHeight && cs.lineHeight !== 'normal') ? parseFloat(cs.lineHeight) : (parseFloat(fontSize) * 1.1);
+
+        const rawText = (el.textContent || '').replace(/\r\n/g, '\n');
+        const lines = rawText.split('\n');
+
+        const textAlign = (cs.textAlign || 'center').toLowerCase();
+        const x = (textAlign === 'left' || textAlign === 'start') ? 0 : (textAlign === 'right' || textAlign === 'end') ? boxW : (boxW / 2);
+        const anchor = (textAlign === 'left' || textAlign === 'start') ? 'start' : (textAlign === 'right' || textAlign === 'end') ? 'end' : 'middle';
+
+        const startY = (boxH / 2) - ((lines.length - 1) * lh) / 2;
+
+        let gradientDef = '';
+        let fillUrl = '';
+        const gradientId = `__gt_${gradientIndex}`;
+
+        if (linearArgs) {
+          const args = splitGradientArgs(linearArgs);
+          const maybeDir = args[0] || '';
+          const hasDir = /^to\s+/i.test(maybeDir) || /deg\s*$/i.test(maybeDir);
+          const dir = hasDir ? maybeDir : '';
+          const colors = hasDir ? args.slice(1) : args;
+          const c1 = extractFirstColorFromGradient(colors[0]);
+          const c2 = extractFirstColorFromGradient(colors[1]);
+          if (!c1 || !c2) return null;
+          const ep = directionToEndpoints(dir);
+          gradientDef = `<linearGradient id="${gradientId}" gradientUnits="objectBoundingBox" x1="${ep.x1}" y1="${ep.y1}" x2="${ep.x2}" y2="${ep.y2}">` +
+            `<stop offset="0%" stop-color="${escapeXml(c1)}"/>` +
+            `<stop offset="100%" stop-color="${escapeXml(c2)}"/>` +
+            `</linearGradient>`;
+          fillUrl = `url(#${gradientId})`;
+        } else {
+          const args = splitGradientArgs(radialArgs);
+          const colors = args.filter(a => !/circle|ellipse|closest-side|farthest-side|closest-corner|farthest-corner|at\s+/i.test(a));
+          const c1 = extractFirstColorFromGradient(colors[0]);
+          const c2 = extractFirstColorFromGradient(colors[1]);
+          if (!c1 || !c2) return null;
+          gradientDef = `<radialGradient id="${gradientId}" cx="0.5" cy="0.5" r="0.75">` +
+            `<stop offset="0%" stop-color="${escapeXml(c1)}"/>` +
+            `<stop offset="100%" stop-color="${escapeXml(c2)}"/>` +
+            `</radialGradient>`;
+          fillUrl = `url(#${gradientId})`;
+        }
+
+        const tspans = lines.map((line, idx) => {
+          const safe = escapeXml(line);
+          if (idx === 0) {
+            return `<tspan x="${x}" y="${startY}">${safe}</tspan>`;
+          }
+          return `<tspan x="${x}" dy="${lh}">${safe}</tspan>`;
+        }).join('');
+
+        const svg = `<?xml version="1.0" encoding="UTF-8"?>` +
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${boxW}" height="${boxH}" viewBox="0 0 ${boxW} ${boxH}">` +
+          `<defs>${gradientDef}</defs>` +
+          `<text x="${x}" y="${boxH / 2}" dominant-baseline="middle" text-anchor="${anchor}"` +
+            ` fill="${fillUrl}" font-family="${escapeXml(fontFamily)}" font-size="${escapeXml(fontSize)}" font-weight="${escapeXml(fontWeight)}" font-style="${escapeXml(fontStyle)}"` +
+            (letterSpacing ? ` letter-spacing="${escapeXml(letterSpacing)}"` : '') +
+          `>${tspans}</text>` +
+          `</svg>`;
+
+        return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      };
+
+      gradientTextElements.forEach(el => {
+        const cs = window.getComputedStyle(el);
+        const computedBg = cs.backgroundImage || cs.background || '';
+        const hasGradient = computedBg.includes('gradient') && (
+          cs.webkitBackgroundClip === 'text' ||
+          cs.backgroundClip === 'text' ||
+          cs.webkitTextFillColor === 'transparent' ||
+          cs.webkitTextFillColor === 'rgba(0, 0, 0, 0)'
+        );
+
+        if (hasGradient) {
+          gradientTextBackup.push({
+            el: el,
+            originalVisibility: el.style.visibility,
+            originalBackground: el.style.background,
+            originalBackgroundImage: el.style.backgroundImage,
+            originalWebkitTextFillColor: el.style.webkitTextFillColor,
+            originalBackgroundClip: el.style.backgroundClip,
+            originalWebkitBackgroundClip: el.style.webkitBackgroundClip,
+            originalColor: el.style.color,
+            overlayImg: null
+          });
+
+          const backup = gradientTextBackup[gradientTextBackup.length - 1];
+          const svgUrl = buildGradientSvgDataUrl(el, cs, computedBg, gradientTextBackup.length);
+          if (svgUrl && el.parentNode) {
+            const img = document.createElement('img');
+            img.src = svgUrl;
+            img.alt = '';
+            img.style.position = cs.position || 'absolute';
+            img.style.left = cs.left;
+            img.style.top = cs.top;
+            img.style.width = cs.width;
+            img.style.height = cs.height;
+            img.style.transform = cs.transform;
+            img.style.transformOrigin = cs.transformOrigin;
+            img.style.zIndex = cs.zIndex;
+            img.style.opacity = cs.opacity;
+            img.style.pointerEvents = 'none';
+
+            el.parentNode.appendChild(img);
+            backup.overlayImg = img;
+            el.style.visibility = 'hidden';
+          } else {
+            const fallbackColor = extractFirstColorFromGradient(computedBg) || '#000000';
+
+            el.style.background = 'none';
+            el.style.backgroundImage = 'none';
+            el.style.backgroundClip = 'border-box';
+            el.style.webkitBackgroundClip = 'border-box';
+            el.style.webkitTextFillColor = fallbackColor;
+            el.style.color = fallbackColor;
+          }
+        }
+      });
+
       const rootPreview = (element && element.id === 'printPreview')
         ? element
         : (element && element.closest ? element.closest('#printPreview') : null);
@@ -1006,6 +1232,20 @@
         });
       } finally {
         noPrintElements.forEach(el => el.style.display = '');
+        
+        // שחזור טקסט עם גרדיאנט
+        gradientTextBackup.forEach(backup => {
+          backup.el.style.background = backup.originalBackground;
+          backup.el.style.backgroundImage = backup.originalBackgroundImage;
+          backup.el.style.webkitTextFillColor = backup.originalWebkitTextFillColor;
+          backup.el.style.backgroundClip = backup.originalBackgroundClip;
+          backup.el.style.webkitBackgroundClip = backup.originalWebkitBackgroundClip;
+          backup.el.style.color = backup.originalColor;
+          backup.el.style.visibility = backup.originalVisibility;
+          if (backup.overlayImg && backup.overlayImg.parentNode) {
+            backup.overlayImg.parentNode.removeChild(backup.overlayImg);
+          }
+        });
 
         // החזרת סימון הבחירה לאלמנטים שהיו מסומנים
         selectedStickers.forEach(el => el.classList.add('selected'));
@@ -1541,19 +1781,39 @@
       if (mode === 'height') {
         const rows = Math.max(1, cfg.stickersPerRow);
         const cellHeight = Math.max(1, (contentHeight - gap * (rows - 1)) / rows);
-        const approxCols = Math.max(1, Math.floor((contentWidth + gap) / (cellHeight + gap)));
-        info.textContent = `יוצא בערך: ${rows} מדבקות באורך (גובה תא ≈ ${Math.round(cellHeight)}px) | ~${approxCols} מדבקות ברוחב (תלוי ברוחב המדבקות)`;
+        const cellHeightCM = (cellHeight / MM_TO_PX / 10).toFixed(1);
+        info.textContent = `יוצא בערך: ${rows} מדבקות לאורך העמוד (גובה כל מדבקה: ~${cellHeightCM} ס"מ, רוחב לפי יחס המדבקה)`;
       } else {
         const cols = Math.max(1, cfg.stickersPerRow);
         const cellWidth = Math.max(1, (contentWidth - gap * (cols - 1)) / cols);
-        info.textContent = `יוצא בערך: ${cols} מדבקות ברוחב (רוחב תא ≈ ${Math.round(cellWidth)}px)`;
+        const cellWidthCM = (cellWidth / MM_TO_PX / 10).toFixed(1);
+        info.textContent = `יוצא בערך: ${cols} מדבקות ברוחב (רוחב כל מדבקה: ~${cellWidthCM} ס"מ)`;
       }
+    }
+    
+    // פונקציה חדשה לחישוב כמה מדבקות צריך להוסיף בפועל
+    function calculateActualStickerCount(requestedCount) {
+      const cfg = stickerLayoutConfig;
+      const mode = (cfg.sizeMode === 'height') ? 'height' : 'width';
+      
+      // אם לא הוזן מספר ספציפי, מחזירים 0 (כלומר - כל הקבצים)
+      if (!requestedCount || requestedCount <= 0) {
+        return 0;
+      }
+      
+      // במצב "לאורך" - המספר שהוזן הוא בדיוק מספר המדבקות שצריך להוסיף
+      // (כי הן מסודרות בעמודה אחת)
+      return requestedCount;
     }
 
     function applyStickerLayoutAndRender() {
       getStickerLayoutConfigFromUI();
       updateStickerLayoutInfo();
-      // לא מחילים שינויי גודל על מדבקות קיימות - רק עדכון מידע
+      // מחילים שינויי גודל ומיקום על כל המדבקות
+      // תמיד קוראים ל-reflowStickers כדי לעדכן גדלים לפי המצב החדש
+      if (stickers.length > 0) {
+        reflowStickers();
+      }
       renderStickers();
       updateFileCount();
     }
@@ -1573,16 +1833,16 @@
       const mode = (cfg.sizeMode === 'height') ? 'height' : 'width';
       const cols = (mode === 'width')
         ? Math.max(1, cfg.stickersPerRow)
-        : 0;
+        : 1; // במצב לאורך - תמיד עמודה אחת
       const cellWidth = (mode === 'width')
         ? Math.max(1, (contentWidth - gap * (cols - 1)) / cols)
-        : 0;
+        : contentWidth; // במצב לאורך - הרוחב המלא הזמין
       const rows = (mode === 'height')
         ? Math.max(1, cfg.stickersPerRow)
-        : 0;
+        : 1;
       const cellHeight = (mode === 'height')
         ? Math.max(1, (contentHeight - gap * (rows - 1)) / rows)
-        : 0;
+        : contentHeight;
 
       // חישוב מיקום התחלתי בהתבסס על מדבקות קיימות (RTL)
       let page = 0;
@@ -1755,6 +2015,12 @@
 
     function reflowStickers() {
       const cfg = stickerLayoutConfig;
+      
+      console.log('=== reflowStickers START ===');
+      console.log('Total stickers:', stickers.length);
+      console.log('Config:', JSON.stringify(cfg));
+      console.log('pageOrientation:', pageOrientation);
+      
       const pageWidth = pageOrientation === 'landscape' ? 297 * MM_TO_PX : 210 * MM_TO_PX;
       const pageHeight = pageOrientation === 'landscape' ? 210 * MM_TO_PX : 297 * MM_TO_PX;
       const edge = Math.max(0, cfg.edgeMargin);
@@ -1765,53 +2031,31 @@
       const maxH = contentHeight;
 
       const mode = (cfg.sizeMode === 'height') ? 'height' : 'width';
+      
+      console.log('=== reflowStickers DEBUG ===');
+      console.log('Mode:', mode);
+      console.log('stickersPerRow:', cfg.stickersPerRow);
+      console.log('pageWidth:', pageWidth, 'pageHeight:', pageHeight);
+      console.log('contentWidth:', contentWidth, 'contentHeight:', contentHeight);
+      
       const cols = (mode === 'width')
         ? Math.max(1, cfg.stickersPerRow)
-        : 0;
+        : 1; // במצב לאורך - תמיד עמודה אחת
       const cellWidth = (mode === 'width')
         ? Math.max(1, (contentWidth - gap * (cols - 1)) / cols)
-        : 0;
+        : contentWidth; // במצב לאורך - הרוחב המלא הזמין
       const rows = (mode === 'height')
         ? Math.max(1, cfg.stickersPerRow)
-        : 0;
+        : 1;
       const cellHeight = (mode === 'height')
         ? Math.max(1, (contentHeight - gap * (rows - 1)) / rows)
-        : 0;
-      let cellWidthForHeightMode = cellWidth;
-      if (mode === 'height') {
-        // Compute a safe column width for this fixed height so stickers don't overlap
-        let maxW = 1;
-        stickers.forEach((sticker) => {
-          if (!sticker) return;
-          // מדבקות מדויקות - שמירה על הגודל המקורי (עם כיול אם קיים)
-          if (sticker.precisionCut && sticker.precisionWidthMM && sticker.precisionHeightMM) {
-            let precisionW;
-            if (typeof getCalibratedPxFromMM === 'function') {
-              const calibrated = getCalibratedPxFromMM(sticker.precisionWidthMM, sticker.precisionHeightMM, MM_TO_PX);
-              precisionW = calibrated.widthPx;
-            } else {
-              precisionW = sticker.precisionWidthMM * MM_TO_PX;
-            }
-            if (Number.isFinite(precisionW) && precisionW > 0) maxW = Math.max(maxW, precisionW);
-            return;
-          }
-          if (!Number.isFinite(sticker.originalWidth) || !Number.isFinite(sticker.originalHeight) || sticker.originalWidth <= 0 || sticker.originalHeight <= 0) {
-            const fallbackW = Number.isFinite(sticker.width) && sticker.width > 0 ? sticker.width : 1;
-            const fallbackH = Number.isFinite(sticker.height) && sticker.height > 0 ? sticker.height : 1;
-            sticker.originalWidth = fallbackW;
-            sticker.originalHeight = fallbackH;
-          }
-          const ar = sticker.originalHeight > 0 ? (sticker.originalWidth / sticker.originalHeight) : 1;
-          const wAtH = cellHeight * ar;
-          if (Number.isFinite(wAtH) && wAtH > 0) maxW = Math.max(maxW, wAtH);
-        });
-        cellWidthForHeightMode = Math.max(1, Math.min(contentWidth, maxW));
-      }
+        : contentHeight;
+        
+      console.log('cols:', cols, 'rows:', rows);
+      console.log('cellWidth:', cellWidth, 'cellHeight:', cellHeight);
 
-      const derivedCellWidth = (mode === 'height') ? cellWidthForHeightMode : cellWidth;
-      const derivedCols = (mode === 'height')
-        ? Math.max(1, Math.floor((contentWidth + gap) / (derivedCellWidth + gap)))
-        : cols;
+      const derivedCellWidth = cellWidth;
+      const derivedCols = cols;
 
       let page = 0;
       let colIndex = 0;
@@ -1867,26 +2111,30 @@
         }
 
         if (!Number.isFinite(sticker.originalWidth) || !Number.isFinite(sticker.originalHeight) || sticker.originalWidth <= 0 || sticker.originalHeight <= 0) {
-          const fallbackCell = (mode === 'height') ? derivedCellWidth : cellWidth;
+          const fallbackCell = (mode === 'height') ? cellHeight : cellWidth;
           const fallbackW = Number.isFinite(sticker.width) && sticker.width > 0 ? sticker.width : fallbackCell;
           const fallbackH = Number.isFinite(sticker.height) && sticker.height > 0 ? sticker.height : fallbackCell;
           sticker.originalWidth = fallbackW;
           sticker.originalHeight = fallbackH;
         }
 
-        const fallbackCell = (mode === 'height') ? derivedCellWidth : cellWidth;
+        const fallbackCell = (mode === 'height') ? cellHeight : cellWidth;
         const prevW = Number.isFinite(sticker.width) && sticker.width > 0 ? sticker.width : fallbackCell;
-        const prevH = Number.isFinite(sticker.height) && sticker.height > 0 ? sticker.height : (fallbackCell * (sticker.originalHeight / sticker.originalWidth));
+        const prevH = Number.isFinite(sticker.height) && sticker.height > 0 ? sticker.height : fallbackCell;
         const aspectRatio = sticker.originalWidth / sticker.originalHeight;
 
         let newW;
         let newH;
         if (mode === 'height') {
+          // במצב לאורך - קובעים את הגובה ומחשבים את הרוחב לפי יחס גובה-רוחב
           newH = cellHeight;
           newW = newH * aspectRatio;
-          if (newW > derivedCellWidth) {
-            newW = derivedCellWidth;
+          console.log('Height mode - cellHeight:', cellHeight, 'aspectRatio:', aspectRatio, 'newW:', newW, 'newH:', newH);
+          // אם הרוחב גדול מדי - מקטינים את שניהם
+          if (newW > contentWidth) {
+            newW = contentWidth;
             newH = newW / aspectRatio;
+            console.log('Width too large, adjusted to:', newW, newH);
           }
         } else {
           newW = cellWidth;
@@ -1911,10 +2159,16 @@
         }
 
         const scale = prevW > 0 ? (newW / prevW) : 1;
-        const usedCellWidth = (mode === 'height') ? derivedCellWidth : cellWidth;
 
         // חישוב X מימין לשמאל (RTL)
-        const xPos = pageWidth - edge - (colIndex * (usedCellWidth + gap)) - usedCellWidth + Math.max(0, (usedCellWidth - newW) / 2);
+        let xPos;
+        if (mode === 'height') {
+          // במצב לאורך - ממרכזים את המדבקה או מיישרים לימין
+          xPos = pageWidth - edge - newW; // יישור לימין
+        } else {
+          const usedCellWidth = cellWidth;
+          xPos = pageWidth - edge - (colIndex * (usedCellWidth + gap)) - usedCellWidth + Math.max(0, (usedCellWidth - newW) / 2);
+        }
 
         sticker.page = page;
         sticker.x = xPos;
@@ -3805,8 +4059,20 @@
       let newX = e.clientX - parentRect.left - offsetX;
       let newY = e.clientY - parentRect.top - offsetY;
 
-      newX = Math.max(0, Math.min(newX, parentRect.width - stickerEl.offsetWidth));
-      newY = Math.max(0, Math.min(newY, parentRect.height - stickerEl.offsetHeight));
+      // שימוש במידות A4 האמיתיות במקום במידות המוצגות
+      const pageWidth = pageOrientation === 'landscape' ? 297 * MM_TO_PX : 210 * MM_TO_PX;
+      const pageHeight = pageOrientation === 'landscape' ? 210 * MM_TO_PX : 297 * MM_TO_PX;
+      
+      // חישוב הסקייל של התצוגה
+      const scale = parentRect.width / pageWidth;
+      
+      // המרה מקואורדינטות מסך לקואורדינטות דף אמיתיות
+      newX = newX / scale;
+      newY = newY / scale;
+
+      // הגבלה לגבולות הדף האמיתיים
+      newX = Math.max(0, Math.min(newX, pageWidth - sticker.width));
+      newY = Math.max(0, Math.min(newY, pageHeight - sticker.height));
 
       sticker.x = newX;
       sticker.y = newY;
@@ -3826,17 +4092,18 @@
       const rect = imageEl.getBoundingClientRect();
       const parentEl = imageEl.parentElement;
       const parentRect = parentEl.getBoundingClientRect();
-      const scale = parentEl && parentEl.offsetWidth ? (parentRect.width / parentEl.offsetWidth) : 1;
+      const scaleX = (parentEl && parentRect && parentEl.offsetWidth) ? (parentRect.width / parentEl.offsetWidth) : 1;
+      const scaleY = (parentEl && parentRect && parentEl.offsetHeight) ? (parentRect.height / parentEl.offsetHeight) : 1;
       
-      offsetX = (e.clientX - rect.left) / (scale || 1);
-      offsetY = (e.clientY - rect.top) / (scale || 1);
+      offsetX = (e.clientX - rect.left) / (scaleX || 1);
+      offsetY = (e.clientY - rect.top) / (scaleY || 1);
       
       const image = stickers[stickerIndex].images.find(i => i.id === imageId);
       if (image) {
         initialDragPosition = { x: image.x, y: image.y };
       }
       
-      draggedElement = { type: 'image', stickerIndex, imageId, imageEl, parentRect, parentEl, scale };
+      draggedElement = { type: 'image', stickerIndex, imageId, imageEl, parentEl, scaleX: scaleX || 1, scaleY: scaleY || 1 };
       
       document.addEventListener('mousemove', dragImage);
       document.addEventListener('mouseup', stopDrag);
@@ -3845,14 +4112,17 @@
     function dragImage(e) {
       if (!draggedElement || draggedElement.type !== 'image') return;
       
-      const { imageEl, parentRect, parentEl, scale, stickerIndex, imageId } = draggedElement;
+      const { imageEl, parentEl, scaleX, scaleY, stickerIndex, imageId } = draggedElement;
+      const parentRect = parentEl ? parentEl.getBoundingClientRect() : null;
+      if (!parentRect) return;
       
-      const effectiveScale = scale || 1;
-      let newX = ((e.clientX - parentRect.left) / effectiveScale) - offsetX;
-      let newY = ((e.clientY - parentRect.top) / effectiveScale) - offsetY;
+      const effectiveScaleX = scaleX || 1;
+      const effectiveScaleY = scaleY || 1;
+      let newX = ((e.clientX - parentRect.left) / effectiveScaleX) - offsetX;
+      let newY = ((e.clientY - parentRect.top) / effectiveScaleY) - offsetY;
       
-      const parentW = parentEl ? parentEl.offsetWidth : (parentRect.width / effectiveScale);
-      const parentH = parentEl ? parentEl.offsetHeight : (parentRect.height / effectiveScale);
+      const parentW = parentEl ? parentEl.offsetWidth : (parentRect.width / effectiveScaleX);
+      const parentH = parentEl ? parentEl.offsetHeight : (parentRect.height / effectiveScaleY);
       const overflowX = parentW * 0.3;
       const overflowY = parentH * 0.3;
       newX = Math.max(-overflowX, Math.min(newX, (parentW - imageEl.offsetWidth) + overflowX));
@@ -3910,8 +4180,27 @@
       e.stopPropagation();
 
       pushHistory();
-      
-      resizingImage = { stickerIndex, imageId };
+
+      const imageEl = document.querySelector(`[data-sticker-index="${stickerIndex}"] [data-image-id="${imageId}"]`);
+      const parentEl = imageEl ? imageEl.parentElement : null;
+      const parentRect = parentEl ? parentEl.getBoundingClientRect() : null;
+      const scaleX = (parentEl && parentRect && parentEl.offsetWidth)
+        ? (parentRect.width / parentEl.offsetWidth)
+        : 1;
+      const scaleY = (parentEl && parentRect && parentEl.offsetHeight)
+        ? (parentRect.height / parentEl.offsetHeight)
+        : 1;
+
+      resizingImage = {
+        stickerIndex,
+        imageId,
+        startClientX: e.clientX,
+        startClientY: e.clientY,
+        startWidth: imageEl ? imageEl.offsetWidth : 0,
+        startHeight: imageEl ? imageEl.offsetHeight : 0,
+        scaleX: scaleX || 1,
+        scaleY: scaleY || 1
+      };
       
       document.addEventListener('mousemove', resizeImage);
       document.addEventListener('mouseup', stopImageResize);
@@ -3920,21 +4209,36 @@
     function resizeImage(e) {
       if (!resizingImage) return;
       
-      const { stickerIndex, imageId } = resizingImage;
+      const { stickerIndex, imageId, startClientX, startClientY, startWidth, startHeight, scaleX, scaleY } = resizingImage;
       const image = stickers[stickerIndex].images.find(i => i.id === imageId);
       if (!image) return;
       
       const imageEl = document.querySelector(`[data-sticker-index="${stickerIndex}"] [data-image-id="${imageId}"]`);
       if (!imageEl) return;
-      
-      const parentRect = imageEl.parentElement.getBoundingClientRect();
-      const rect = imageEl.getBoundingClientRect();
-      
-      const newWidth = e.clientX - rect.left;
-      const newHeight = e.clientY - rect.top;
+
+      const effectiveScaleX = scaleX || 1;
+      const effectiveScaleY = scaleY || 1;
+      const deltaX = (e.clientX - startClientX) / effectiveScaleX;
+      const deltaY = (e.clientY - startClientY) / effectiveScaleY;
+      const resizeDelta = (Math.abs(deltaX) >= Math.abs(deltaY)) ? deltaX : deltaY;
+      const newWidth = startWidth + resizeDelta;
+      const newHeight = startHeight + resizeDelta;
       
       if (newWidth > 20 && newHeight > 20) {
-        const aspectRatio = image.originalWidth / image.originalHeight;
+        let aspectRatio;
+        if (Number.isFinite(image.originalWidth) && Number.isFinite(image.originalHeight) && image.originalHeight > 0) {
+          aspectRatio = image.originalWidth / image.originalHeight;
+        } else if (Number.isFinite(image.width) && Number.isFinite(image.height) && image.height > 0) {
+          aspectRatio = image.width / image.height;
+        } else if (startHeight > 0) {
+          aspectRatio = startWidth / startHeight;
+        } else if (imageEl.offsetHeight > 0) {
+          aspectRatio = imageEl.offsetWidth / imageEl.offsetHeight;
+        } else {
+          aspectRatio = 1;
+        }
+
+        if (!Number.isFinite(aspectRatio) || aspectRatio <= 0) aspectRatio = 1;
         const calculatedHeight = newWidth / aspectRatio;
         
         image.width = newWidth;
@@ -3942,6 +4246,24 @@
         
         imageEl.style.width = `${newWidth}px`;
         imageEl.style.height = `${calculatedHeight}px`;
+
+        // התאמת מיקום לאחר שינוי גודל כדי שהאלמנט לא ייתקע "מחוץ" למדבקה
+        const parentEl = imageEl.parentElement;
+        const parentW = parentEl ? parentEl.offsetWidth : 0;
+        const parentH = parentEl ? parentEl.offsetHeight : 0;
+        if (parentW > 0 && parentH > 0) {
+          const overflowX = parentW * 0.3;
+          const overflowY = parentH * 0.3;
+          const minX = -overflowX;
+          const minY = -overflowY;
+          const maxX = (parentW - imageEl.offsetWidth) + overflowX;
+          const maxY = (parentH - imageEl.offsetHeight) + overflowY;
+
+          image.x = Math.max(minX, Math.min(image.x, maxX));
+          image.y = Math.max(minY, Math.min(image.y, maxY));
+          imageEl.style.left = `${image.x}px`;
+          imageEl.style.top = `${image.y}px`;
+        }
         
         // If sync is enabled, resize corresponding images in other stickers
         if (syncMoveEnabled) {
@@ -3958,6 +4280,23 @@
               if (correspondingEl) {
                 correspondingEl.style.width = `${newWidth}px`;
                 correspondingEl.style.height = `${calculatedHeight}px`;
+
+                const correspondingParentEl = correspondingEl.parentElement;
+                const corrParentW = correspondingParentEl ? correspondingParentEl.offsetWidth : 0;
+                const corrParentH = correspondingParentEl ? correspondingParentEl.offsetHeight : 0;
+                if (corrParentW > 0 && corrParentH > 0) {
+                  const corrOverflowX = corrParentW * 0.3;
+                  const corrOverflowY = corrParentH * 0.3;
+                  const corrMinX = -corrOverflowX;
+                  const corrMinY = -corrOverflowY;
+                  const corrMaxX = (corrParentW - correspondingEl.offsetWidth) + corrOverflowX;
+                  const corrMaxY = (corrParentH - correspondingEl.offsetHeight) + corrOverflowY;
+
+                  correspondingImage.x = Math.max(corrMinX, Math.min(correspondingImage.x, corrMaxX));
+                  correspondingImage.y = Math.max(corrMinY, Math.min(correspondingImage.y, corrMaxY));
+                  correspondingEl.style.left = `${correspondingImage.x}px`;
+                  correspondingEl.style.top = `${correspondingImage.y}px`;
+                }
               }
             }
           });
@@ -5687,6 +6026,9 @@
     
     // Show empty page on load
     showEmptyPage();
+    
+    // Initialize orientation dropdown display
+    updateOrientationDropdown(pageOrientation);
 
     document.getElementById('imageInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
@@ -5920,6 +6262,7 @@
 
       const cfg = getStickerLayoutConfigFromUI();
       const desiredCount = Number.isFinite(cfg.uploadLimit) && cfg.uploadLimit > 0 ? cfg.uploadLimit : 0;
+      const actualCount = calculateActualStickerCount(desiredCount);
       const imageFiles = Array.from(files).filter(f => f.type && f.type.startsWith('image/'));
 
       if (imageFiles.length === 0) {
@@ -5928,7 +6271,7 @@
         return;
       }
 
-      const countToAdd = desiredCount > 0 ? desiredCount : imageFiles.length;
+      const countToAdd = actualCount > 0 ? actualCount : imageFiles.length;
       const startIndex = stickers.length; // שמירת האינדקס של המדבקות החדשות
 
       pushHistory();
@@ -5949,8 +6292,8 @@
               page: 0,
               x: 0,
               y: 0,
-              width: 1,
-              height: 1,
+              width: src.originalWidth,
+              height: src.originalHeight,
               originalWidth: src.originalWidth,
               originalHeight: src.originalHeight,
               words: [],
@@ -5958,8 +6301,9 @@
             });
           }
 
-          // החלת פריסה רק על המדבקות החדשות
-          applyLayoutToNewStickers(startIndex);
+          // החלת פריסה על המדבקות החדשות
+          // במקום לנסות לחשב מיקומים חלקיים, פשוט נריץ את reflowStickers על הכל
+          reflowStickers();
           renderStickers();
           updateFileCount();
           showStatus(`${countToAdd} מדבקות הועלו בהצלחה!`);
@@ -5980,6 +6324,7 @@
 
       const cfg = getStickerLayoutConfigFromUI();
       const desiredCount = Number.isFinite(cfg.uploadLimit) && cfg.uploadLimit > 0 ? cfg.uploadLimit : 0;
+      const actualCount = calculateActualStickerCount(desiredCount);
       const imageFiles = Array.from(files).filter(f => f.type && f.type.startsWith('image/'));
 
       if (imageFiles.length === 0) {
@@ -5988,7 +6333,7 @@
         return;
       }
 
-      const countToAdd = desiredCount > 0 ? desiredCount : imageFiles.length;
+      const countToAdd = actualCount > 0 ? actualCount : imageFiles.length;
       const startIndex = stickers.length; // שמירת האינדקס של המדבקות החדשות
 
       pushHistory();
@@ -6009,8 +6354,8 @@
               page: 0,
               x: 0,
               y: 0,
-              width: 1,
-              height: 1,
+              width: src.originalWidth,
+              height: src.originalHeight,
               originalWidth: src.originalWidth,
               originalHeight: src.originalHeight,
               words: [],
@@ -6018,8 +6363,9 @@
             });
           }
 
-          // החלת פריסה רק על המדבקות החדשות
-          applyLayoutToNewStickers(startIndex);
+          // החלת פריסה על המדבקות החדשות
+          // במקום לנסות לחשב מיקומים חלקיים, פשוט נריץ את reflowStickers על הכל
+          reflowStickers();
           renderStickers();
           updateFileCount();
           showStatus(`${countToAdd} מדבקות הועלו מהתיקייה בהצלחה!`);

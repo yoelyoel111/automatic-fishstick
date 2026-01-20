@@ -227,8 +227,8 @@
               <div class="flex items-center gap-2">
                 <label data-i18n="stickerSize" class="text-sm font-medium text-gray-700">גודל המדבקה:</label>
                 <span data-i18n="stickersCountIn" class="text-xs text-gray-500">כמה מדבקות נכנסות ב</span>
-                <select id="stickerSizeModeSelect" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
-                  <option data-i18n="byWidth" value="width">לפי רוחב</option>
+                <select id="stickerSizeModeSelect" class="px-3 py-2 border-2 border-gray-300 rounded-lg min-w-[120px]">
+                  <option data-i18n="byWidth" value="width" selected>לפי רוחב</option>
                   <option data-i18n="byHeight" value="height">לפי אורך</option>
                 </select>
                 <input type="number" id="stickersPerRowInput" min="1" max="30" value="2" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
@@ -799,7 +799,7 @@
         <div class="relative">
           <button id="orientationDropdownBtn" class="px-4 py-2 bg-white border-2 border-indigo-400 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 transition-all flex items-center gap-2">
             <span id="orientationDropdownIcon" class="text-lg">📄</span>
-            <span id="orientationDropdownText" data-i18n="pageOrientation">כיוון הדף: לאורך</span>
+            <span id="orientationDropdownText">כיוון הדף: לאורך</span>
             <span class="text-xs">▾</span>
           </button>
           <div id="orientationDropdownMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[180px]">
@@ -994,7 +994,7 @@
                     <div id="precisionCropShape" class="absolute border-2 border-dashed border-red-500" style="display:none;">
                       <div id="precisionResizeHandle" class="absolute w-4 h-4 bg-red-500 border-2 border-white rounded-full cursor-nwse-resize -bottom-2 -right-2"></div>
                     </div>
-                    <div id="precisionImageResizeHandle" class="absolute w-5 h-5 bg-blue-500 border-2 border-white rounded-full cursor-nwse-resize shadow-md hidden"></div>
+                    <div id="precisionStickerImageResizeHandle" class="absolute w-5 h-5 bg-blue-500 border-2 border-white rounded-full cursor-nwse-resize shadow-md hidden"></div>
                   </div>
                 </div>
               </div>
@@ -1124,7 +1124,7 @@
                   <div id="precisionImageEditorContainer" class="relative bg-gray-100 rounded-lg border border-gray-300 overflow-hidden flex items-center justify-center" style="min-height:300px;">
                     <img id="precisionImageSourceImage" src="" alt="" class="max-w-none">
                     <div id="precisionImageCropShape" class="absolute border-2 border-dashed border-red-500" style="display:none;">
-                      <div id="precisionImageResizeHandle" class="absolute w-4 h-4 bg-red-500 border-2 border-white rounded-full cursor-nwse-resize -bottom-2 -right-2"></div>
+                      <div id="precisionImageResizeHandle" class="absolute w-6 h-6 bg-red-500 border-2 border-white rounded-full cursor-nwse-resize shadow-lg z-10" style="bottom: -12px; right: -12px;"></div>
                     </div>
                     <div id="precisionImageImageResizeHandle" class="absolute w-5 h-5 bg-blue-500 border-2 border-white rounded-full cursor-nwse-resize shadow-md hidden"></div>
                   </div>
@@ -1305,15 +1305,15 @@
     </div>
   </div>
   
-  <script src="js/translations.js"></script>
-    <script src="js/makor-core.js"></script>
-    <script src="js/precision-sticker.js"></script>
-    <script src="js/precision-image.js"></script>
-    <script src="js/background-removal.js"></script>
-    <script src="js/eraser-tool.js"></script>
-    <script src="js/makor-names.js"></script>
-    <script src="js/google-drive.js"></script>
-    <script src="js/makor-init.js"></script>
+  <script src="js/translations.js?v=20250120-01"></script>
+    <script src="js/makor-core.js?v=20250120-01"></script>
+    <script src="js/precision-sticker.js?v=20250120-01"></script>
+    <script src="js/precision-image.js?v=20250120-01"></script>
+    <script src="js/background-removal.js?v=20250120-01"></script>
+    <script src="js/eraser-tool.js?v=20250120-01"></script>
+    <script src="js/makor-names.js?v=20250120-01"></script>
+    <script src="js/google-drive.js?v=20250120-01"></script>
+    <script src="js/makor-init.js?v=20250120-01"></script>
 
  </body>
 </html>

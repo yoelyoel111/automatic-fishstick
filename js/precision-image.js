@@ -1,12 +1,13 @@
 ﻿/**
  * Precision Image Tool - כלי הכנת תמונה מדויקת
  * מבוסס על precision-sticker.js אבל מוסיף תמונה למדבקה
+ * VERSION: 20250120-01 - Fixed updateContainerOrientation error
  */
 
 (function() {
   'use strict';
   
-  console.log('Precision Image script loaded');
+  console.log('Precision Image script loaded - VERSION 20250120-01');
 
   // כל פונקציות הכיול כבר קיימות מ-precision-sticker.js
   // משתמשים בהן ישירות
@@ -35,7 +36,7 @@
   
   // עיכוב קטן כדי לוודא שהמודל לא ייסגר מיד
   setTimeout(function() {
-    const modal = document.getElementById('precisionImageImageModal');
+    const modal = document.getElementById('precisionImageModal');
     if (modal) {
       modal.classList.remove('hidden');
       console.log('Modal opened');
@@ -115,35 +116,53 @@ function syncMmInputsFromCropPx() {
 
 // הוספת event listeners כשהדף נטען
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded, setting up precision sticker');
+  console.log('DOM loaded, setting up precision image');
+  
+  // כפתור פתיחת המודל - הכנת תמונה מדויקת
+  const openBtn = document.getElementById('precisionImageBtn');
+  if (openBtn) {
+    openBtn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Precision Image button clicked');
+      
+      // בדיקה שיש מדבקה נבחרת
+      if (typeof selectedSticker === 'undefined' || selectedSticker === null) {
+        alert('יש לבחור מדבקה לפני הוספת תמונה מדויקת');
+        return;
+      }
+      
+      openPrecisionImageModal(e);
+    };
+    console.log('Precision Image button listener added');
+  } else {
+    console.error('Precision Image button not found!');
+  }
   
   // עדכון סטטוס כיול מדפסת
-  updateCalibrationStatus();
+  if (typeof updateCalibrationStatus === 'function') {
+    updateCalibrationStatus();
+  }
   
   // סגירה עם מקש ESC
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      const modal = document.getElementById('precisionImageImageModal');
+      const modal = document.getElementById('precisionImageModal');
       if (modal && !modal.classList.contains('hidden')) {
         closePrecisionImageModal();
-      }
-      // סגירת מודל כיול גם כן
-      const calibrationModal = document.getElementById('printerCalibrationModal');
-      if (calibrationModal && !calibrationModal.classList.contains('hidden')) {
-        closeCalibrationModal();
       }
     }
   });
   
   // כפתור סגירה
-  const closeBtn = document.getElementById('precisionImageImageModalClose');
+  const closeBtn = document.getElementById('precisionImageModalClose');
   if (closeBtn) {
     closeBtn.onclick = closePrecisionImageModal;
     console.log('Close button listener added');
   }
   
   // רקע המודל - רק אם לוחצים על הרקע עצמו
-  const backdrop = document.getElementById('precisionImageImageModalBackdrop');
+  const backdrop = document.getElementById('precisionImageModalBackdrop');
   if (backdrop) {
     backdrop.onclick = function(e) {
       if (e.target === backdrop) { // רק אם לוחצים על הרקע עצמו
@@ -487,8 +506,7 @@ function setupCropArea() {
   setupDragging(cropArea, img);
   setupResizing(cropArea);
 
-  // הגדרת כיוון וצורה התחלתיים
-  updateContainerOrientation();
+  // הגדרת צורה התחלתית
   updateCropAreaShape();
   
   // עדכון שדות המידות לפי הגודל ההתחלתי
@@ -500,8 +518,13 @@ function setupDragging(cropArea, img) {
   let startX, startY, startLeft, startTop;
 
   cropArea.addEventListener('mousedown', function(e) {
-    // אם לוחצים על ידית השינוי גודל, לא נתחיל גרירה
-    if (e.target.id === 'precisionImageResizeHandle') return;
+    // אם לוחצים על ידית השינוי גודל (או על ילד שלה), לא נתחיל גרירה
+    if (e.target && typeof e.target.closest === 'function') {
+      const handleEl = e.target.closest('#precisionImageResizeHandle');
+      if (handleEl) return;
+    } else if (e.target && e.target.id === 'precisionImageResizeHandle') {
+      return;
+    }
     
     isDragging = true;
     startX = e.clientX;
@@ -563,7 +586,7 @@ function setupDragging(cropArea, img) {
 }
 
 function setupResizing(cropArea) {
-  const resizeHandle = document.getElementById('precisionImageResizeHandle');
+  const resizeHandle = cropArea ? cropArea.querySelector('#precisionImageResizeHandle') : null;
   if (!resizeHandle) return;
   
   let isResizing = false;
@@ -723,15 +746,26 @@ function resetprecisionImageEditor() {
 
 // בדיקה שהכל נטען
 setTimeout(function() {
-  const btn = document.getElementById('precisionImageImageBtn');
-  const modal = document.getElementById('precisionImageImageModal');
+  const btn = document.getElementById('precisionImageBtn');
+  const modal = document.getElementById('precisionImageModal');
   
   console.log('Button exists:', !!btn);
   console.log('Modal exists:', !!modal);
   
   if (btn && !btn.onclick) {
     console.log('Adding onclick to button as fallback');
-    btn.onclick = openPrecisionImageModal;
+    btn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // בדיקה שיש מדבקה נבחרת
+      if (typeof selectedSticker === 'undefined' || selectedSticker === null) {
+        alert('יש לבחור מדבקה לפני הוספת תמונה מדויקת');
+        return;
+      }
+      
+      openPrecisionImageModal(e);
+    };
   }
 }, 2000);
 
@@ -764,8 +798,20 @@ function updateCropAreaFromInputs() {
   const widthPX = precisionImageMmToPx(widthMM);
   const heightPX = precisionImageMmToPx(heightMM);
   
+  console.log('=== updateCropAreaFromInputs ===');
+  console.log('Input CM:', widthCM, 'x', heightCM);
+  console.log('Calculated PX:', widthPX, 'x', heightPX);
+  console.log('Current crop area size:', cropArea.offsetWidth, 'x', cropArea.offsetHeight);
+  
   cropArea.style.width = widthPX + 'px';
   cropArea.style.height = heightPX + 'px';
+  
+  console.log('After setting style:', cropArea.style.width, cropArea.style.height);
+  
+  // כפיית reflow כדי שהדפדפן יעדכן את המידות
+  void cropArea.offsetHeight;
+  
+  console.log('After reflow offsetSize:', cropArea.offsetWidth, 'x', cropArea.offsetHeight);
   
   // הגבלה דינמית - התאמת מיקום הריבוע כך שיישאר בתוך גבולות התמונה
   const maxProportion = constrainCropAreaToImage();
@@ -811,6 +857,10 @@ function constrainCropAreaToImage() {
   const cropWidth = cropArea.offsetWidth;
   const cropHeight = cropArea.offsetHeight;
   
+  console.log('=== constrainCropAreaToImage ===');
+  console.log('Crop size:', cropWidth, 'x', cropHeight);
+  console.log('Image bounds:', imgOffsetX, imgOffsetY, imgWidth, 'x', imgHeight);
+  
   // קבלת המיקום הנוכחי
   let currentLeft = parseInt(cropArea.style.left) || 0;
   let currentTop = parseInt(cropArea.style.top) || 0;
@@ -831,45 +881,50 @@ function constrainCropAreaToImage() {
   
   // בדיקה אם הריבוע גדול מהתמונה
   if (cropWidth > imgWidth || cropHeight > imgHeight) {
+    console.log('Crop area is too large, need to resize');
     // אם הריבוע גדול מהתמונה, נצמצם אותו למקסימום האפשרי
-    const maxWidth = imgWidth;
-    const maxHeight = imgHeight;
     
-    // שמירה על יחס הפרופורציה המקורי
-    const aspectRatio = cropWidth / cropHeight;
+    // שמירה על יחס הפרופורציה המבוקש (מהשדות קלט), לא מהמידות הנוכחיות
+    const desiredAspectRatio = widthMM / heightMM;
     
     let newWidth, newHeight;
     if (cropWidth > imgWidth && cropHeight > imgHeight) {
       // שני הממדים גדולים מדי - נבחר את ההגבלה המחמירה יותר
-      if (imgWidth / aspectRatio <= imgHeight) {
+      if (imgWidth / desiredAspectRatio <= imgHeight) {
         newWidth = imgWidth;
-        newHeight = imgWidth / aspectRatio;
+        newHeight = imgWidth / desiredAspectRatio;
       } else {
         newHeight = imgHeight;
-        newWidth = imgHeight * aspectRatio;
+        newWidth = imgHeight * desiredAspectRatio;
       }
     } else if (cropWidth > imgWidth) {
       // רק הרוחב גדול מדי
       newWidth = imgWidth;
-      newHeight = imgWidth / aspectRatio;
+      newHeight = imgWidth / desiredAspectRatio;
     } else {
       // רק הגובה גדול מדי
       newHeight = imgHeight;
-      newWidth = imgHeight * aspectRatio;
+      newWidth = imgHeight * desiredAspectRatio;
     }
+    
+    console.log('Resizing crop area to:', newWidth, 'x', newHeight);
     
     cropArea.style.width = newWidth + 'px';
     cropArea.style.height = newHeight + 'px';
+    
+    // כפיית reflow כדי שהדפדפן יעדכן את המידות
+    void cropArea.offsetHeight;
     
     // מרכוז הריבוע בתמונה
     currentLeft = imgOffsetX + (imgWidth - newWidth) / 2;
     currentTop = imgOffsetY + (imgHeight - newHeight) / 2;
     
-    console.log('Crop area was too large, resized to fit:', { newWidth, newHeight });
+    console.log('Crop area was too large, resized to fit:', { newWidth, newHeight, desiredAspectRatio });
     
     // החזרת הפרופורציה המקסימלית
     return maxProportion;
   } else {
+    console.log('Crop area fits within image, only adjusting position if needed');
     // הריבוע נכנס בתמונה - נוודא שהוא לא חורג מהגבולות
     
     // חישוב הגבולות המקסימליים
