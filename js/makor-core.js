@@ -1577,7 +1577,7 @@
     function rotateWord(e) {
       if (!rotatingWord) return;
       
-      const { word, wordEl, startAngle, startX } = rotatingWord;
+      const { word, wordEl, startAngle, startX, stickerIndex, wordId } = rotatingWord;
       
       // חישוב הסיבוב לפי תנועה אופקית - כל 2 פיקסלים = מעלה אחת
       const deltaX = e.clientX - startX;
@@ -1586,6 +1586,37 @@
       // עדכון הסיבוב
       word.rotation = newRotation;
       wordEl.style.transform = `rotate(${newRotation}deg)`;
+      
+      // If sync is enabled, rotate corresponding words in other stickers
+      if (syncMoveEnabled) {
+        const seriesId = word.seriesId;
+        if (seriesId) {
+          stickers.forEach((sticker, idx) => {
+            if (idx === stickerIndex) return;
+            const correspondingWord = (sticker.words || []).find(w => w.seriesId === seriesId);
+            if (!correspondingWord) return;
+            correspondingWord.rotation = newRotation;
+
+            const correspondingEl = document.querySelector(`[data-sticker-index="${idx}"] [data-word-id="${correspondingWord.id}"]`);
+            if (correspondingEl) {
+              correspondingEl.style.transform = `rotate(${newRotation}deg)`;
+            }
+          });
+        } else {
+          const wordIndex = stickers[stickerIndex].words.findIndex(w => w.id === wordId);
+          stickers.forEach((sticker, idx) => {
+            if (idx !== stickerIndex && sticker.words[wordIndex]) {
+              const correspondingWord = sticker.words[wordIndex];
+              correspondingWord.rotation = newRotation;
+
+              const correspondingEl = document.querySelector(`[data-sticker-index="${idx}"] [data-word-id="${correspondingWord.id}"]`);
+              if (correspondingEl) {
+                correspondingEl.style.transform = `rotate(${newRotation}deg)`;
+              }
+            }
+          });
+        }
+      }
     }
     
     function stopWordRotate() {
@@ -1624,7 +1655,7 @@
     function curveWord(e) {
       if (!curvingWord) return;
       
-      const { word, wordEl, startCurve, startY } = curvingWord;
+      const { word, wordEl, startCurve, startY, stickerIndex, wordId } = curvingWord;
       
       // חישוב הקימור לפי תנועה אנכית - כל פיקסל = יחידת קימור
       const deltaY = e.clientY - startY;
@@ -1646,6 +1677,57 @@
         wordEl.innerHTML = '';
         wordEl.appendChild(textSpan);
         reattachWordControls(wordEl, curvingWord.stickerIndex, word.id);
+      }
+      
+      // If sync is enabled, curve corresponding words in other stickers
+      if (syncMoveEnabled) {
+        const seriesId = word.seriesId;
+        if (seriesId) {
+          stickers.forEach((sticker, idx) => {
+            if (idx === stickerIndex) return;
+            const correspondingWord = (sticker.words || []).find(w => w.seriesId === seriesId);
+            if (!correspondingWord) return;
+            correspondingWord.curve = word.curve;
+
+            const correspondingEl = document.querySelector(`[data-sticker-index="${idx}"] [data-word-id="${correspondingWord.id}"]`);
+            if (correspondingEl) {
+              if (correspondingWord.curve !== 0) {
+                correspondingEl.innerHTML = createCurvedText(correspondingWord.text, correspondingWord.curve, correspondingWord);
+                reattachWordControls(correspondingEl, idx, correspondingWord.id);
+              } else {
+                const textSpan = document.createElement('span');
+                textSpan.className = 'word-text-content';
+                textSpan.textContent = correspondingWord.text;
+                correspondingEl.innerHTML = '';
+                correspondingEl.appendChild(textSpan);
+                reattachWordControls(correspondingEl, idx, correspondingWord.id);
+              }
+            }
+          });
+        } else {
+          const wordIndex = stickers[stickerIndex].words.findIndex(w => w.id === wordId);
+          stickers.forEach((sticker, idx) => {
+            if (idx !== stickerIndex && sticker.words[wordIndex]) {
+              const correspondingWord = sticker.words[wordIndex];
+              correspondingWord.curve = word.curve;
+
+              const correspondingEl = document.querySelector(`[data-sticker-index="${idx}"] [data-word-id="${correspondingWord.id}"]`);
+              if (correspondingEl) {
+                if (correspondingWord.curve !== 0) {
+                  correspondingEl.innerHTML = createCurvedText(correspondingWord.text, correspondingWord.curve, correspondingWord);
+                  reattachWordControls(correspondingEl, idx, correspondingWord.id);
+                } else {
+                  const textSpan = document.createElement('span');
+                  textSpan.className = 'word-text-content';
+                  textSpan.textContent = correspondingWord.text;
+                  correspondingEl.innerHTML = '';
+                  correspondingEl.appendChild(textSpan);
+                  reattachWordControls(correspondingEl, idx, correspondingWord.id);
+                }
+              }
+            }
+          });
+        }
       }
     }
     
