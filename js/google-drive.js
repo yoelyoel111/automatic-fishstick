@@ -1186,7 +1186,7 @@ const GoogleDriveManager = (function() {
   
   /**
    * Handle connection flow based on content state
-   * מצב 1: אין תוכן - מסתיר הכל מתחת לבאנר עד בחירת פרויקט
+   * מצב 1: אין תוכן - מציג הכל כרגיל, מוכן לעבודה
    * מצב 2: יש תוכן - שואל שם לפרויקט
    */
   async function handleConnectionFlow() {
@@ -1207,9 +1207,9 @@ const GoogleDriveManager = (function() {
       // מצב 2: יש תוכן - שואל שם לפרויקט
       await showProjectNameDialog();
     } else {
-      // מצב 1: אין תוכן - מסתיר הכל מתחת לבאנר
-      hideContentBelowBanner();
-      showStatus('בחר פרויקט קיים או צור פרויקט חדש');
+      // מצב 1: אין תוכן - מציג הכל כרגיל, מוכן לעבודה
+      showContentBelowBanner();
+      showStatus('מחובר ל-Google Drive ✓ התחל לעבוד או בחר פרויקט קיים');
     }
   }
   
