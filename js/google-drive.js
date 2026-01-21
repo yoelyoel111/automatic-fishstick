@@ -41,9 +41,66 @@ const GoogleDriveManager = (function() {
       });
       gapiInited = true;
       maybeEnableButtons();
+      
+      // ניסיון לטעון token שמור
+      tryRestoreSavedToken();
     } catch (error) {
       console.error('Error initializing GAPI client:', error);
       showStatus(t('googleApiInitError'), true);
+    }
+  }
+  
+  /**
+   * Try to restore saved token from localStorage
+   */
+  function tryRestoreSavedToken() {
+    try {
+      console.log('🔍 Checking for saved token in localStorage...');
+      const savedTokenStr = localStorage.getItem('google_drive_token');
+      
+      if (!savedTokenStr) {
+        console.log('❌ No saved token found in localStorage');
+        return;
+      }
+      
+      console.log('✅ Found saved token, parsing...');
+      const tokenData = JSON.parse(savedTokenStr);
+      console.log('Token data:', {
+        hasAccessToken: !!tokenData.access_token,
+        expiresAt: tokenData.expires_at ? new Date(tokenData.expires_at).toLocaleString('he-IL') : 'N/A',
+        scope: tokenData.scope
+      });
+      
+      // בדיקה אם ה-token עדיין תקף
+      const now = Date.now();
+      const isValid = tokenData.expires_at && now < tokenData.expires_at;
+      
+      if (isValid) {
+        const timeLeft = Math.round((tokenData.expires_at - now) / 1000 / 60);
+        console.log(`✅ Token is still valid! ${timeLeft} minutes left`);
+        console.log('🔄 Restoring token to gapi.client...');
+        
+        // שחזור ה-token ל-gapi
+        gapi.client.setToken({
+          access_token: tokenData.access_token,
+          scope: tokenData.scope
+        });
+        
+        console.log('✅ Token restored, fetching user info...');
+        
+        // קריאה לפונקציה שמביאה את פרטי המשתמש
+        setTimeout(() => {
+          fetchUserInfo();
+        }, 100);
+      } else {
+        console.log('❌ Saved token expired, removing from localStorage');
+        console.log('Expired at:', new Date(tokenData.expires_at).toLocaleString('he-IL'));
+        console.log('Current time:', new Date(now).toLocaleString('he-IL'));
+        localStorage.removeItem('google_drive_token');
+      }
+    } catch (e) {
+      console.error('❌ Failed to restore token:', e);
+      localStorage.removeItem('google_drive_token');
     }
   }
   
@@ -78,7 +135,32 @@ const GoogleDriveManager = (function() {
     }
     
     // Token is now available in response.access_token
-    console.log('Token received successfully');
+    console.log('✅ Token received successfully from Google');
+    
+    // שמירת ה-token ב-localStorage להתחברות אוטומטית
+    try {
+      const expiresAt = Date.now() + (response.expires_in * 1000);
+      const tokenData = {
+        access_token: response.access_token,
+        expires_at: expiresAt,
+        scope: response.scope
+      };
+      
+      console.log('💾 Saving token to localStorage...');
+      console.log('Token will expire at:', new Date(expiresAt).toLocaleString('he-IL'));
+      
+      localStorage.setItem('google_drive_token', JSON.stringify(tokenData));
+      
+      // בדיקה שהשמירה עבדה
+      const saved = localStorage.getItem('google_drive_token');
+      if (saved) {
+        console.log('✅ Token saved successfully to localStorage!');
+      } else {
+        console.error('❌ Failed to save token to localStorage!');
+      }
+    } catch (e) {
+      console.error('❌ Error saving token to localStorage:', e);
+    }
     
     // Small delay to ensure token is set
     setTimeout(() => {
@@ -174,6 +256,15 @@ const GoogleDriveManager = (function() {
     if (token !== null) {
       google.accounts.oauth2.revoke(token.access_token);
       gapi.client.setToken('');
+      
+      // מחיקת ה-token השמור
+      try {
+        localStorage.removeItem('google_drive_token');
+        console.log('Saved token removed');
+      } catch (e) {
+        console.error('Failed to remove saved token:', e);
+      }
+      
       currentUser = null;
       appFolderId = null;
       updateUIForSignedOut();
