@@ -5561,13 +5561,15 @@
       }
     });
 
-    const TUTORIAL_BASE_URL = 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/';
+    const TUTORIAL_BASE_URL = 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/הדרכה/';
     const TUTORIAL_VIDEOS = {
       Stickers: { file: 'מדבקות.webm', title: 'מדבקות' },
-      Text: { file: 'טקסט.webm', title: 'הוספת טקסט' },
-      Image: { file: 'תמונה.webm', title: 'הוספת תמונה' },
+      Text: { file: 'טקסט.mp4', title: 'הוספת טקסט' },
+      Image: { file: 'תמונות.mp4', title: 'הוספת תמונה' },
       Global: { file: 'הגדרות.webm', title: 'הגדרות כלליות' },
-      NamesUpload: { file: 'הגרלתמספרים.webm', title: 'הגרלת מספרים' }
+      NamesUpload: { file: 'הגרלתמספרים.webm', title: 'הגרלת מספרים' },
+      Calibration: { file: 'כיול.mp4', title: 'כיול מדבקות' },
+      PrecisionSticker: { file: 'מדבקהמדיוקת.mp4', title: 'מדבקה מדויקת' }
     };
 
     const tutorialPreloaders = {};

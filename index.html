@@ -163,6 +163,14 @@
         📂 טען פרויקט
       </label>
       <input type="file" id="loadProjectInput" accept=".json" class="hidden">
+      <!-- Tutorial for Calibration -->
+      <div class="flex justify-center mb-2">
+        <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-orange-700 hover:text-orange-900 cursor-pointer" data-tutorial-section="Calibration" role="button" tabindex="0" aria-label="סרטון הדרכה - כיול">
+          <span class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-orange-300 bg-white">?</span>
+          <span data-i18n="tutorial">הדרכה</span>
+          <span>- כיול מדפסת</span>
+        </span>
+      </div>
       <button type="button" data-i18n="printerCalibration" class="px-6 py-3 bg-gradient-to-r from-orange-400 to-amber-500 text-white font-bold rounded-lg shadow-md hover:from-orange-500 hover:to-amber-600 transition-all hover:shadow-lg" onclick="openCalibrationModal()">
         🎯 כיול מדפסת
       </button>
@@ -252,7 +260,15 @@
           </div>
           
           <!-- כפתור הכנת מדבקה מדויקת - עותק מדויק של כפתור הוסף מדבקה -->
-          <div class="flex justify-center mt-4">
+          <!-- Tutorial for Precision Sticker -->
+          <div class="flex justify-center mt-4 mb-2">
+            <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-900 cursor-pointer" data-tutorial-section="PrecisionSticker" role="button" tabindex="0" aria-label="סרטון הדרכה - מדבקה מדויקת">
+              <span class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-emerald-300 bg-white">?</span>
+              <span data-i18n="tutorial">הדרכה</span>
+              <span>- הכנת מדבקה מדויקת</span>
+            </span>
+          </div>
+          <div class="flex justify-center">
             <div class="relative">
               <button id="precisionStickerBtn" type="button" onclick="openPrecisionModal(event)" style="width: 360px; height: 65px; padding: 10px 20px;" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black rounded-2xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-2xl flex items-center justify-center gap-4 relative overflow-hidden">
                 <!-- אפקט זכוכית עם ברק -->
