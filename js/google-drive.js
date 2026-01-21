@@ -42,8 +42,8 @@ const GoogleDriveManager = (function() {
       gapiInited = true;
       maybeEnableButtons();
       
-      // ניסיון לטעון token שמור
-      tryRestoreSavedToken();
+      // ניסיון לטעון token שמור - רק אחרי ש-GIS גם מוכן
+      maybeRestoreToken();
     } catch (error) {
       console.error('Error initializing GAPI client:', error);
       showStatus(t('googleApiInitError'), true);
@@ -122,6 +122,9 @@ const GoogleDriveManager = (function() {
     });
     gisInited = true;
     maybeEnableButtons();
+    
+    // נסה לשחזר token שמור אחרי ש-GIS מוכן
+    maybeRestoreToken();
   }
 
   /**
@@ -227,6 +230,18 @@ const GoogleDriveManager = (function() {
         signInBtn.disabled = false;
         signInBtn.classList.remove('opacity-50');
       }
+    }
+  }
+  
+  /**
+   * Try to restore token only when both GAPI and GIS are ready
+   */
+  function maybeRestoreToken() {
+    if (gapiInited && gisInited) {
+      console.log('🚀 Both GAPI and GIS are ready, trying to restore token...');
+      tryRestoreSavedToken();
+    } else {
+      console.log('⏳ Waiting for both GAPI and GIS to be ready...');
     }
   }
   
