@@ -27,6 +27,8 @@
     let isRestoringHistory = false;
     let offsetX = 0;
     let offsetY = 0;
+    let activePointerId = null;
+    const pointerListeners = new Map();
     let wordIdCounter = 0;
     let wordSeriesCounter = 0;
     let imageIdCounter = 0;
@@ -39,6 +41,366 @@
     const EXPORT_QUALITY = { pdfScale: 4, imageScale: 5, zipMaxBytes: 15 * 1024 * 1024, jpegQuality: 0.98, pdfCompression: 'NONE', pdfDpi: 360 };
 
     const MM_TO_PX = 3.7795275591;
+    const supportsPointerEvents = typeof window !== 'undefined' && 'PointerEvent' in window;
+
+    function getEventPoint(e) {
+      if (e && e.touches && e.touches.length) return e.touches[0];
+      if (e && e.changedTouches && e.changedTouches.length) return e.changedTouches[0];
+      return e;
+    }
+
+    function getEventClientX(e) {
+      const point = getEventPoint(e);
+      return point ? point.clientX : 0;
+    }
+
+    function getEventClientY(e) {
+      const point = getEventPoint(e);
+      return point ? point.clientY : 0;
+    }
+
+    function shouldHandlePointerStart(e) {
+      if (!e) return false;
+      if (typeof e.isPrimary === 'boolean' && !e.isPrimary) return false;
+      if (typeof e.button === 'number' && e.button !== 0) return false;
+      return true;
+    }
+
+    function beginPointerInteraction(e) {
+      if (!e) return;
+      if (e.cancelable && (e.pointerType === 'touch' || e.type === 'touchstart')) {
+        e.preventDefault();
+      }
+      if (e.pointerId != null) {
+        activePointerId = e.pointerId;
+        const target = e.currentTarget;
+        if (target && typeof target.setPointerCapture === 'function') {
+          try {
+            target.setPointerCapture(e.pointerId);
+          } catch (_) {}
+        }
+      } else {
+        activePointerId = null;
+      }
+    }
+
+    async function downloadOfflineBundle() {
+      const btn = document.getElementById('offlineBundleBtn');
+      if (typeof JSZip === 'undefined') {
+        showStatus('שגיאה: JSZip לא נטען', true);
+        return;
+      }
+
+      const disableBtn = (disabled) => {
+        if (!btn) return;
+        btn.disabled = disabled;
+        btn.classList.toggle('opacity-50', disabled);
+        btn.classList.toggle('cursor-not-allowed', disabled);
+      };
+
+      const vendorFiles = [
+        { url: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', path: 'vendor/html2canvas.min.js' },
+        { url: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', path: 'vendor/jspdf.umd.min.js' },
+        { url: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', path: 'vendor/jszip.min.js' },
+        { url: 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js', path: 'vendor/email.min.js' }
+      ];
+
+      disableBtn(true);
+      showStatus('מכין גרסת אופליין...');
+
+      try {
+        const zip = new JSZip();
+
+        const fetchAsArrayBuffer = async (url) => {
+          const res = await fetch(url, { cache: 'no-store' });
+          if (!res.ok) {
+            throw new Error(`Failed to fetch: ${url} (HTTP ${res.status})`);
+          }
+          return await res.arrayBuffer();
+        };
+
+        const fetchAsText = async (url) => {
+          const res = await fetch(url, { cache: 'no-store' });
+          if (!res.ok) {
+            throw new Error(`Failed to fetch: ${url} (HTTP ${res.status})`);
+          }
+          return await res.text();
+        };
+
+        const safeSetStatus = (msg) => {
+          try { showStatus(msg); } catch (_) {}
+        };
+
+        const captureTailwindCss = () => {
+          try {
+            const styleEls = Array.from(document.querySelectorAll('style'));
+            const tailwindBlocks = styleEls
+              .map(s => s && typeof s.textContent === 'string' ? s.textContent : '')
+              .filter(txt => txt && (txt.includes('--tw-') || txt.includes('tailwindcss') || txt.includes('preflight')));
+            const css = tailwindBlocks.join('\n');
+            if (css) {
+              try {
+                localStorage.setItem('offline_tailwind_css_cache_v1', css);
+              } catch (_) {}
+            }
+            return css;
+          } catch (_) {
+            return '';
+          }
+        };
+
+        safeSetStatus('מוסיף קבצי אתר...');
+
+        const localFiles = [
+          'styles/makor.css',
+          'js/translations.js?v=20250127-05',
+          'js/makor-core.js?v=20250127-05',
+          'js/precision-sticker.js?v=20250127-01',
+          'js/precision-image.js?v=20250127-01',
+          'js/background-removal.js?v=20250127-05',
+          'js/eraser-tool.js?v=20250127-01',
+          'js/makor-names.js?v=20250127-01',
+          'js/google-drive.js?v=20250127-05',
+          'js/makor-init.js?v=20250127-05'
+        ];
+
+        for (const urlWithQuery of localFiles) {
+          const cleanPath = urlWithQuery.split('?')[0];
+          const ab = await fetchAsArrayBuffer(urlWithQuery);
+          zip.file(cleanPath, ab);
+        }
+
+        // Tailwind CDN script is often blocked by CORS; include generated CSS instead.
+        safeSetStatus('מכין Tailwind CSS לאופליין...');
+        let tailwindCss = captureTailwindCss();
+        if (!tailwindCss) {
+          try {
+            tailwindCss = String(localStorage.getItem('offline_tailwind_css_cache_v1') || '');
+          } catch (_) {
+            tailwindCss = '';
+          }
+        }
+        if (!tailwindCss) {
+          safeSetStatus('אזהרה: Tailwind CSS לא זמין. ממשיך ליצור ZIP (ייתכן שהעיצוב יהיה חלקי).');
+        }
+        zip.file('vendor/tailwind.css', tailwindCss || '');
+
+        safeSetStatus('מוריד ספריות (vendor)...');
+
+        for (const v of vendorFiles) {
+          const ab = await fetchAsArrayBuffer(v.url);
+          zip.file(v.path, ab);
+        }
+
+        safeSetStatus('מכין כלי הסרת רקע (AI)...');
+
+        const bgVersion = (typeof window !== 'undefined' && window.IMGLY_BG_REMOVAL_VERSION) ? String(window.IMGLY_BG_REMOVAL_VERSION) : '1.5.8';
+        const bgPublicPathRemote = `https://staticimgly.com/@imgly/background-removal-data/${bgVersion}/dist/`;
+        const bgBundleUrl = `https://esm.sh/@imgly/background-removal@${bgVersion}?bundle&target=es2020`;
+
+        zip.file('vendor/imgly-background-removal.mjs', await fetchAsText(bgBundleUrl));
+
+        const capturedBg = new Map();
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = async (...args) => {
+          const res = await originalFetch(...args);
+          try {
+            const url = (res && res.url) ? res.url : (typeof args[0] === 'string' ? args[0] : '');
+            if (url && url.startsWith(bgPublicPathRemote)) {
+              const cloned = res.clone();
+              const ab = await cloned.arrayBuffer();
+              capturedBg.set(url, ab);
+            }
+          } catch (_) {}
+          return res;
+        };
+
+        try {
+          if (typeof window.ensureBackgroundRemovalLibraryLoaded === 'function') {
+            window.IMGLY_BG_REMOVAL_PUBLIC_PATH = bgPublicPathRemote;
+            await window.ensureBackgroundRemovalLibraryLoaded();
+          }
+          if (typeof window.imglyBackgroundRemovalPreload === 'function') {
+            const preloadFn = window.imglyBackgroundRemovalPreload;
+            if (preloadFn.length >= 1) {
+              await preloadFn({ publicPath: bgPublicPathRemote });
+            } else {
+              await preloadFn();
+            }
+          }
+        } catch (e) {
+          console.warn('Background removal preload failed (continuing):', e);
+        } finally {
+          window.fetch = originalFetch;
+        }
+
+        for (const [url, ab] of capturedBg.entries()) {
+          const rel = url.slice(bgPublicPathRemote.length);
+          zip.file(`bg-removal-data/${bgVersion}/dist/${rel}`, ab);
+        }
+
+        safeSetStatus('מוריד קבצי מאגר (מדבקות/אלמנטים)...');
+
+        const tasks = [];
+        const addRepoFile = async (kind, category, fileName) => {
+          const base = kind === 'stickers' ? GITHUB_REPO_DEFAULT.stickers : GITHUB_REPO_DEFAULT.elements;
+          const url = `${base}${encodeURIComponent(category)}/${encodeURIComponent(fileName)}`;
+          const ab = await fetchAsArrayBuffer(url);
+          zip.file(`repo/${kind}/${category}/${fileName}`, ab);
+        };
+
+        if (GITHUB_FILES && GITHUB_FILES.stickers) {
+          Object.keys(GITHUB_FILES.stickers).forEach((category) => {
+            const files = GITHUB_FILES.stickers[category];
+            if (!Array.isArray(files)) return;
+            files.forEach((fileName) => tasks.push(addRepoFile('stickers', category, fileName)));
+          });
+        }
+        if (GITHUB_FILES && GITHUB_FILES.elements) {
+          Object.keys(GITHUB_FILES.elements).forEach((category) => {
+            const files = GITHUB_FILES.elements[category];
+            if (!Array.isArray(files)) return;
+            files.forEach((fileName) => tasks.push(addRepoFile('elements', category, fileName)));
+          });
+        }
+
+        const concurrency = 8;
+        for (let i = 0; i < tasks.length; i += concurrency) {
+          safeSetStatus(`מוריד מאגר... ${Math.min(tasks.length, i + concurrency)}/${tasks.length}`);
+          await Promise.all(tasks.slice(i, i + concurrency));
+        }
+
+        safeSetStatus('מוריד לוגו...');
+        try {
+          const logoUrl = 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/660aea3d9a52acac6b6c60f8647d6b52bbf6dea4/logo.png';
+          zip.file('assets/logo.png', await fetchAsArrayBuffer(logoUrl));
+        } catch (_) {}
+
+        safeSetStatus('מכין index.html לאופליין...');
+
+        const originalHtml = await fetchAsText('index.html');
+        const offlineConfigTag = `\n  <script>\n    window.OFFLINE_REPO_BASE = './repo/';\n    window.IMGLY_BG_REMOVAL_VERSION = '${bgVersion}';\n    window.IMGLY_BG_REMOVAL_PUBLIC_PATH = './bg-removal-data/${bgVersion}/dist/';\n  </script>\n`;
+
+        let offlineHtml = originalHtml;
+
+        offlineHtml = offlineHtml.replace('<script src="https://cdn.tailwindcss.com"></script>', '<link rel="stylesheet" href="vendor/tailwind.css">');
+        offlineHtml = offlineHtml.replace('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', 'vendor/html2canvas.min.js');
+        offlineHtml = offlineHtml.replace('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'vendor/jspdf.umd.min.js');
+        offlineHtml = offlineHtml.replace('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'vendor/jszip.min.js');
+        offlineHtml = offlineHtml.replace('https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js', 'vendor/email.min.js');
+        offlineHtml = offlineHtml.replace('https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/660aea3d9a52acac6b6c60f8647d6b52bbf6dea4/logo.png', 'assets/logo.png');
+
+        offlineHtml = offlineHtml.replace(/\s*<script async src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=[^"]+"><\/script>[\s\S]*?<\/script>/, '');
+        offlineHtml = offlineHtml.replace(/\s*<script async defer src="https:\/\/apis\.google\.com\/js\/api\.js"[^>]*><\/script>\s*<script async defer src="https:\/\/accounts\.google\.com\/gsi\/client"[^>]*><\/script>/, '');
+
+        offlineHtml = offlineHtml.replace('</head>', `${offlineConfigTag}</head>`);
+
+        zip.file('index.html', offlineHtml);
+
+        zip.file('start-offline.bat', '@echo off\r\nsetlocal\r\nset PORT=8080\r\necho Starting local server on http://localhost:%PORT%\r\necho.\r\nwhere py >nul 2>nul\r\nif %errorlevel%==0 (\r\n  echo Using: py -m http.server %PORT%\r\n  py -m http.server %PORT%\r\n  goto :end\r\n)\r\nwhere python >nul 2>nul\r\nif %errorlevel%==0 (\r\n  echo Using: python -m http.server %PORT%\r\n  python -m http.server %PORT%\r\n  goto :end\r\n)\r\necho ERROR: Python was not found on this computer.\r\necho Please install Python (Windows) from https://www.python.org/downloads/\r\necho Or run from PowerShell:  python -m http.server %PORT%\r\necho.\r\n:end\r\npause\r\n');
+
+        const startOfflineVbs = 'Option Explicit\r\nDim shell, fso, thisDir, port\r\nSet shell = CreateObject("WScript.Shell")\r\nSet fso = CreateObject("Scripting.FileSystemObject")\r\nthisDir = fso.GetParentFolderName(WScript.ScriptFullName)\r\nshell.CurrentDirectory = thisDir\r\nport = "8080"\r\n\r\nOn Error Resume Next\r\n' +
+          'shell.Run "cmd /c py -m http.server " & port, 0, False\r\n' +
+          'If Err.Number <> 0 Then\r\n' +
+          '  Err.Clear\r\n' +
+          '  shell.Run "cmd /c python -m http.server " & port, 0, False\r\n' +
+          'End If\r\n' +
+          'If Err.Number <> 0 Then\r\n' +
+          '  MsgBox "Python לא נמצא במחשב. התקן Python ואז נסה שוב." & vbCrLf & "אפשר גם להריץ ידנית את start-offline.bat לצורך בדיקה.", vbCritical, "הגרלומט אופליין"\r\n' +
+          '  WScript.Quit\r\n' +
+          'End If\r\n' +
+          'On Error Goto 0\r\n' +
+          'WScript.Sleep 900\r\n' +
+          'shell.Run "http://localhost:" & port, 1, False\r\n';
+
+        zip.file('הגרלומט הפעלה.vbs', startOfflineVbs);
+        zip.file('start-offline.vbs', startOfflineVbs);
+
+        zip.file('README.txt', 'הוראות אופליין:\n\n1) חלץ את ה-ZIP לתיקייה (לא לפתוח מתוך ה-ZIP).\n2) הפעלה מומלצת: הפעל "הגרלומט הפעלה.vbs" (מפעיל שרת ברקע ופותח דפדפן אוטומטית).\n3) אם צריך ידני/דיבאג: הפעל start-offline.bat ואז פתח בדפדפן: http://localhost:8080\n\nאם ההפעלה לא עובדת:\n- כנראה שאין Python מותקן. התקן Python מ-https://www.python.org/downloads/\n- או פתח PowerShell בתוך התיקייה והרץ:  py -m http.server 8080\n\nהערות:\n- Google Drive לא עובד בלי אינטרנט.\n- סרטוני הדרכה לא כלולים.\n');
+
+        safeSetStatus('יוצר ZIP...');
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'הגרלומט-אופליין.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showStatus('גרסת אופליין הורדה בהצלחה! ✓');
+      } catch (error) {
+        console.error('Offline bundle error:', error);
+        showStatus('שגיאה בהכנת גרסת אופליין: ' + (error && error.message ? error.message : String(error)), true);
+      } finally {
+        disableBtn(false);
+      }
+    }
+
+    function addPointerListeners(moveHandler, upHandler, options = {}) {
+      removePointerListeners();
+      const target = options.target || document;
+      const useCapture = options.capture === true;
+      const listenerOptions = useCapture ? true : false;
+      const moveListener = (event) => {
+        if (activePointerId != null && event.pointerId != null && event.pointerId !== activePointerId) return;
+        moveHandler(event);
+      };
+      const upListener = (event) => {
+        if (activePointerId != null && event.pointerId != null && event.pointerId !== activePointerId) return;
+        upHandler(event);
+      };
+
+      pointerListeners.set('target', target);
+      pointerListeners.set('move', moveListener);
+      pointerListeners.set('up', upListener);
+      pointerListeners.set('options', listenerOptions);
+
+      if (supportsPointerEvents) {
+        target.addEventListener('pointermove', moveListener, listenerOptions);
+        target.addEventListener('pointerup', upListener, listenerOptions);
+        target.addEventListener('pointercancel', upListener, listenerOptions);
+      }
+      target.addEventListener('mousemove', moveListener, listenerOptions);
+      target.addEventListener('mouseup', upListener, listenerOptions);
+      target.addEventListener('touchmove', moveListener, listenerOptions);
+      target.addEventListener('touchend', upListener, listenerOptions);
+      target.addEventListener('touchcancel', upListener, listenerOptions);
+    }
+
+    function removePointerListeners() {
+      const target = pointerListeners.get('target');
+      const moveListener = pointerListeners.get('move');
+      const upListener = pointerListeners.get('up');
+      const listenerOptions = pointerListeners.get('options');
+
+      if (target && moveListener && upListener) {
+        if (supportsPointerEvents) {
+          target.removeEventListener('pointermove', moveListener, listenerOptions);
+          target.removeEventListener('pointerup', upListener, listenerOptions);
+          target.removeEventListener('pointercancel', upListener, listenerOptions);
+        }
+        target.removeEventListener('mousemove', moveListener, listenerOptions);
+        target.removeEventListener('mouseup', upListener, listenerOptions);
+        target.removeEventListener('touchmove', moveListener, listenerOptions);
+        target.removeEventListener('touchend', upListener, listenerOptions);
+        target.removeEventListener('touchcancel', upListener, listenerOptions);
+      }
+
+      pointerListeners.clear();
+      activePointerId = null;
+    }
+
+    function addStartListener(element, handler, options = {}) {
+      if (!element) return;
+      const listenerOptions = { passive: false, ...options };
+      if (supportsPointerEvents) {
+        element.addEventListener('pointerdown', handler, listenerOptions);
+      } else {
+        element.addEventListener('mousedown', handler, listenerOptions);
+        element.addEventListener('touchstart', handler, listenerOptions);
+      }
+    }
 
     let stickerLayoutConfig = {
       uploadLimit: 0,
@@ -61,10 +423,17 @@
     let elementsLibrary = [];
     
     // GitHub repository configuration
-    const GITHUB_REPO = {
+    const GITHUB_REPO_DEFAULT = {
       stickers: 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/%D7%94%D7%92%D7%A8%D7%95%D7%9C%D7%9E%D7%98%20%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA/%D7%9E%D7%93%D7%91%D7%A7%D7%95%D7%AA/',
       elements: 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/%D7%94%D7%92%D7%A8%D7%95%D7%9C%D7%9E%D7%98%20%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA/%D7%90%D7%9C%D7%9E%D7%A0%D7%98%D7%99%D7%9D/'
     };
+    const offlineRepoBase = (typeof window !== 'undefined' && window.OFFLINE_REPO_BASE) ? String(window.OFFLINE_REPO_BASE) : '';
+    const GITHUB_REPO = offlineRepoBase
+      ? {
+        stickers: `${offlineRepoBase.replace(/\/+$/, '')}/stickers/`,
+        elements: `${offlineRepoBase.replace(/\/+$/, '')}/elements/`
+      }
+      : GITHUB_REPO_DEFAULT;
 
     function focusWordInput() {
       if (typeof setActiveToolsSection === 'function') {
@@ -81,6 +450,18 @@
           }
         } catch (_) {}
       }, 0);
+    }
+
+    function scrollToAddedElement(selector) {
+      if (!selector) return;
+      requestAnimationFrame(() => {
+        try {
+          const el = document.querySelector(selector);
+          if (el && typeof el.scrollIntoView === 'function') {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          }
+        } catch (_) {}
+      });
     }
     
     // Available files in GitHub repo - organized by categories
@@ -235,18 +616,30 @@
     }
 
     async function fetchImageAsDataUrl(url) {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) {
-        throw new Error(`Failed to fetch: ${url} (HTTP ${res.status})`);
-      }
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch: ${url} (HTTP ${res.status})`);
+        }
 
-      const blob = await res.blob();
-      return await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onerror = () => reject(new Error('Failed to read image blob'));
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-      });
+        const blob = await res.blob();
+        return await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error('Failed to read image blob'));
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        // In offline bundles, some environments block fetch even for same-origin.
+        // The <img> tag can still load the file, so fall back to returning the URL.
+        try {
+          const resolved = new URL(url, window.location.href);
+          if (resolved.origin === window.location.origin) {
+            return url;
+          }
+        } catch (_) {}
+        throw e;
+      }
     }
 
     async function loadStickersFromGithub() {
@@ -275,6 +668,8 @@
         const desiredCount = Number.isFinite(cfg.uploadLimit) && cfg.uploadLimit > 0 ? cfg.uploadLimit : 0;
         const actualCount = calculateActualStickerCount(desiredCount);
         const filesToLoad = actualCount > 0 ? actualCount : allFiles.length;
+
+        const startIndex = stickers.length;
 
         pushHistory();
 
@@ -313,6 +708,7 @@
         // תמיד קוראים ל-reflowStickers כדי לחשב גדלים נכון
         reflowStickers();
         renderStickers();
+        scrollToAddedElement(`[data-sticker-index="${startIndex}"]`);
         updateFileCount();
         showStatus(t('filesLoadedSuccess', { count: filesToLoad }));
       } catch (error) {
@@ -580,15 +976,30 @@
           stickerDiv.style.height = `${sticker.height}px`;
           stickerDiv.dataset.stickerIndex = index;
 
-          stickerDiv.addEventListener('mousedown', (e) => {
-            if (e.button !== 0) return;
+          addStartListener(stickerDiv, (e) => {
+            console.log('🖱️ Mousedown on sticker', index, 'button:', e.button);
+            if (!shouldHandlePointerStart(e)) return;
             if (e.target && e.target.closest) {
-              if (e.target.closest('.sticker-controls')) return;
-              if (e.target.closest('.sticker-resize-handle')) return;
-              if (e.target.closest('.text-word')) return;
-              if (e.target.closest('.sticker-image')) return;
+              if (e.target.closest('.sticker-controls')) {
+                console.log('⏭️ Clicked on controls, skipping drag');
+                return;
+              }
+              if (e.target.closest('.sticker-resize-handle')) {
+                console.log('⏭️ Clicked on resize handle, skipping drag');
+                return;
+              }
+              if (e.target.closest('.text-word')) {
+                console.log('⏭️ Clicked on text, skipping drag');
+                return;
+              }
+              if (e.target.closest('.sticker-image')) {
+                console.log('⏭️ Clicked on image, skipping drag');
+                return;
+              }
             }
-            e.preventDefault();
+            console.log('✅ Valid mousedown, preventing default and starting drag');
+            beginPointerInteraction(e);
+            e.stopPropagation();
             selectSticker(index);
             startStickerDrag(e, index);
           });
@@ -637,7 +1048,7 @@
           
           const resizeHandle = document.createElement('div');
           resizeHandle.className = 'sticker-resize-handle no-print';
-          resizeHandle.addEventListener('mousedown', (e) => {
+          addStartListener(resizeHandle, (e) => {
             e.stopPropagation();
             startStickerResize(e, index);
           });
@@ -1327,13 +1738,15 @@
 
       const resizeHandle = document.createElement('div');
       resizeHandle.className = 'resize-handle no-print';
-      resizeHandle.addEventListener('mousedown', (e) => {
+      addStartListener(resizeHandle, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         e.stopPropagation();
         startImageResize(e, stickerIndex, image.id);
       });
       wrapper.appendChild(resizeHandle);
 
-      wrapper.addEventListener('mousedown', (e) => {
+      addStartListener(wrapper, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         if (e.target === resizeHandle || e.target === deleteBtn) return;
         e.stopPropagation();
         startImageDrag(e, stickerIndex, image.id);
@@ -1401,7 +1814,8 @@
 
       const resizeHandle = document.createElement('div');
       resizeHandle.className = 'word-resize-handle no-print';
-      resizeHandle.addEventListener('mousedown', (e) => {
+      addStartListener(resizeHandle, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         e.stopPropagation();
         startWordResize(e, stickerIndex, word.id);
       });
@@ -1411,7 +1825,8 @@
       const rotateHandle = document.createElement('div');
       rotateHandle.className = 'word-rotate-handle no-print';
       rotateHandle.innerHTML = '↻';
-      rotateHandle.addEventListener('mousedown', (e) => {
+      addStartListener(rotateHandle, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         e.stopPropagation();
         startWordRotate(e, stickerIndex, word.id, el);
       });
@@ -1421,13 +1836,15 @@
       const curveHandle = document.createElement('div');
       curveHandle.className = 'word-curve-handle no-print';
       curveHandle.innerHTML = '⌒';
-      curveHandle.addEventListener('mousedown', (e) => {
+      addStartListener(curveHandle, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         e.stopPropagation();
         startWordCurve(e, stickerIndex, word.id, el);
       });
       el.appendChild(curveHandle);
 
-      el.addEventListener('mousedown', (e) => {
+      addStartListener(el, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         if (e.target === deleteBtn || e.target === resizeHandle || e.target === rotateHandle || e.target === curveHandle) return;
         e.stopPropagation();
         startWordDrag(e, stickerIndex, word.id);
@@ -1545,6 +1962,7 @@
     
     function startWordRotate(e, stickerIndex, wordId, wordEl) {
       e.preventDefault();
+      beginPointerInteraction(e);
       
       const sticker = stickers[stickerIndex];
       if (!sticker) return;
@@ -1565,13 +1983,12 @@
         centerX,
         centerY,
         startAngle: word.rotation || 0,
-        startX: e.clientX
+        startX: getEventClientX(e)
       };
       
       pushHistory();
       
-      document.addEventListener('mousemove', rotateWord);
-      document.addEventListener('mouseup', stopWordRotate);
+      addPointerListeners(rotateWord, stopWordRotate);
     }
     
     function rotateWord(e) {
@@ -1580,7 +1997,7 @@
       const { word, wordEl, startAngle, startX, stickerIndex, wordId } = rotatingWord;
       
       // חישוב הסיבוב לפי תנועה אופקית - כל 2 פיקסלים = מעלה אחת
-      const deltaX = e.clientX - startX;
+      const deltaX = getEventClientX(e) - startX;
       const newRotation = startAngle + (deltaX * 0.5);
       
       // עדכון הסיבוב
@@ -1624,12 +2041,12 @@
         renderStickers();
       }
       rotatingWord = null;
-      document.removeEventListener('mousemove', rotateWord);
-      document.removeEventListener('mouseup', stopWordRotate);
+      removePointerListeners();
     }
     
     function startWordCurve(e, stickerIndex, wordId, wordEl) {
       e.preventDefault();
+      beginPointerInteraction(e);
       
       const sticker = stickers[stickerIndex];
       if (!sticker) return;
@@ -1643,13 +2060,12 @@
         wordEl,
         word,
         startCurve: word.curve || 0,
-        startY: e.clientY
+        startY: getEventClientY(e)
       };
       
       pushHistory();
       
-      document.addEventListener('mousemove', curveWord);
-      document.addEventListener('mouseup', stopWordCurve);
+      addPointerListeners(curveWord, stopWordCurve);
     }
     
     function curveWord(e) {
@@ -1658,7 +2074,7 @@
       const { word, wordEl, startCurve, startY, stickerIndex, wordId } = curvingWord;
       
       // חישוב הקימור לפי תנועה אנכית - כל פיקסל = יחידת קימור
-      const deltaY = e.clientY - startY;
+      const deltaY = getEventClientY(e) - startY;
       const newCurve = startCurve + deltaY;
       
       // הגבלת הקימור לטווח סביר
@@ -1755,7 +2171,8 @@
 
       const resizeHandle = document.createElement('div');
       resizeHandle.className = 'word-resize-handle no-print';
-      resizeHandle.addEventListener('mousedown', (e) => {
+      addStartListener(resizeHandle, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         e.stopPropagation();
         startWordResize(e, stickerIndex, wordId);
       });
@@ -1764,7 +2181,8 @@
       const rotateHandle = document.createElement('div');
       rotateHandle.className = 'word-rotate-handle no-print';
       rotateHandle.innerHTML = '↻';
-      rotateHandle.addEventListener('mousedown', (e) => {
+      addStartListener(rotateHandle, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         e.stopPropagation();
         startWordRotate(e, stickerIndex, wordId, wordEl);
       });
@@ -1773,7 +2191,8 @@
       const curveHandle = document.createElement('div');
       curveHandle.className = 'word-curve-handle no-print';
       curveHandle.innerHTML = '⌒';
-      curveHandle.addEventListener('mousedown', (e) => {
+      addStartListener(curveHandle, (e) => {
+        if (!shouldHandlePointerStart(e)) return;
         e.stopPropagation();
         startWordCurve(e, stickerIndex, wordId, wordEl);
       });
@@ -1785,8 +2204,7 @@
         renderStickers();
       }
       curvingWord = null;
-      document.removeEventListener('mousemove', curveWord);
-      document.removeEventListener('mouseup', stopWordCurve);
+      removePointerListeners();
     }
 
     function showStatus(message, isError = false) {
@@ -2682,7 +3100,9 @@
     }
 
     function startStickerResize(e, stickerIndex) {
+      if (!shouldHandlePointerStart(e)) return;
       e.stopPropagation();
+      beginPointerInteraction(e);
 
       pushHistory();
       
@@ -2691,16 +3111,15 @@
       
       resizingSticker = { 
         stickerIndex,
-        startX: e.clientX,
-        startY: e.clientY,
+        startX: getEventClientX(e),
+        startY: getEventClientY(e),
         startWidth: sticker.width,
         startHeight: sticker.height,
         startTop: sticker.y, // Save original Y position
         element: stickerEl
       };
       
-      document.addEventListener('mousemove', resizeSticker);
-      document.addEventListener('mouseup', stopStickerResize);
+      addPointerListeners(resizeSticker, stopStickerResize);
     }
 
     function resizeSticker(e) {
@@ -2714,7 +3133,7 @@
       if (!stickerEl) return;
       
       // Calculate delta from start position
-      const deltaX = e.clientX - startX;
+      const deltaX = getEventClientX(e) - startX;
       
       // Calculate new width based on horizontal delta only
       const newWidth = Math.max(50, startWidth + deltaX);
@@ -2753,8 +3172,7 @@
 
     function stopStickerResize() {
       resizingSticker = null;
-      document.removeEventListener('mousemove', resizeSticker);
-      document.removeEventListener('mouseup', stopStickerResize);
+      removePointerListeners();
     }
 
     function deleteSelectedSticker() {
@@ -3059,7 +3477,12 @@
       });
 
       // מנע גרירה בזמן עריכה
-      input.addEventListener('mousedown', (e) => e.stopPropagation());
+      if (supportsPointerEvents) {
+        input.addEventListener('pointerdown', (e) => e.stopPropagation());
+      } else {
+        input.addEventListener('mousedown', (e) => e.stopPropagation());
+        input.addEventListener('touchstart', (e) => e.stopPropagation());
+      }
       input.addEventListener('click', (e) => e.stopPropagation());
     }
 
@@ -3132,6 +3555,8 @@
       const word = sticker ? (sticker.words || []).find(w => w.id === wordId) : null;
       if (!word) return;
 
+      beginPointerInteraction(e);
+
       pushHistory();
 
       selectWord(stickerIndex, wordId);
@@ -3140,34 +3565,32 @@
       resizingWord = {
         stickerIndex,
         wordId,
-        startX: e.clientX,
-        startY: e.clientY,
+        startX: getEventClientX(e),
+        startY: getEventClientY(e),
         startFontSize: current
       };
 
-      document.addEventListener('mousemove', resizeWordFont);
-      document.addEventListener('mouseup', stopWordResize);
+      addPointerListeners(resizeWordFont, stopWordResize);
     }
 
     function resizeWordFont(e) {
       if (!resizingWord) return;
 
       const { stickerIndex, wordId, startX, startY, startFontSize } = resizingWord;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
+      const dx = getEventClientX(e) - startX;
+      const dy = getEventClientY(e) - startY;
       const delta = (dx + dy) / 8;
 
       const next = Math.max(8, Math.min(240, Math.round(startFontSize + delta)));
       applyWordFontSize(stickerIndex, wordId, next);
       
       // Show font size indicator
-      showFontSizeIndicator(next, e.clientX, e.clientY);
+      showFontSizeIndicator(next, getEventClientX(e), getEventClientY(e));
     }
 
     function stopWordResize() {
       resizingWord = null;
-      document.removeEventListener('mousemove', resizeWordFont);
-      document.removeEventListener('mouseup', stopWordResize);
+      removePointerListeners();
       
       // Hide font size indicator
       hideFontSizeIndicator();
@@ -3222,8 +3645,6 @@
 
       // Update opacity control
       updateOpacityControl('image', stickerIndex, imageId);
-
-      focusWordInput();
     }
 
     // Opacity control functions
@@ -3529,6 +3950,7 @@
       stickers[selectedSticker].words.push(word);
       
       renderStickers();
+      scrollToAddedElement(`[data-sticker-index="${selectedSticker}"] [data-word-id="${word.id}"]`);
       showStatus(`המילה "${text}" נוספה למדבקה נבחרת!`);
       wordInput.value = '';
     }
@@ -3573,6 +3995,8 @@
       const textW = tempDiv.offsetWidth;
       const textH = tempDiv.offsetHeight;
       document.body.removeChild(tempDiv);
+
+      let firstWordId = null;
       
       stickers.forEach(sticker => {
         sticker.words = sticker.words || [];
@@ -3593,10 +4017,14 @@
           fontWeight: fontWeight,
           isGradient: isGradient
         };
+        if (!firstWordId) firstWordId = word.id;
         sticker.words.push(word);
       });
       
       renderStickers();
+      if (firstWordId) {
+        scrollToAddedElement(`[data-sticker-index="0"] [data-word-id="${firstWordId}"]`);
+      }
       showStatus(`המילה "${text}" נוספה לכל ${stickers.length} המדבקות!`);
       wordInput.value = '';
     }
@@ -3773,6 +4201,8 @@
       
       // Create a series ID for syncing these images across stickers
       const seriesId = `image-series-${++imageSeriesCounter}`;
+
+      let firstImageId = null;
       
       stickers.forEach(sticker => {
         sticker.images = sticker.images || [];
@@ -3789,12 +4219,15 @@
           originalWidth: originalWidth,
           originalHeight: originalHeight
         };
+        if (!firstImageId) firstImageId = image.id;
         sticker.images.push(image);
       });
       
       renderStickers();
+      if (firstImageId) {
+        scrollToAddedElement(`[data-sticker-index="0"] [data-image-id="${firstImageId}"]`);
+      }
       showStatus(`התמונה נוספה לכל ${stickers.length} המדבקות!`);
-      focusWordInput();
     }
 
     function addImageToSelectedSticker(imageDataUrl, originalWidth, originalHeight) {
@@ -3827,8 +4260,8 @@
       sticker.images.push(image);
       
       renderStickers();
+      scrollToAddedElement(`[data-sticker-index="${selectedSticker}"] [data-image-id="${image.id}"]`);
       showStatus('התמונה נוספה למדבקה נבחרת!');
-      focusWordInput();
     }
 
     function addElementsToLibrary(files) {
@@ -3919,13 +4352,14 @@
     }
 
     function startWordDrag(e, stickerIndex, wordId) {
+      beginPointerInteraction(e);
       pushHistory();
       const wordEl = e.currentTarget;
       const rect = wordEl.getBoundingClientRect();
       const parentRect = wordEl.parentElement.getBoundingClientRect();
       
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
+      offsetX = getEventClientX(e) - rect.left;
+      offsetY = getEventClientY(e) - rect.top;
       
       const word = stickers[stickerIndex].words.find(w => w.id === wordId);
       if (word) {
@@ -3934,8 +4368,7 @@
       
       draggedElement = { type: 'word', stickerIndex, wordId, wordEl, parentRect };
       
-      document.addEventListener('mousemove', dragWord);
-      document.addEventListener('mouseup', stopDrag);
+      addPointerListeners(dragWord, stopDrag);
     }
 
     function dragWord(e) {
@@ -3943,8 +4376,8 @@
       
       const { wordEl, parentRect, stickerIndex, wordId } = draggedElement;
       
-      let newX = e.clientX - parentRect.left - offsetX;
-      let newY = e.clientY - parentRect.top - offsetY;
+      let newX = getEventClientX(e) - parentRect.left - offsetX;
+      let newY = getEventClientY(e) - parentRect.top - offsetY;
       
       // Allow 30% movement beyond sticker boundaries
       const extraSpaceX = parentRect.width * 0.3;
@@ -4005,6 +4438,7 @@
     }
 
     function stopDrag() {
+      console.log('🛑 stopDrag called, draggedElement type:', draggedElement?.type);
       if (draggedElement && draggedElement.type === 'sticker-swap') {
         const { stickerIndex, lastClientX, lastClientY, stickerEl, startLeft, startTop, targetStickerEl: prevTargetStickerEl } = draggedElement;
 
@@ -4042,25 +4476,31 @@
       }
       draggedElement = null;
       initialDragPosition = null;
-      document.removeEventListener('mousemove', dragWord);
-      document.removeEventListener('mousemove', dragImage);
-      document.removeEventListener('mousemove', dragSticker);
-      document.removeEventListener('mousemove', trackStickerSwap);
-      document.removeEventListener('mouseup', stopDrag);
+      removePointerListeners();
+      console.log('✅ All drag listeners removed');
     }
 
     function startStickerDrag(e, stickerIndex) {
+      console.log('🎯 startStickerDrag called for sticker', stickerIndex);
+      beginPointerInteraction(e);
       const stickerEl = document.querySelector(`[data-sticker-index="${stickerIndex}"]`);
-      if (!stickerEl) return;
+      if (!stickerEl) {
+        console.error('❌ Sticker element not found for index', stickerIndex);
+        return;
+      }
 
       const pageEl = stickerEl.closest('.print-page');
-      if (!pageEl) return;
+      if (!pageEl) {
+        console.error('❌ Page element not found');
+        return;
+      }
 
+      console.log('✅ Starting drag for sticker', stickerIndex);
       const rect = stickerEl.getBoundingClientRect();
       const parentRect = pageEl.getBoundingClientRect();
 
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
+      offsetX = getEventClientX(e) - rect.left;
+      offsetY = getEventClientY(e) - rect.top;
 
       const sticker = stickers[stickerIndex];
       if (sticker) {
@@ -4068,6 +4508,7 @@
       }
 
       if (autoArrangeEnabled) {
+        console.log('🔀 Auto-arrange mode enabled, using swap drag');
         stickerEl.classList.add('swap-dragging');
         draggedElement = {
           type: 'sticker-swap',
@@ -4078,41 +4519,51 @@
           startTop: stickerEl.style.top,
           startZIndex: stickerEl.style.zIndex,
           targetStickerEl: null,
-          lastClientX: e.clientX,
-          lastClientY: e.clientY
+          lastClientX: getEventClientX(e),
+          lastClientY: getEventClientY(e)
         };
-        document.addEventListener('mousemove', trackStickerSwap);
-        document.addEventListener('mouseup', stopDrag);
+        console.log('➕ Adding mousemove listener for trackStickerSwap with capture');
+        addPointerListeners(trackStickerSwap, stopDrag, { capture: true });
+        console.log('➕ Adding mouseup listener for stopDrag with capture');
         return;
       }
 
+      console.log('🎯 Normal drag mode');
       draggedElement = { type: 'sticker', stickerIndex, stickerEl, parentRect };
 
-      document.addEventListener('mousemove', dragSticker);
-      document.addEventListener('mouseup', stopDrag);
+      console.log('➕ Adding mousemove listener for dragSticker with capture');
+      addPointerListeners(dragSticker, stopDrag, { capture: true });
+      console.log('➕ Adding mouseup listener for stopDrag with capture');
     }
 
     function trackStickerSwap(e) {
-      if (!draggedElement || draggedElement.type !== 'sticker-swap') return;
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🔄 trackStickerSwap called');
+      if (!draggedElement || draggedElement.type !== 'sticker-swap') {
+        console.log('❌ trackStickerSwap: invalid draggedElement', draggedElement?.type);
+        return;
+      }
 
       const { stickerEl, parentRect } = draggedElement;
-      draggedElement.lastClientX = e.clientX;
-      draggedElement.lastClientY = e.clientY;
+      draggedElement.lastClientX = getEventClientX(e);
+      draggedElement.lastClientY = getEventClientY(e);
 
       if (stickerEl && parentRect) {
-        let newX = e.clientX - parentRect.left - offsetX;
-        let newY = e.clientY - parentRect.top - offsetY;
+        let newX = getEventClientX(e) - parentRect.left - offsetX;
+        let newY = getEventClientY(e) - parentRect.top - offsetY;
 
         newX = Math.max(0, Math.min(newX, parentRect.width - stickerEl.offsetWidth));
         newY = Math.max(0, Math.min(newY, parentRect.height - stickerEl.offsetHeight));
 
+        console.log('📍 trackStickerSwap moving to', newX, newY);
         stickerEl.style.left = `${newX}px`;
         stickerEl.style.top = `${newY}px`;
       }
 
       const prevPointerEvents = stickerEl ? stickerEl.style.pointerEvents : '';
       if (stickerEl) stickerEl.style.pointerEvents = 'none';
-      const targetEl = document.elementFromPoint(e.clientX, e.clientY);
+      const targetEl = document.elementFromPoint(getEventClientX(e), getEventClientY(e));
       if (stickerEl) stickerEl.style.pointerEvents = prevPointerEvents;
 
       const nextTargetStickerEl = targetEl ? targetEl.closest('.sticker-container') : null;
@@ -4132,14 +4583,23 @@
     }
 
     function dragSticker(e) {
-      if (!draggedElement || draggedElement.type !== 'sticker') return;
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🚀 dragSticker called', draggedElement?.type);
+      if (!draggedElement || draggedElement.type !== 'sticker') {
+        console.log('❌ dragSticker: invalid draggedElement', draggedElement);
+        return;
+      }
 
       const { stickerEl, parentRect, stickerIndex } = draggedElement;
       const sticker = stickers[stickerIndex];
-      if (!sticker) return;
+      if (!sticker) {
+        console.log('❌ dragSticker: sticker not found', stickerIndex);
+        return;
+      }
 
-      let newX = e.clientX - parentRect.left - offsetX;
-      let newY = e.clientY - parentRect.top - offsetY;
+      let newX = getEventClientX(e) - parentRect.left - offsetX;
+      let newY = getEventClientY(e) - parentRect.top - offsetY;
 
       // שימוש במידות A4 האמיתיות במקום במידות המוצגות
       const pageWidth = pageOrientation === 'landscape' ? 297 * MM_TO_PX : 210 * MM_TO_PX;
@@ -4156,6 +4616,7 @@
       newX = Math.max(0, Math.min(newX, pageWidth - sticker.width));
       newY = Math.max(0, Math.min(newY, pageHeight - sticker.height));
 
+      console.log('📍 Moving sticker to', newX, newY);
       sticker.x = newX;
       sticker.y = newY;
       stickerEl.style.left = `${newX}px`;
@@ -4168,6 +4629,7 @@
         console.log('Eraser is active, preventing drag');
         return;
       }
+      beginPointerInteraction(e);
       
       pushHistory();
       const imageEl = e.currentTarget;
@@ -4177,8 +4639,8 @@
       const scaleX = (parentEl && parentRect && parentEl.offsetWidth) ? (parentRect.width / parentEl.offsetWidth) : 1;
       const scaleY = (parentEl && parentRect && parentEl.offsetHeight) ? (parentRect.height / parentEl.offsetHeight) : 1;
       
-      offsetX = (e.clientX - rect.left) / (scaleX || 1);
-      offsetY = (e.clientY - rect.top) / (scaleY || 1);
+      offsetX = (getEventClientX(e) - rect.left) / (scaleX || 1);
+      offsetY = (getEventClientY(e) - rect.top) / (scaleY || 1);
       
       const image = stickers[stickerIndex].images.find(i => i.id === imageId);
       if (image) {
@@ -4187,8 +4649,7 @@
       
       draggedElement = { type: 'image', stickerIndex, imageId, imageEl, parentEl, scaleX: scaleX || 1, scaleY: scaleY || 1 };
       
-      document.addEventListener('mousemove', dragImage);
-      document.addEventListener('mouseup', stopDrag);
+      addPointerListeners(dragImage, stopDrag);
     }
 
     function dragImage(e) {
@@ -4200,8 +4661,8 @@
       
       const effectiveScaleX = scaleX || 1;
       const effectiveScaleY = scaleY || 1;
-      let newX = ((e.clientX - parentRect.left) / effectiveScaleX) - offsetX;
-      let newY = ((e.clientY - parentRect.top) / effectiveScaleY) - offsetY;
+      let newX = ((getEventClientX(e) - parentRect.left) / effectiveScaleX) - offsetX;
+      let newY = ((getEventClientY(e) - parentRect.top) / effectiveScaleY) - offsetY;
       
       const parentW = parentEl ? parentEl.offsetWidth : (parentRect.width / effectiveScaleX);
       const parentH = parentEl ? parentEl.offsetHeight : (parentRect.height / effectiveScaleY);
@@ -4260,6 +4721,7 @@
 
     function startImageResize(e, stickerIndex, imageId) {
       e.stopPropagation();
+      beginPointerInteraction(e);
 
       pushHistory();
 
@@ -4276,16 +4738,15 @@
       resizingImage = {
         stickerIndex,
         imageId,
-        startClientX: e.clientX,
-        startClientY: e.clientY,
+        startClientX: getEventClientX(e),
+        startClientY: getEventClientY(e),
         startWidth: imageEl ? imageEl.offsetWidth : 0,
         startHeight: imageEl ? imageEl.offsetHeight : 0,
         scaleX: scaleX || 1,
         scaleY: scaleY || 1
       };
       
-      document.addEventListener('mousemove', resizeImage);
-      document.addEventListener('mouseup', stopImageResize);
+      addPointerListeners(resizeImage, stopImageResize);
     }
 
     function resizeImage(e) {
@@ -4300,8 +4761,8 @@
 
       const effectiveScaleX = scaleX || 1;
       const effectiveScaleY = scaleY || 1;
-      const deltaX = (e.clientX - startClientX) / effectiveScaleX;
-      const deltaY = (e.clientY - startClientY) / effectiveScaleY;
+      const deltaX = (getEventClientX(e) - startClientX) / effectiveScaleX;
+      const deltaY = (getEventClientY(e) - startClientY) / effectiveScaleY;
       const resizeDelta = (Math.abs(deltaX) >= Math.abs(deltaY)) ? deltaX : deltaY;
       const newWidth = startWidth + resizeDelta;
       const newHeight = startHeight + resizeDelta;
@@ -4388,8 +4849,7 @@
 
     function stopImageResize() {
       resizingImage = null;
-      document.removeEventListener('mousemove', resizeImage);
-      document.removeEventListener('mouseup', stopImageResize);
+      removePointerListeners();
     }
 
     async function removeBackgroundFromSelected(stickerIndex, type, elementId) {
@@ -4579,6 +5039,9 @@
       const nodes = pages.length ? Array.from(pages) : [preview];
       const zip = nodes.length > 1 ? new JSZip() : null;
       const maxBytes = EXPORT_QUALITY.zipMaxBytes;
+      const exportDpr = (typeof window !== 'undefined' && window.devicePixelRatio)
+        ? Math.min(2, window.devicePixelRatio)
+        : 1;
 
       const canvasToPngBlob = (c) => new Promise((resolve) => {
         c.toBlob((blob) => resolve(blob), 'image/png');
@@ -4602,7 +5065,7 @@
       for (let i = 0; i < nodes.length; i++) {
         showStatus(`מכין תמונה ${i + 1}/${nodes.length}...`);
 
-        const baseCanvas = await captureElementToCanvas(nodes[i], { scale: EXPORT_QUALITY.imageScale });
+        const baseCanvas = await captureElementToCanvas(nodes[i], { scale: EXPORT_QUALITY.imageScale, dpr: exportDpr });
         let workingCanvas = baseCanvas;
 
         let blob = await canvasToPngBlob(workingCanvas);
@@ -4841,7 +5304,8 @@
         numberEl.style.fontWeight = sticker.numberFontWeight;
         numberEl.style.transform = 'translate(-50%, -50%)';
 
-        numberEl.addEventListener('mousedown', (e) => {
+        addStartListener(numberEl, (e) => {
+          if (!shouldHandlePointerStart(e)) return;
           e.stopPropagation();
           startNumberDrag(e);
         });
@@ -4921,14 +5385,14 @@
     }
 
     function startNumberDrag(e) {
+      beginPointerInteraction(e);
       const numberEl = e.currentTarget;
       const parentRect = numberEl.parentElement.getBoundingClientRect();
-      const offsetX = e.clientX - parentRect.left;
-      const offsetY = e.clientY - parentRect.top;
+      const offsetX = getEventClientX(e) - parentRect.left;
+      const offsetY = getEventClientY(e) - parentRect.top;
 
       numberDragStart = { offsetX, offsetY, parentRect };
-      document.addEventListener('mousemove', dragNumber);
-      document.addEventListener('mouseup', stopNumberDrag);
+      addPointerListeners(dragNumber, stopNumberDrag);
     }
 
     function dragNumber(e) {
@@ -4936,8 +5400,8 @@
       
       const { offsetX, offsetY, parentRect } = numberDragStart;
       
-      const newX = e.clientX - parentRect.left;
-      const newY = e.clientY - parentRect.top;
+      const newX = getEventClientX(e) - parentRect.left;
+      const newY = getEventClientY(e) - parentRect.top;
 
       numberedStickers.forEach(sticker => {
         sticker.numberX += newX - offsetX;
@@ -4952,8 +5416,7 @@
 
     function stopNumberDrag() {
       numberDragStart = null;
-      document.removeEventListener('mousemove', dragNumber);
-      document.removeEventListener('mouseup', stopNumberDrag);
+      removePointerListeners();
     }
 
     function centerNumbers() {
@@ -5397,6 +5860,7 @@
         // החלת פריסה רק על המדבקות החדשות
         applyLayoutToNewStickers(startIndex);
         renderStickers();
+        scrollToAddedElement(`[data-sticker-index="${startIndex}"]`);
         updateFileCount();
         showStatus('המדבקה נוספה למסמך!');
       } catch (error) {
@@ -5567,7 +6031,7 @@
       Text: { file: 'טקסט.mp4', title: 'הוספת טקסט' },
       Image: { file: 'תמונות.mp4', title: 'הוספת תמונה' },
       Global: { file: 'הגדרות.webm', title: 'הגדרות כלליות' },
-      NamesUpload: { file: 'הגרלתמספרים.webm', title: 'הגרלת מספרים' },
+      // NamesUpload: { file: '../הגרלתמספרים.webm', title: 'הגרלת מספרים' }, // לא קיים עדיין
       Calibration: { file: 'כיול.mp4', title: 'כיול מדבקות' },
       PrecisionSticker: { file: 'מדבקהמדיוקת.mp4', title: 'מדבקה מדויקת' }
     };
@@ -5692,23 +6156,24 @@
 
     function setActiveToolsSection(sectionKey) {
       const sections = [
-        { key: 'Stickers', contentId: 'toolsSectionContentStickers', chevronId: 'toolsSectionChevronStickers', buttonId: 'toolsSectionBtnStickers' },
-        { key: 'Text', contentId: 'toolsSectionContentText', chevronId: 'toolsSectionChevronText', buttonId: 'toolsSectionBtnText' },
-        { key: 'Image', contentId: 'toolsSectionContentImage', chevronId: 'toolsSectionChevronImage', buttonId: 'toolsSectionBtnImage' },
-        { key: 'Global', contentId: 'toolsSectionContentGlobal', chevronId: 'toolsSectionChevronGlobal', buttonId: 'toolsSectionBtnGlobal' }
+        { key: 'Stickers', contentId: 'toolsTabContentStickers', buttonId: 'toolsTabStickers' },
+        { key: 'Text', contentId: 'toolsTabContentText', buttonId: 'toolsTabText' },
+        { key: 'Image', contentId: 'toolsTabContentImage', buttonId: 'toolsTabImage' }
       ];
 
       sections.forEach(s => {
         const content = document.getElementById(s.contentId);
-        const chevron = document.getElementById(s.chevronId);
         const button = document.getElementById(s.buttonId);
-        const isOpen = s.key === sectionKey;
+        const isActive = s.key === sectionKey;
         
-        if (content) content.classList.toggle('hidden', !isOpen);
-        if (chevron) chevron.textContent = isOpen ? '▾' : '▸';
-        
-        // הוספת/הסרת המחלקה collapsed לכפתור
-        if (button) button.classList.toggle('collapsed', !isOpen);
+        if (content) content.classList.toggle('hidden', !isActive);
+        if (button) {
+          if (isActive) {
+            button.classList.add('active');
+          } else {
+            button.classList.remove('active');
+          }
+        }
       });
 
       // Initialize color palette when Text section is opened
@@ -5719,14 +6184,7 @@
       preloadTutorialVideo(sectionKey);
     }
 
-    const toolsSectionBtnStickers = document.getElementById('toolsSectionBtnStickers');
-    if (toolsSectionBtnStickers) toolsSectionBtnStickers.addEventListener('click', () => setActiveToolsSection('Stickers'));
-    const toolsSectionBtnText = document.getElementById('toolsSectionBtnText');
-    if (toolsSectionBtnText) toolsSectionBtnText.addEventListener('click', () => setActiveToolsSection('Text'));
-    const toolsSectionBtnImage = document.getElementById('toolsSectionBtnImage');
-    if (toolsSectionBtnImage) toolsSectionBtnImage.addEventListener('click', () => setActiveToolsSection('Image'));
-    const toolsSectionBtnGlobal = document.getElementById('toolsSectionBtnGlobal');
-    if (toolsSectionBtnGlobal) toolsSectionBtnGlobal.addEventListener('click', () => setActiveToolsSection('Global'));
+    // Tab event listeners are now in makor-init.js
 
     document.querySelectorAll('[data-tutorial-section]').forEach(el => {
       const sectionKey = el.dataset.tutorialSection;
@@ -5743,8 +6201,6 @@
         }
       });
     });
-
-    setActiveToolsSection('Stickers');
 
     const tutorialVideoModalClose = document.getElementById('tutorialVideoModalClose');
     if (tutorialVideoModalClose) tutorialVideoModalClose.addEventListener('click', closeTutorialVideoModal);
@@ -6166,6 +6622,13 @@
       downloadAsImage();
     });
 
+    const offlineBundleBtn = document.getElementById('offlineBundleBtn');
+    if (offlineBundleBtn) {
+      offlineBundleBtn.addEventListener('click', function() {
+        downloadOfflineBundle();
+      });
+    }
+
     document.getElementById('printBtn').addEventListener('click', async function() {
       await printAsImage();
     });
@@ -6389,6 +6852,7 @@
           // במקום לנסות לחשב מיקומים חלקיים, פשוט נריץ את reflowStickers על הכל
           reflowStickers();
           renderStickers();
+          scrollToAddedElement(`[data-sticker-index="${startIndex}"]`);
           updateFileCount();
           showStatus(`${countToAdd} מדבקות הועלו בהצלחה!`);
         } catch (err) {
@@ -6451,6 +6915,7 @@
           // במקום לנסות לחשב מיקומים חלקיים, פשוט נריץ את reflowStickers על הכל
           reflowStickers();
           renderStickers();
+          scrollToAddedElement(`[data-sticker-index="${startIndex}"]`);
           updateFileCount();
           showStatus(`${countToAdd} מדבקות הועלו מהתיקייה בהצלחה!`);
         } catch (err) {

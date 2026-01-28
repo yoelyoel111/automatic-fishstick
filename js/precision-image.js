@@ -517,7 +517,27 @@ function setupDragging(cropArea, img) {
   let isDragging = false;
   let startX, startY, startLeft, startTop;
 
-  cropArea.addEventListener('mousedown', function(e) {
+  if (cropArea._precisionImageDraggingSetup) return;
+  cropArea._precisionImageDraggingSetup = true;
+
+  const supportsPointerEvents = typeof window !== 'undefined' && 'PointerEvent' in window;
+  function getEventPoint(e) {
+    if (e && e.touches && e.touches.length) return e.touches[0];
+    if (e && e.changedTouches && e.changedTouches.length) return e.changedTouches[0];
+    return e;
+  }
+  function getEventClientX(e) {
+    const p = getEventPoint(e);
+    return p ? p.clientX : 0;
+  }
+  function getEventClientY(e) {
+    const p = getEventPoint(e);
+    return p ? p.clientY : 0;
+  }
+
+  let activePointerId = null;
+
+  function onStart(e) {
     // אם לוחצים על ידית השינוי גודל (או על ילד שלה), לא נתחיל גרירה
     if (e.target && typeof e.target.closest === 'function') {
       const handleEl = e.target.closest('#precisionImageResizeHandle');
@@ -525,28 +545,45 @@ function setupDragging(cropArea, img) {
     } else if (e.target && e.target.id === 'precisionImageResizeHandle') {
       return;
     }
-    
+
+    if (typeof e.isPrimary === 'boolean' && !e.isPrimary) return;
+    if (typeof e.button === 'number' && e.button !== 0) return;
+
     isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
+    startX = getEventClientX(e);
+    startY = getEventClientY(e);
     startLeft = parseInt(cropArea.style.left) || 0;
     startTop = parseInt(cropArea.style.top) || 0;
-    
+
+    if (e.pointerId != null) {
+      activePointerId = e.pointerId;
+      if (typeof cropArea.setPointerCapture === 'function') {
+        try {
+          cropArea.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+    } else {
+      activePointerId = null;
+    }
+
     cropArea.style.cursor = 'grabbing';
-    e.preventDefault();
-    
+    if (e.cancelable) e.preventDefault();
+
     console.log('Started dragging');
-  });
-  
-  document.addEventListener('mousemove', function(e) {
+  }
+
+  function onMove(e) {
     if (!isDragging) return;
-    
-    const deltaX = e.clientX - startX;
-    const deltaY = e.clientY - startY;
-    
+
+    if (activePointerId != null && e.pointerId != null && e.pointerId !== activePointerId) return;
+    if (e.cancelable) e.preventDefault();
+
+    const deltaX = getEventClientX(e) - startX;
+    const deltaY = getEventClientY(e) - startY;
+
     let newLeft = startLeft + deltaX;
     let newTop = startTop + deltaY;
-    
+
     // הגבלה לגבולות התמונה הגלויה בפועל
     if (img) {
       const imgOffsetX = img.offsetLeft;
@@ -559,30 +596,38 @@ function setupDragging(cropArea, img) {
 
       newLeft = Math.max(imgOffsetX, Math.min(newLeft, maxLeft));
       newTop = Math.max(imgOffsetY, Math.min(newTop, maxTop));
-
-      console.log('Dragging constrained to visible image:', {
-        imgOffsetX,
-        imgOffsetY,
-        scaledWidth,
-        scaledHeight,
-        maxLeft,
-        maxTop,
-        newLeft,
-        newTop
-      });
     }
-    
+
     cropArea.style.left = newLeft + 'px';
     cropArea.style.top = newTop + 'px';
-  });
-  
-  document.addEventListener('mouseup', function() {
+  }
+
+  function onEnd(e) {
+    if (activePointerId != null && e && e.pointerId != null && e.pointerId !== activePointerId) return;
     if (isDragging) {
       isDragging = false;
+      activePointerId = null;
       cropArea.style.cursor = 'move';
       console.log('Stopped dragging');
     }
-  });
+  }
+
+  const startOptions = { passive: false };
+  if (supportsPointerEvents) {
+    cropArea.addEventListener('pointerdown', onStart, startOptions);
+    document.addEventListener('pointermove', onMove, startOptions);
+    document.addEventListener('pointerup', onEnd, startOptions);
+    document.addEventListener('pointercancel', onEnd, startOptions);
+  }
+
+  cropArea.addEventListener('mousedown', onStart, startOptions);
+  document.addEventListener('mousemove', onMove, startOptions);
+  document.addEventListener('mouseup', onEnd, startOptions);
+
+  cropArea.addEventListener('touchstart', onStart, startOptions);
+  document.addEventListener('touchmove', onMove, startOptions);
+  document.addEventListener('touchend', onEnd, startOptions);
+  document.addEventListener('touchcancel', onEnd, startOptions);
 }
 
 function setupResizing(cropArea) {
@@ -591,25 +636,62 @@ function setupResizing(cropArea) {
   
   let isResizing = false;
   let startX, startY, startWidth, startHeight;
-  
-  resizeHandle.addEventListener('mousedown', function(e) {
+
+  if (resizeHandle._precisionImageResizingSetup) return;
+  resizeHandle._precisionImageResizingSetup = true;
+
+  const supportsPointerEvents = typeof window !== 'undefined' && 'PointerEvent' in window;
+  function getEventPoint(e) {
+    if (e && e.touches && e.touches.length) return e.touches[0];
+    if (e && e.changedTouches && e.changedTouches.length) return e.changedTouches[0];
+    return e;
+  }
+  function getEventClientX(e) {
+    const p = getEventPoint(e);
+    return p ? p.clientX : 0;
+  }
+  function getEventClientY(e) {
+    const p = getEventPoint(e);
+    return p ? p.clientY : 0;
+  }
+
+  let activePointerId = null;
+
+  function onStart(e) {
+    if (typeof e.isPrimary === 'boolean' && !e.isPrimary) return;
+    if (typeof e.button === 'number' && e.button !== 0) return;
+
     isResizing = true;
-    startX = e.clientX;
-    startY = e.clientY;
+    startX = getEventClientX(e);
+    startY = getEventClientY(e);
     startWidth = cropArea.offsetWidth;
     startHeight = cropArea.offsetHeight;
-    
-    e.preventDefault();
+
+    if (e.pointerId != null) {
+      activePointerId = e.pointerId;
+      if (typeof resizeHandle.setPointerCapture === 'function') {
+        try {
+          resizeHandle.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+    } else {
+      activePointerId = null;
+    }
+
+    if (e.cancelable) e.preventDefault();
     e.stopPropagation();
-    
+
     console.log('Started resizing');
-  });
-  
-  document.addEventListener('mousemove', function(e) {
+  }
+
+  function onMove(e) {
     if (!isResizing) return;
-    
-    const deltaX = e.clientX - startX;
-    const deltaY = e.clientY - startY;
+
+    if (activePointerId != null && e.pointerId != null && e.pointerId !== activePointerId) return;
+    if (e.cancelable) e.preventDefault();
+
+    const deltaX = getEventClientX(e) - startX;
+    const deltaY = getEventClientY(e) - startY;
     
     const selectedShape = document.querySelector('input[name="precisionImageShape"]:checked');
     const shape = selectedShape?.value || 'rectangle';
@@ -669,14 +751,33 @@ function setupResizing(cropArea) {
     
     // עדכון תצוגת המידות
     updateSizeDisplayFromPx(newWidth, newHeight, shape);
-  });
-  
-  document.addEventListener('mouseup', function() {
+  }
+
+  function onEnd(e) {
+    if (activePointerId != null && e && e.pointerId != null && e.pointerId !== activePointerId) return;
     if (isResizing) {
       isResizing = false;
+      activePointerId = null;
       console.log('Stopped resizing');
     }
-  });
+  }
+
+  const startOptions = { passive: false };
+  if (supportsPointerEvents) {
+    resizeHandle.addEventListener('pointerdown', onStart, startOptions);
+    document.addEventListener('pointermove', onMove, startOptions);
+    document.addEventListener('pointerup', onEnd, startOptions);
+    document.addEventListener('pointercancel', onEnd, startOptions);
+  }
+
+  resizeHandle.addEventListener('mousedown', onStart, startOptions);
+  document.addEventListener('mousemove', onMove, startOptions);
+  document.addEventListener('mouseup', onEnd, startOptions);
+
+  resizeHandle.addEventListener('touchstart', onStart, startOptions);
+  document.addEventListener('touchmove', onMove, startOptions);
+  document.addEventListener('touchend', onEnd, startOptions);
+  document.addEventListener('touchcancel', onEnd, startOptions);
 }
 
 function updateSizeDisplayFromPx(widthPx, heightPx, shape) {
@@ -1341,6 +1442,9 @@ function addprecisionImageImageToMain(dataUrl, widthPx, heightPx) {
     // רענון התצוגה
     if (typeof renderStickers === 'function') {
       renderStickers();
+    }
+    if (typeof scrollToAddedElement === 'function') {
+      scrollToAddedElement(`[data-sticker-index="${selectedSticker}"] [data-image-id="${imageId}"]`);
     }
     
     console.log('Precision Image added to sticker successfully:', newImage);
