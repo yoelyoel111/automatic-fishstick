@@ -349,6 +349,17 @@
       transition: border-color 0.2s;
     }
 
+    .sticker-container,
+    .text-word,
+    .sticker-image,
+    .sticker-resize-handle,
+    .resize-handle,
+    .word-resize-handle,
+    .word-rotate-handle,
+    .word-curve-handle {
+      touch-action: none;
+    }
+
     /* תצוגת מידות המדבקה */
     .sticker-dimension {
       position: absolute;
@@ -418,6 +429,10 @@
     .sticker-container:hover .sticker-controls {
       display: flex;
     }
+
+    .sticker-container.selected .sticker-controls {
+      display: flex;
+    }
     
     .sticker-control-btn {
       width: 24px;
@@ -469,6 +484,10 @@
     }
     
     .sticker-container:hover .sticker-resize-handle {
+      display: block;
+    }
+
+    .sticker-container.selected .sticker-resize-handle {
       display: block;
     }
     
@@ -1267,6 +1286,224 @@
 
 #driveProjectsBanner #projectsContainer::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 900px) {
+  #header-container {
+    padding-top: 12px;
+  }
+
+  #header-flex {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  #nav-buttons,
+  #google-section {
+    width: min(320px, 92vw);
+    height: auto;
+  }
+
+  #nav-buttons button,
+  #google-section button {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  #languageToggleBtn {
+    position: static;
+  }
+
+  .main-tab-button {
+    padding: 10px 14px;
+    font-size: 14px;
+    flex: 1 1 160px;
+    min-width: 140px;
+  }
+
+  .main-tab-button.active {
+    transform: scale(1.05) !important;
+    animation: none;
+  }
+
+  .main-tab-button:hover {
+    transform: translateY(0) scale(1.01);
+  }
+
+  .tools-tab-button {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .tools-panel .flex.gap-2.justify-center {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tools-panel {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .tools-panel h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .tools-panel h3 {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .tools-panel input,
+  .tools-panel select {
+    font-size: 13px !important;
+    padding: 6px 8px !important;
+  }
+
+  .tools-panel button:not(.tools-section-header) {
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+  }
+
+  #pageTitle {
+    font-size: 1.6rem;
+  }
+
+  .no-print .flex.gap-12 {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  #githubStickersGrid,
+  #githubElementsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    max-height: 65vh;
+  }
+
+  #githubStickersGrid button:not(.category-header),
+  #githubElementsGrid button:not(.category-header) {
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .category-header {
+    font-size: 1rem;
+    padding: 10px 12px;
+  }
+
+  #printPreviewSection {
+    padding: 10px;
+  }
+
+  #pageOrientationToolbar,
+  #opacityControlWrapper {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  #pageOrientationToolbar > .flex,
+  #opacityControlWrapper > .flex {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  #pageOrientationToolbar .h-6.w-px {
+    display: none;
+  }
+
+  #pageOrientationToolbar button,
+  #opacityControlWrapper button,
+  #orientationDropdownBtn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  #opacitySection {
+    flex-wrap: wrap;
+  }
+
+  #opacitySlider {
+    width: 110px;
+  }
+}
+
+@media (max-width: 520px) {
+  #nav-buttons,
+  #google-section {
+    width: min(280px, 92vw);
+  }
+
+  .main-tab-button {
+    padding: 8px 10px;
+    font-size: 13px;
+    min-width: 120px;
+  }
+
+  .tools-tab-button {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .tools-section-header {
+    font-size: 0.9rem;
+  }
+
+  .tools-panel {
+    padding: 10px;
+  }
+
+  .tools-panel input,
+  .tools-panel select {
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+  }
+
+  .tools-panel button:not(.tools-section-header) {
+    font-size: 11px !important;
+    padding: 6px 8px !important;
+  }
+
+  #githubStickersGrid,
+  #githubElementsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+  }
+
+  #githubStickersGrid button:not(.category-header),
+  #githubElementsGrid button:not(.category-header) {
+    padding: 4px;
+    border-radius: 8px;
+  }
+
+  .category-header {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+  }
+
+  #printPreviewSection {
+    padding: 8px;
+  }
+
+  #pageOrientationToolbar,
+  #opacityControlWrapper {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  #pageOrientationToolbar button,
+  #opacityControlWrapper button,
+  #orientationDropdownBtn {
+    padding: 6px 7px;
+    font-size: 11px;
+  }
+
+  #opacitySlider {
+    width: 96px;
+  }
 }
 
 @media print {

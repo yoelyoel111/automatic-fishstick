@@ -267,9 +267,22 @@ const GoogleDriveManager = (function() {
    * Sign out from Google
    */
   function signOut() {
+    if (typeof gapi === 'undefined' || !gapi.client || typeof gapi.client.getToken !== 'function') {
+      currentUser = null;
+      appFolderId = null;
+      updateUIForSignedOut();
+      if (onSignInChange) onSignInChange(false, null);
+      showStatus('התנתקת מ-Google');
+      return;
+    }
+
     const token = gapi.client.getToken();
     if (token !== null) {
-      google.accounts.oauth2.revoke(token.access_token);
+      try {
+        if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2 && typeof google.accounts.oauth2.revoke === 'function') {
+          google.accounts.oauth2.revoke(token.access_token);
+        }
+      } catch (_) {}
       gapi.client.setToken('');
       
       // מחיקת ה-token השמור
@@ -292,7 +305,12 @@ const GoogleDriveManager = (function() {
    * Check if user is signed in
    */
   function isSignedIn() {
-    return gapi.client && gapi.client.getToken() !== null;
+    try {
+      if (typeof gapi === 'undefined' || !gapi.client || typeof gapi.client.getToken !== 'function') return false;
+      return gapi.client.getToken() !== null;
+    } catch (_) {
+      return false;
+    }
   }
   
   /**

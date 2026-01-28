@@ -1,6 +1,7 @@
 ﻿<!doctype html>
 <html lang="he" dir="rtl" class="h-full">
- <head>
+
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="site-title">הגרלומט</title>
@@ -8,7 +9,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-73WVBRR9X1"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-73WVBRR9X1');
@@ -17,29 +18,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- EmailJS -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <!-- Background Removal AI -->
-  <!-- Google APIs -->
-  <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-  <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
-    <link rel="stylesheet" href="styles/makor.css">
+  <!-- Google APIs - loaded at end of body -->
+  <link rel="stylesheet" href="styles/makor.css">
 
   <style>
-    @view-transition { navigation: auto; }
-    
+    @view-transition {
+      navigation: auto;
+    }
+
     /* סגנון לאזור השקיפות כשהסליידר מושבת */
     #opacitySlider:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-    
-    #opacitySlider:disabled ~ #opacityValue {
-      color: #9ca3af !important; /* gray-400 */
+
+    #opacitySlider:disabled~#opacityValue {
+      color: #9ca3af !important;
+      /* gray-400 */
     }
-    
+
     .opacity-section-disabled .text-purple-700 {
-      color: #9ca3af !important; /* gray-400 */
+      color: #9ca3af !important;
+      /* gray-400 */
     }
-    
+
     /* מניעת סלקשן במודל תמונה מדויקת */
     #precisionImageEditorContainer,
     #precisionImageEditorContainer * {
@@ -48,883 +53,1194 @@
       -moz-user-select: none;
       -ms-user-select: none;
     }
-    
+
     #precisionImageSourceImage {
       pointer-events: none;
       user-select: none;
       -webkit-user-select: none;
       -webkit-user-drag: none;
     }
-    
+
     #precisionImageCropShape {
       cursor: move;
+      touch-action: none;
     }
-    
+
     #precisionImageResizeHandle {
       cursor: nwse-resize;
       pointer-events: auto;
+      touch-action: none;
+    }
+
+    #precisionCropShape {
+      cursor: move;
+      touch-action: none;
+    }
+
+    #precisionResizeHandle {
+      cursor: nwse-resize;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    /* Tools Tabs Styling */
+    .tools-tab-button {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 2px solid #e2e8f0;
+      transition: all 0.3s ease;
+      transform: scale(0.95);
+    }
+
+    .tools-tab-button:hover {
+      transform: scale(0.98);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Stickers Tab - Indigo/Purple */
+    #toolsTabStickers {
+      background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+      color: #6366f1;
+      border-color: #c7d2fe;
+    }
+
+    #toolsTabStickers:hover {
+      background: linear-gradient(135deg, #c7d2fe 0%, #ddd6fe 100%);
+    }
+
+    #toolsTabStickers.active {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border-color: #6366f1;
+      box-shadow: 0 6px 12px rgba(99, 102, 241, 0.4);
+      transform: scale(1.05);
+    }
+
+    /* Text Tab - Blue */
+    #toolsTabText {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      color: #3b82f6;
+      border-color: #93c5fd;
+    }
+
+    #toolsTabText:hover {
+      background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+    }
+
+    #toolsTabText.active {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      border-color: #3b82f6;
+      box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+      transform: scale(1.05);
+    }
+
+    /* Image Tab - Pink */
+    #toolsTabImage {
+      background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+      color: #ec4899;
+      border-color: #f9a8d4;
+    }
+
+    #toolsTabImage:hover {
+      background: linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 100%);
+    }
+
+    #toolsTabImage.active {
+      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+      color: white;
+      border-color: #ec4899;
+      box-shadow: 0 6px 12px rgba(236, 72, 153, 0.4);
+      transform: scale(1.05);
+    }
+
+    .tools-tab-content {
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Precision Button Text Styling */
+    .precision-btn-text {
+      font-size: clamp(16px, 3.5vw, 36px);
+      line-height: 1.1;
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    #uploadStickersBtn {
+      width: min(250px, 92vw);
+      height: clamp(55px, 12vw, 80px);
+      padding: clamp(8px, 2.5vw, 12px) clamp(12px, 3vw, 20px);
+    }
+
+    #uploadStickersBtn span {
+      font-size: clamp(20px, 4vw, 36px);
+    }
+
+    #precisionStickerBtn,
+    #precisionImageBtn {
+      width: min(360px, 92vw);
+      height: clamp(50px, 11vw, 65px);
+      padding: clamp(8px, 2.5vw, 12px) clamp(12px, 3vw, 20px);
     }
   </style>
- </head>
- <body class="h-full flex flex-col">
+</head>
+
+<body class="h-full flex flex-col">
   <div class="flex-1 w-full overflow-auto">
-   <div class="no-print w-full max-w-none mx-auto px-4 pt-4">
-    <div class="flex justify-end mb-2">
-      <button id="languageToggleBtn" type="button" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 transition-all flex items-center gap-2">
-        🌐 English
-      </button>
-    </div>
-    <div class="flex gap-4 items-stretch">
-     <img id="siteLogo" data-i18n-alt="logoAlt" src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/660aea3d9a52acac6b6c60f8647d6b52bbf6dea4/logo.png" alt="לוגו" class="flex-1 w-full h-56 object-contain" />
-     <div class="w-44 h-56 flex flex-col gap-3">
-      <button id="contactBtn" type="button" data-i18n="contactBtn" class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
-       יצירת קשר
-      </button>
-      <button id="userGuideBtn" type="button" data-i18n="userGuideBtn" class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
-       מדריך הפעלה
-      </button>
-      <button id="tutorialVideoBtn" type="button" data-i18n="tutorialVideoBtn" class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
-       סרטון הדרכה
-      </button>
-     </div>
-     <!-- Google Sign-In Section -->
-     <div class="w-52 h-56 flex flex-col gap-2 justify-center">
-      <button id="googleSignInBtn" type="button" disabled class="opacity-50 px-4 py-3 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-lg shadow-md hover:bg-gray-50 hover:shadow-lg transition-all flex items-center justify-center gap-2">
-       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-       <span data-i18n="googleSignInBtn">התחבר עם Google</span>
-      </button>
-      <button id="googleSignOutBtn" type="button" data-i18n="googleSignOutBtn" class="hidden px-4 py-2 bg-gray-100 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-all">
-       התנתק
-      </button>
-      <div id="googleUserInfo" class="hidden flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-       <img id="googleUserPic" src="" alt="" class="hidden w-8 h-8 rounded-full">
-       <span id="googleUserName" class="text-sm text-green-700 font-medium truncate"></span>
+    <div id="header-container" class="no-print w-full max-w-none mx-auto px-4 pt-4">
+      <div class="flex justify-end mb-2">
+        <button id="languageToggleBtn" type="button"
+          class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 transition-all flex items-center gap-2">
+          🌐 English
+        </button>
       </div>
-     </div>
-    </div>
-   </div>
-   <div class="w-full max-w-none mx-auto p-4">
-    <!-- Tab Navigation -->
-    <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-4">
-     <div class="flex gap-12 justify-center">
-      <button id="tabWords" data-i18n="tabWords" class="main-tab-button tab-words active px-8 py-4 font-bold rounded-lg transition-all shadow-md">
-        📝 עיצוב מדבקות
-      </button>
-      <button id="tabNumbers" data-i18n="tabNumbers" class="main-tab-button tab-numbers px-8 py-4 font-bold rounded-lg transition-all shadow-md">
-        🔢 הגרלת מספרים
-      </button>
-      <button id="tabNamesLottery" data-i18n="tabNamesLottery" class="main-tab-button tab-names px-8 py-4 font-bold rounded-lg transition-all shadow-md">
-        👥 הגרלת שמות
-      </button>
-     </div>
-    </div>
-    
-    <!-- Google Drive Projects Banner - מוצג רק כשמחוברים -->
-    <div id="driveProjectsBanner" class="hidden no-print mb-6 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-2xl shadow-lg p-4">
-     <div class="flex items-center justify-between mb-3">
-      <div class="flex items-center gap-2">
-       <span class="text-xl">📁</span>
-       <h3 data-i18n="myProjects" class="text-white font-bold">הפרויקטים שלי</h3>
+      <div id="header-flex" class="flex gap-4 items-stretch">
+        <img id="siteLogo" data-i18n-alt="logoAlt"
+          src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/660aea3d9a52acac6b6c60f8647d6b52bbf6dea4/logo.png"
+          alt="לוגו" class="flex-1 w-full h-56 object-contain" />
+        <div id="nav-buttons" class="w-44 h-56 flex flex-col gap-3">
+          <button id="contactBtn" type="button" data-i18n="contactBtn"
+            class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
+            יצירת קשר
+          </button>
+          <button id="userGuideBtn" type="button" data-i18n="userGuideBtn"
+            class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
+            מדריך הפעלה
+          </button>
+          <button id="tutorialVideoBtn" type="button" data-i18n="tutorialVideoBtn"
+            class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
+            סרטון הדרכה
+          </button>
+        </div>
+        <!-- Google Sign-In Section -->
+        <div id="google-section" class="w-52 h-56 flex flex-col gap-2 justify-center">
+          <button id="googleSignInBtn" type="button" disabled
+            class="opacity-50 px-4 py-3 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-lg shadow-md hover:bg-gray-50 hover:shadow-lg transition-all flex items-center justify-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            <span data-i18n="googleSignInBtn">התחבר עם Google</span>
+          </button>
+          <button id="googleSignOutBtn" type="button" data-i18n="googleSignOutBtn"
+            class="hidden px-4 py-2 bg-gray-100 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-all">
+            התנתק
+          </button>
+          <div id="googleUserInfo"
+            class="hidden flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+            <img id="googleUserPic" src="" alt="" class="hidden w-8 h-8 rounded-full">
+            <span id="googleUserName" class="text-sm text-green-700 font-medium truncate"></span>
+          </div>
+        </div>
       </div>
-      <button id="refreshProjectsBtn" data-i18n-title="refresh" class="px-2 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm rounded-lg transition-all" title="רענן">
-       🔄
-      </button>
-     </div>
-     <div id="projectsContainer" class="flex gap-3 overflow-x-auto pb-2">
-      <!-- פרויקט חדש -->
-      <button id="newProjectBtn" class="flex-shrink-0 w-28 h-28 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl border-2 border-dashed border-white/50 hover:border-white transition-all flex flex-col items-center justify-center gap-2 group">
-       <span class="text-3xl group-hover:scale-110 transition-transform">➕</span>
-       <span data-i18n="newProject" class="text-white text-sm font-medium">פרויקט חדש</span>
-      </button>
-      <!-- הפרויקטים יתווספו כאן דינמית -->
-     </div>
     </div>
-    
-    <!-- Header Section -->
-    <div class="no-print mb-8 bg-cyan-50 rounded-2xl shadow-lg p-6">
-     <h1 id="pageTitle" data-i18n="pageTitleWords" class="text-3xl font-bold text-gray-800 mb-6 text-center">עיצוב מדבקות</h1>
-     <div class="flex gap-4 items-center flex-wrap justify-center">
-      <button id="downloadPdfBtn" data-i18n="downloadPdf" data-i18n-title="highQuality" title="איכות גבוהה" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
-        📥 הורד PDF
-      </button>
-      <button id="downloadImageBtn" data-i18n="downloadImage" data-i18n-title="highQuality" title="איכות גבוהה" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
-        🖼️ הורד תמונה
-      </button>
-      <button id="printBtn" data-i18n="print" class="px-6 py-3 bg-gradient-to-r from-slate-500 to-gray-600 text-white font-bold rounded-lg hover:from-slate-600 hover:to-gray-700 transition-all shadow-md hover:shadow-lg">
-        🖨️ הדפס
-      </button>
-      <button id="saveProjectBtn" data-i18n="saveProject" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
-        💾 שמור פרויקט
-      </button>
-      <button id="saveToDriveBtn" data-i18n="saveToDrive" class="hidden px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
-        ☁️ שמור ל-Drive
-      </button>
-      <label for="loadProjectInput" data-i18n="loadProject" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold rounded-lg hover:from-teal-600 hover:to-cyan-700 transition-all shadow-md">
-        📂 טען פרויקט
-      </label>
-      <input type="file" id="loadProjectInput" accept=".json" class="hidden">
-      <!-- Tutorial for Calibration -->
-      <div class="flex justify-center mb-2">
-        <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-orange-700 hover:text-orange-900 cursor-pointer" data-tutorial-section="Calibration" role="button" tabindex="0" aria-label="סרטון הדרכה - כיול">
-          <span class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-orange-300 bg-white">?</span>
-          <span data-i18n="tutorial">הדרכה</span>
-          <span>- כיול מדפסת</span>
-        </span>
-      </div>
-      <button type="button" data-i18n="printerCalibration" class="px-6 py-3 bg-gradient-to-r from-orange-400 to-amber-500 text-white font-bold rounded-lg shadow-md hover:from-orange-500 hover:to-amber-600 transition-all hover:shadow-lg" onclick="openCalibrationModal()">
-        🎯 כיול מדפסת
-      </button>
-     </div>
-     <div id="statusMessage" class="mt-4 text-center text-sm font-medium hidden"></div>
-    </div>
-    
-    <div class="flex flex-col lg:flex-row gap-4 items-start">
-    <!-- Words Mode Content -->
-    <div id="wordsContent" class="no-print w-full lg:w-[560px] lg:shrink-0 lg:sticky lg:top-4">
-     <!-- Edit Tools -->
-     <div class="tools-panel mb-0 bg-cyan-50 rounded-2xl shadow-lg p-4">
-      <div class="flex items-center justify-between mb-4">
-       <h2 data-i18n="editTools" class="text-xl font-bold text-gray-800">כלי עריכה</h2>
+    <div class="w-full max-w-none mx-auto p-4">
+      <!-- Tab Navigation -->
+      <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-4">
+        <div class="flex gap-12 justify-center">
+          <button id="tabWords" data-i18n="tabWords"
+            class="main-tab-button tab-words active px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+            📝 עיצוב מדבקות
+          </button>
+          <button id="tabNumbers" data-i18n="tabNumbers"
+            class="main-tab-button tab-numbers px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+            🔢 הגרלת מספרים
+          </button>
+          <button id="tabNamesLottery" data-i18n="tabNamesLottery"
+            class="main-tab-button tab-names px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+            👥 הגרלת שמות
+          </button>
+        </div>
       </div>
 
-      <div class="mb-4 p-4 bg-indigo-50 rounded-lg border-2 border-indigo-200">
-        <button type="button" id="toolsSectionBtnStickers" class="tools-section-header w-full flex items-center justify-between font-bold text-indigo-800 mb-3">
-          <span class="flex items-center gap-2">
-            <span data-i18n="stickersSection">📁 מדבקות</span>
-            <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900" data-tutorial-section="Stickers" role="button" tabindex="0" aria-label="סרטון הדרכה">
-              <span class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-indigo-300 bg-white">?</span>
-              <span data-i18n="tutorial" class="hidden sm:inline">הדרכה</span>
+      <!-- Google Drive Projects Banner - מוצג רק כשמחוברים -->
+      <div id="driveProjectsBanner"
+        class="hidden no-print mb-6 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-2xl shadow-lg p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">📁</span>
+            <h3 data-i18n="myProjects" class="text-white font-bold">הפרויקטים שלי</h3>
+          </div>
+          <button id="refreshProjectsBtn" data-i18n-title="refresh"
+            class="px-2 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm rounded-lg transition-all" title="רענן">
+            🔄
+          </button>
+        </div>
+        <div id="projectsContainer" class="flex gap-3 overflow-x-auto pb-2">
+          <!-- פרויקט חדש -->
+          <button id="newProjectBtn"
+            class="flex-shrink-0 w-28 h-28 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl border-2 border-dashed border-white/50 hover:border-white transition-all flex flex-col items-center justify-center gap-2 group">
+            <span class="text-3xl group-hover:scale-110 transition-transform">➕</span>
+            <span data-i18n="newProject" class="text-white text-sm font-medium">פרויקט חדש</span>
+          </button>
+          <!-- הפרויקטים יתווספו כאן דינמית -->
+        </div>
+      </div>
+
+      <!-- Header Section -->
+      <div class="no-print mb-8 bg-cyan-50 rounded-2xl shadow-lg p-6">
+        <h1 id="pageTitle" data-i18n="pageTitleWords" class="text-3xl font-bold text-gray-800 mb-6 text-center">עיצוב
+          מדבקות</h1>
+        <div class="flex gap-4 items-center flex-wrap justify-center">
+          <button id="downloadPdfBtn" data-i18n="downloadPdf" data-i18n-title="highQuality" title="איכות גבוהה"
+            class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+            📥 הורד PDF
+          </button>
+          <button id="downloadImageBtn" data-i18n="downloadImage" data-i18n-title="highQuality" title="איכות גבוהה"
+            class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
+            🖼️ הורד תמונה
+          </button>
+          <button id="offlineBundleBtn"
+            class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md hover:shadow-lg">
+            ⬇️ הורד גרסת אופליין
+          </button>
+          <button id="printBtn" data-i18n="print"
+            class="px-6 py-3 bg-gradient-to-r from-slate-500 to-gray-600 text-white font-bold rounded-lg hover:from-slate-600 hover:to-gray-700 transition-all shadow-md hover:shadow-lg">
+            🖨️ הדפס
+          </button>
+          <button id="saveProjectBtn" data-i18n="saveProject"
+            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
+            💾 שמור פרויקט
+          </button>
+          <button id="saveToDriveBtn" data-i18n="saveToDrive"
+            class="hidden px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
+            ☁️ שמור ל-Drive
+          </button>
+          <label for="loadProjectInput" data-i18n="loadProject"
+            class="cursor-pointer px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold rounded-lg hover:from-teal-600 hover:to-cyan-700 transition-all shadow-md">
+            📂 טען פרויקט
+          </label>
+          <input type="file" id="loadProjectInput" accept=".json" class="hidden">
+          <!-- Tutorial for Calibration -->
+          <div class="flex justify-center mb-2">
+            <span
+              class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-orange-700 hover:text-orange-900 cursor-pointer"
+              data-tutorial-section="Calibration" role="button" tabindex="0" aria-label="סרטון הדרכה - כיול">
+              <span
+                class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-orange-300 bg-white">?</span>
+              <span data-i18n="tutorial">הדרכה</span>
+              <span>- כיול מדפסת</span>
             </span>
-          </span>
-          <span id="toolsSectionChevronStickers">▾</span>
-        </button>
-        <div id="toolsSectionContentStickers">
-          <!-- כפתור הוסף מדבקה - גדול ובולט במרכז -->
-          <div class="flex justify-center mb-6">
-            <div class="relative">
-              <button id="uploadStickersBtn" style="width: 250px; height: 80px; padding: 10px 20px;" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black rounded-2xl hover:from-purple-600 hover:to-indigo-700 transition-all shadow-2xl flex items-center justify-center gap-4">
-                <span data-i18n="addSticker" style="font-size: 36px !important;">📁 הוסף מדבקה</span>
-              </button>
-              <div id="stickersMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
-                <label for="fileInput" data-i18n="fromComputer" class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-t-lg border-b border-gray-200">
-                  💻 מהמחשב
-                </label>
-                <label for="folderInput" data-i18n="fromFolder" class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-200">
-                  📂 תיקייה מהמחשב
-                </label>
-                <button id="loadFromGithubStickers" data-i18n="fromRepo" class="w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg">
-                  🌐 מהמאגר
+          </div>
+          <button type="button" data-i18n="printerCalibration"
+            class="px-6 py-3 bg-gradient-to-r from-orange-400 to-amber-500 text-white font-bold rounded-lg shadow-md hover:from-orange-500 hover:to-amber-600 transition-all hover:shadow-lg"
+            onclick="openCalibrationModal()">
+            🎯 כיול מדפסת
+          </button>
+        </div>
+        <div id="statusMessage" class="mt-4 text-center text-sm font-medium hidden"></div>
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-4 items-start">
+        <!-- Words Mode Content -->
+        <div id="wordsContent" class="no-print w-full lg:w-[560px] lg:shrink-0 lg:sticky lg:top-4">
+          <!-- Edit Tools -->
+          <div class="tools-panel mb-0 bg-cyan-50 rounded-2xl shadow-lg p-4">
+            <div class="flex items-center justify-between mb-4">
+              <h2 data-i18n="editTools" class="text-xl font-bold text-gray-800">כלי עריכה</h2>
+            </div>
+
+            <!-- Tools Tabs -->
+            <div class="mb-4 bg-white rounded-xl shadow-md p-2">
+              <div class="flex gap-2 justify-center">
+                <button id="toolsTabStickers" data-i18n="stickersSection"
+                  class="tools-tab-button active flex-1 px-6 py-3 font-bold rounded-lg transition-all">
+                  📁 מדבקות
+                </button>
+                <button id="toolsTabText" data-i18n="textSection"
+                  class="tools-tab-button flex-1 px-6 py-3 font-bold rounded-lg transition-all">
+                  📝 טקסט
+                </button>
+                <button id="toolsTabImage" data-i18n="imageSection"
+                  class="tools-tab-button flex-1 px-6 py-3 font-bold rounded-lg transition-all">
+                  🖼️ תמונה
                 </button>
               </div>
-              <input type="file" id="fileInput" accept="image/*,.svg" multiple class="hidden">
-              <input type="file" id="folderInput" webkitdirectory directory multiple accept="image/*,.svg" class="hidden">
+            </div>
+
+            <!-- Stickers Tab Content -->
+            <div id="toolsTabContentStickers" class="tools-tab-content">
+            <div class="mb-4 p-4 bg-indigo-50 rounded-lg border-2 border-indigo-200">
+              <div class="flex items-center gap-2 mb-3">
+                <span data-i18n="stickersSection" class="font-bold text-indigo-800">📁 מדבקות</span>
+                <span
+                  class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 cursor-pointer"
+                  data-tutorial-section="Stickers" role="button" tabindex="0" aria-label="סרטון הדרכה">
+                  <span
+                    class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-indigo-300 bg-white">?</span>
+                  <span data-i18n="tutorial" class="hidden sm:inline">הדרכה</span>
+                </span>
+              </div>
+              <div>
+                <!-- כפתור הוסף מדבקה - גדול ובולט במרכז -->
+                <div class="flex justify-center mb-6">
+                  <div class="relative">
+                    <button id="uploadStickersBtn"
+                      class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black rounded-2xl hover:from-purple-600 hover:to-indigo-700 transition-all shadow-2xl flex items-center justify-center gap-4">
+                      <span data-i18n="addSticker">הוסף מדבקה</span>
+                    </button>
+                    <div id="stickersMenu"
+                      class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
+                      <label for="fileInput" data-i18n="fromComputer"
+                        class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-t-lg border-b border-gray-200">
+                        מהמחשב
+                      </label>
+                      <button id="loadFromGithubStickers" data-i18n="fromRepo"
+                        class="w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg">
+                        מהמאגר
+                      </button>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*,.svg" multiple class="hidden">
+                    <input type="file" id="folderInput" webkitdirectory directory multiple accept="image/*,.svg"
+                      class="hidden">
+                  </div>
+                </div>
+
+                <!-- הגדרות נוספות -->
+                <div class="flex gap-4 items-center flex-wrap justify-center mb-4">
+                  <div class="flex items-center gap-2">
+                    <label data-i18n="uploadLimit" class="text-sm font-medium text-gray-700">כמה מדבקות לעלות:</label>
+                    <input type="number" id="uploadLimitInput" min="0" value="1"
+                      class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                  </div>
+                  <span id="fileCount" class="text-sm text-gray-600"></span>
+                </div>
+
+                <div class="flex gap-4 items-end flex-wrap justify-center">
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                      <label data-i18n="stickerSize" class="text-sm font-medium text-gray-700">גודל המדבקה:</label>
+                      <span data-i18n="stickersCountIn" class="text-xs text-gray-500">כמה מדבקות נכנסות ב</span>
+                      <select id="stickerSizeModeSelect"
+                        class="px-3 py-2 border-2 border-gray-300 rounded-lg min-w-[120px]">
+                        <option data-i18n="byWidth" value="width" selected>לפי רוחב</option>
+                        <option data-i18n="byHeight" value="height">לפי אורך</option>
+                      </select>
+                      <input type="number" id="stickersPerRowInput" min="1" max="30" value="2"
+                        class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                    </div>
+                    <div data-i18n="sizeNote" class="text-xs text-blue-600 mt-1">
+                      הגדרות אלו חלות רק על מדבקות חדשות שתעלה
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <label data-i18n="pageEdgeMargins" class="text-sm font-medium text-gray-700">שוליים מהדף
+                      (px):</label>
+                    <input type="number" id="edgeMarginInput" min="0" max="200" value="1"
+                      class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <label data-i18n="gapBetweenStickers" class="text-sm font-medium text-gray-700">רווח בין מדבקות
+                      (px):</label>
+                    <input type="number" id="gapInput" min="0" max="200" value="1"
+                      class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                  </div>
+                </div>
+                <div id="stickerLayoutInfo" class="text-xs text-gray-600 mt-2 text-center"></div>
+                <div data-i18n="sizeUpdateSuccess" class="text-xs text-green-600 mt-1 text-center font-medium">
+                  שינוי גודל המדבקה כעת משפיע רק על מדבקות חדשות שתעלה
+                </div>
+
+                <!-- כפתור הכנת מדבקה מדויקת - עותק מדויק של כפתור הוסף מדבקה -->
+                <!-- Tutorial for Precision Sticker -->
+                <div class="flex justify-center mt-4 mb-2">
+                  <span
+                    class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                    data-tutorial-section="PrecisionSticker" role="button" tabindex="0"
+                    aria-label="סרטון הדרכה - מדבקה מדויקת">
+                    <span
+                      class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-emerald-300 bg-white">?</span>
+                    <span data-i18n="tutorial">הדרכה</span>
+                    <span>- הכנת מדבקה מדויקת</span>
+                  </span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="relative">
+                    <button id="precisionStickerBtn" type="button" onclick="openPrecisionModal(event)"
+                      class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black rounded-2xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-2xl flex items-center justify-center gap-4 relative overflow-hidden">
+                      <!-- אפקט זכוכית עם ברק -->
+                      <div
+                        class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/40 to-white/10 opacity-60">
+                      </div>
+                      <div
+                        class="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-50 transform -skew-x-12">
+                      </div>
+                      <div class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10"></div>
+                      <span data-i18n="precisionSticker"
+                        class="precision-btn-text relative z-10">הכנת מדבקה מדויקת</span>
+                    </button>
+                  </div>
+                  <div class="text-center mt-2">
+                    <p data-i18n="precisionStickerDesc" class="text-xs text-gray-600 max-w-xs mx-auto font-medium">
+                      בניית מדבקה להדפסה עם דיוק על המילימטר
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+
+            <!-- Text Tab Content -->
+            <div id="toolsTabContentText" class="tools-tab-content hidden">
+            <div class="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div class="flex items-center gap-2 mb-3">
+                <span data-i18n="textSection" class="font-bold text-blue-800">הוספת טקסט</span>
+                <span
+                  class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 cursor-pointer"
+                  data-tutorial-section="Text" role="button" tabindex="0" aria-label="סרטון הדרכה">
+                  <span
+                    class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-blue-300 bg-white">?</span>
+                  <span data-i18n="tutorial" class="hidden sm:inline">הדרכה</span>
+                </span>
+              </div>
+              <div>
+                <div class="flex gap-4 items-end flex-wrap">
+                  <div class="flex-1 min-w-[200px]">
+                    <label for="wordInput" data-i18n="enterWord" class="block text-sm font-medium text-gray-700 mb-2">
+                      הזן מילה:
+                    </label>
+                    <input type="text" id="wordInput" data-i18n="wordPlaceholder"
+                      class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                      placeholder="הקלד מילה">
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <label data-i18n="textColor" class="text-sm font-medium text-gray-700">צבע טקסט:</label>
+                    <div class="relative inline-flex items-center">
+                      <button type="button" id="textColorSwatch" class="color-swatch-btn" aria-label="בחר צבע"></button>
+                      <div id="textColorPalette" class="color-palette hidden">
+                        <div id="textColorPaletteGrid" class="color-palette-grid"></div>
+                      </div>
+                      <input type="color" id="textColorPicker" class="hidden" value="#000000">
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <label data-i18n="font" class="text-sm font-medium text-gray-700">פונט:</label>
+                    <select id="fontFamilyInput" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+                      <option value="Arial">Arial</option>
+                      <option value="Times New Roman">Times New Roman</option>
+                      <option value="Courier New">Courier New</option>
+                      <option value="Georgia">Georgia</option>
+                      <option value="Verdana">Verdana</option>
+                      <option value="Tahoma">Tahoma</option>
+                      <option value="Comic Sans MS">Comic Sans MS</option>
+                      <option value="Impact">Impact</option>
+                      <option value="Trebuchet MS">Trebuchet MS</option>
+                      <option value="Palatino">Palatino</option>
+                    </select>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <label data-i18n="weight" class="text-sm font-medium text-gray-700">עובי:</label>
+                    <select id="fontWeightInput" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+                      <option data-i18n="weightThin" value="300">דק</option>
+                      <option data-i18n="weightNormal" value="400">רגיל</option>
+                      <option data-i18n="weightMedium" value="600">בינוני</option>
+                      <option data-i18n="weightBold" value="700" selected>מודגש</option>
+                      <option data-i18n="weightBlack" value="900">עבה מאוד</option>
+                    </select>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <label data-i18n="size" class="text-sm font-medium text-gray-700">גודל:</label>
+                    <button id="decreaseSelectedWordFontBtn" type="button"
+                      class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">-</button>
+                    <input type="number" id="fontSizeInput" min="8" max="240" value="25"
+                      class="w-20 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                    <button id="increaseSelectedWordFontBtn" type="button"
+                      class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">+</button>
+                  </div>
+                </div>
+                <div class="flex gap-4 items-center flex-wrap mt-4">
+                  <button id="addWordToSelectedBtn" data-i18n="addToSelected"
+                    class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
+                    הוסף למדבקה נבחרת
+                  </button>
+                  <button id="addToAllBtn" data-i18n="addToAll"
+                    class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
+                    הוסף לכל המדבקות
+                  </button>
+                  <button id="replaceAllBtn" data-i18n="replaceAll"
+                    class="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-amber-700 transition-all shadow-md hover:shadow-lg">
+                    החלף בכל המדבקות
+                  </button>
+                  <p data-i18n="clickStickerHint" class="text-sm text-gray-600 italic">לחץ על מדבקה כדי לבחור אותה,
+                    ואז הוסף טקסט רק לה</p>
+                </div>
+              </div>
+            </div>
+            </div>
+
+            <!-- Image Tab Content -->
+            <div id="toolsTabContentImage" class="tools-tab-content hidden">
+            <div class="mb-6 p-4 bg-pink-50 rounded-lg border-2 border-pink-200">
+              <div class="flex items-center gap-2 mb-3">
+                <span data-i18n="imageSection" class="font-bold text-pink-800">הוספת תמונה</span>
+                <span
+                  class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-pink-700 hover:text-pink-900 cursor-pointer"
+                  data-tutorial-section="Image" role="button" tabindex="0" aria-label="סרטון הדרכה">
+                  <span
+                    class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-pink-300 bg-white">?</span>
+                  <span data-i18n="tutorial" class="hidden sm:inline">הדרכה</span>
+                </span>
+              </div>
+              <div>
+                <div class="flex gap-4 items-end flex-wrap">
+                  <div class="flex-1 min-w-[200px]">
+                    <label data-i18n="addImageAll" class="block text-sm font-medium text-gray-700 mb-2">
+                      הוסף תמונה לכל המדבקות:
+                    </label>
+                    <div class="relative inline-block">
+                      <button id="addImageAllBtn" data-i18n="selectImage"
+                        class="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700 transition-all shadow-md">
+                        בחר תמונה ▾
+                      </button>
+                      <div id="imageAllMenu"
+                        class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-pink-200 z-50 min-w-[200px]">
+                        <label for="imageInput" data-i18n="fromComputer"
+                          class="block px-4 py-3 hover:bg-pink-50 cursor-pointer rounded-t-lg border-b border-gray-200">
+                          מהמחשב
+                        </label>
+                        <button id="loadImageFromGithubAll" data-i18n="fromRepo"
+                          class="w-full text-right px-4 py-3 hover:bg-pink-50 rounded-b-lg">
+                          מהמאגר
+                        </button>
+                      </div>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/*" class="hidden">
+                  </div>
+                  <div class="flex-1 min-w-[200px]">
+                    <label data-i18n="addImageSingle" class="block text-sm font-medium text-gray-700 mb-2">
+                      הוסף תמונה למדבקה נבחרת:
+                    </label>
+                    <div class="relative inline-block">
+                      <button id="addImageSingleBtn" data-i18n="selectImage"
+                        class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md">
+                        בחר תמונה ▾
+                      </button>
+                      <div id="imageSingleMenu"
+                        class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-purple-200 z-50 min-w-[200px]">
+                        <label for="singleImageInput" data-i18n="fromComputer"
+                          class="block px-4 py-3 hover:bg-purple-50 cursor-pointer rounded-t-lg border-b border-gray-200">
+                          מהמחשב
+                        </label>
+                        <button id="loadImageFromGithubSingle" data-i18n="fromRepo"
+                          class="w-full text-right px-4 py-3 hover:bg-purple-50 rounded-b-lg">
+                          מהמאגר
+                        </button>
+                      </div>
+                    </div>
+                    <input type="file" id="singleImageInput" accept="image/*" class="hidden">
+                  </div>
+                </div>
+                <p data-i18n="clickStickerImageHint" class="text-sm text-gray-600 italic mt-2">לחץ על מדבקה כדי לבחור
+                  אותה לפני הוספת תמונה בודדת</p>
+
+                <!-- כפתור הכנת תמונה מדויקת -->
+                <div class="flex flex-col items-center mt-4">
+                  <div class="relative">
+                    <button id="precisionImageBtn" type="button"
+                      class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black rounded-2xl hover:from-cyan-600 hover:to-blue-700 transition-all shadow-2xl flex items-center justify-center gap-4 relative overflow-hidden">
+                      <!-- אפקט זכוכית עם ברק -->
+                      <div
+                        class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/40 to-white/10 opacity-60">
+                      </div>
+                      <div
+                        class="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-50 transform -skew-x-12">
+                      </div>
+                      <div class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10"></div>
+                      <span data-i18n="precisionImage"
+                        class="precision-btn-text relative z-10">🎯 הכנת תמונה מדויקת</span>
+                    </button>
+                  </div>
+                  <div class="text-center mt-2">
+                    <p data-i18n="precisionImageDesc" class="text-xs text-gray-600 max-w-xs mx-auto font-medium">
+                      הוספת תמונה למדבקה נבחרת עם דיוק על המילימטר
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+
+          </div>
+
+          <!-- Legal Links -->
+          <div class="mt-4 pt-3 border-t border-cyan-200 text-center text-xs text-gray-600">
+            <a href="legal/privacy-policy.html" target="_blank" data-i18n="privacyPolicy"
+              class="hover:text-indigo-600 transition-colors underline cursor-pointer">
+              מדיניות פרטיות
+            </a>
+            <span class="mx-2">|</span>
+            <a href="legal/terms-of-service.html" target="_blank" data-i18n="termsOfService"
+              class="hover:text-indigo-600 transition-colors underline cursor-pointer">
+              תנאי שימוש
+            </a>
+          </div>
+        </div>
+
+        <!-- Numbers Mode Content (Combined: מיספור להדפסה + הגרלת מספרים) -->
+        <div id="numbersContent" class="hidden">
+          <!-- Sub-tabs for Numbering and Lottery -->
+          <div class="no-print mb-4 bg-cyan-50 rounded-2xl shadow-lg p-4">
+            <div class="flex gap-12 justify-center">
+              <button id="numbersSubTabNumbering" data-i18n="numberingTab"
+                class="main-tab-button tab-numbers active px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+                🔢 מיספור להדפסה
+              </button>
+              <button id="numbersSubTabLottery" data-i18n="lotteryNumbersTab"
+                class="main-tab-button tab-lottery px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+                🎲 הגרלת מספרים
+              </button>
             </div>
           </div>
 
-          <!-- הגדרות נוספות -->
-          <div class="flex gap-4 items-center flex-wrap justify-center mb-4">
-            <div class="flex items-center gap-2">
-              <label data-i18n="uploadLimit" class="text-sm font-medium text-gray-700">כמה מדבקות לעלות:</label>
-              <input type="number" id="uploadLimitInput" min="0" value="1" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+          <!-- Numbering Sub-tab Content -->
+          <div id="numberingSubContent">
+            <!-- Numbers Tools -->
+            <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-6">
+              <h2 data-i18n="numberingTools" class="text-xl font-bold text-gray-800 mb-4">כלי מיספור</h2>
+              <div class="flex gap-4 items-end flex-wrap">
+                <div class="flex-1 min-w-[200px]">
+                  <label data-i18n="uploadSingleSticker" class="block text-sm font-medium text-gray-700 mb-2">
+                    העלה מדבקה אחת:
+                  </label>
+                  <div class="relative inline-block">
+                    <button id="uploadNumberStickerBtn" data-i18n="selectSticker"
+                      class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-bold rounded-lg hover:from-indigo-600 hover:to-blue-700 transition-all shadow-md">
+                      📁 בחר מדבקה ▾
+                    </button>
+                    <div id="numbersStickerMenu"
+                      class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
+                      <label for="singleStickerInput" data-i18n="fromComputer"
+                        class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-t-lg border-b border-gray-200">
+                        💻 מהמחשב
+                      </label>
+                      <button id="loadFromRepoNumbersSticker" data-i18n="fromRepo"
+                        class="w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg">
+                        🌐 מהמאגר
+                      </button>
+                    </div>
+                  </div>
+                  <input type="file" id="singleStickerInput" accept="image/*,.svg" class="hidden">
+                  <span id="stickerFileName" class="text-sm text-gray-600 mr-2"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="startNumber" class="text-sm font-medium text-gray-700">מספר התחלתי:</label>
+                  <input type="number" id="startNumber" min="1" value="1"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="endNumber" class="text-sm font-medium text-gray-700">עד מספר:</label>
+                  <input type="number" id="endNumber" min="1" value="150"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="stickersPerRow" class="text-sm font-medium text-gray-700">מדבקות בשורה:</label>
+                  <input type="number" id="stickersPerRow" min="1" max="10" value="6"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="spacing" class="text-sm font-medium text-gray-700">רווח (פיקסלים):</label>
+                  <input type="number" id="numberSpacing" min="0" max="200" value="1"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="numberColor" class="text-sm font-medium text-gray-700">צבע מספר:</label>
+                  <input type="color" id="numberColorPicker" class="color-picker-btn" value="#000000">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="font" class="text-sm font-medium text-gray-700">פונט:</label>
+                  <select id="numberFontFamily" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Tahoma">Tahoma</option>
+                    <option value="Impact">Impact</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="weight" class="text-sm font-medium text-gray-700">עובי:</label>
+                  <select id="numberFontWeight" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+                    <option data-i18n="weightThin" value="300">דק</option>
+                    <option data-i18n="weightNormal" value="400">רגיל</option>
+                    <option data-i18n="weightMedium" value="600">בינוני</option>
+                    <option data-i18n="weightBold" value="700" selected>מודגש</option>
+                    <option data-i18n="weightBlack" value="900">עבה מאוד</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="size" class="text-sm font-medium text-gray-700">גודל:</label>
+                  <input type="number" id="numberFontSize" min="12" max="72" value="32"
+                    class="w-20 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <button id="generateNumbersBtn" data-i18n="generateNumberedStickers"
+                  class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
+                  🔢 צור מדבקות ממוספרות
+                </button>
+                <button id="centerNumbersBtn" data-i18n="centerNumbers"
+                  class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
+                  📍 מרכז מספרים
+                </button>
+                <button id="downloadNumbersPdfBtn" data-i18n="downloadPdf" data-i18n-title="highQuality"
+                  title="איכות גבוהה"
+                  class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+                  📥 הורד PDF
+                </button>
+                <button id="downloadNumbersImageBtn" data-i18n="downloadImage" data-i18n-title="highQuality"
+                  title="איכות גבוהה"
+                  class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
+                  🖼️ הורד תמונה
+                </button>
+              </div>
+              <p data-i18n="dragNumberHint" class="text-sm text-gray-500 mt-2">💡 גרור את המספר במדבקה אחת וכל המספרים
+                במדבקות האחרות יזוזו באותה התזוזה!</p>
             </div>
-            <span id="fileCount" class="text-sm text-gray-600"></span>
+
+            <!-- Numbers Preview -->
+            <div id="numbersPreviewSection" class="mb-8 bg-cyan-50 rounded-2xl shadow-lg p-6 hidden">
+              <h2 data-i18n="numberedStickersPage" class="text-xl font-bold text-gray-800 mb-4 text-center">דף המדבקות
+                הממוספרות</h2>
+              <div id="numbersPreview" class="bg-white"></div>
+            </div>
+
+            <!-- Numbers Empty State -->
+            <div id="numbersEmptyState" class="text-center py-16 text-gray-400">
+              <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01">
+                </path>
+              </svg>
+              <p data-i18n="uploadStickersStart" class="text-xl font-medium">העלה עיצובי מדבקות כדי להתחיל</p>
+            </div>
           </div>
 
-          <div class="flex gap-4 items-end flex-wrap justify-center">
-            <div class="flex flex-col">
+          <!-- Lottery Sub-tab Content -->
+          <div id="lotterySubContent" class="hidden">
+            <!-- Lottery Tools -->
+            <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-6">
+              <h2 data-i18n="lotterySettings" class="text-xl font-bold text-gray-800 mb-4">הגדרות הגרלה</h2>
+              <div class="flex gap-4 items-end flex-wrap">
+                <div class="flex items-center gap-2">
+                  <label data-i18n="minNumber" class="text-sm font-medium text-gray-700">מספר מינימלי:</label>
+                  <input type="number" id="lotteryMin" min="1" value="1"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="maxNumber" class="text-sm font-medium text-gray-700">מספר מקסימלי:</label>
+                  <input type="number" id="lotteryMax" min="1" value="150"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="countToDraw" class="text-sm font-medium text-gray-700">כמה מספרים להגריל:</label>
+                  <input type="number" id="lotteryCount" min="1" value="150"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="numbersPerRow" class="text-sm font-medium text-gray-700">מספרים בשורה:</label>
+                  <input type="number" id="lotteryPerRow" min="1" max="20" value="5"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="fontSize" class="text-sm font-medium text-gray-700">גודל פונט:</label>
+                  <input type="number" id="lotteryFontSize" min="12" max="120" value="27"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="numberColor" class="text-sm font-medium text-gray-700">צבע מספר:</label>
+                  <input type="color" id="lotteryColor" class="color-picker-btn" value="#000000">
+                </div>
+                <button id="generateLotteryBtn" data-i18n="drawNumbers"
+                  class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
+                  🎲 הגרל מספרים
+                </button>
+                <button id="downloadLotteryPdfBtn" data-i18n="downloadPdf" data-i18n-title="highQuality"
+                  title="איכות גבוהה"
+                  class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+                  📥 הורד PDF
+                </button>
+              </div>
+              <p data-i18n="drawNumbersHint" class="text-sm text-gray-500 mt-2">💡 הזן טווח מספרים וכמה מספרים להגריל,
+                ואז לחץ על הגרל מספרים!</p>
+            </div>
+
+            <!-- Lottery Results -->
+            <div id="lotteryResultsSection" class="mb-8 bg-cyan-50 rounded-2xl shadow-lg p-6 hidden">
+              <h2 data-i18n="lotteryResults" class="text-xl font-bold text-gray-800 mb-4 text-center">תוצאות ההגרלה</h2>
+              <div id="lotteryResults" class="bg-white"></div>
+            </div>
+
+            <!-- Lottery Empty State -->
+            <div id="lotteryEmptyState" class="text-center py-16 text-gray-400">
+              <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p data-i18n="lotteryEmptyState" class="text-xl font-medium">הגדר את הטווח ולחץ על הגרל מספרים</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Names Lottery Mode Content -->
+        <div id="namesLotteryContent" class="hidden">
+          <!-- Upload Section -->
+          <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-6">
+            <h2 data-i18n="uploadExcel" class="text-xl font-bold text-gray-800 mb-4">
+              העלאת קובץ אקסל
+            </h2>
+            <div class="flex gap-4 items-center flex-wrap mb-4">
               <div class="flex items-center gap-2">
-                <label data-i18n="stickerSize" class="text-sm font-medium text-gray-700">גודל המדבקה:</label>
-                <span data-i18n="stickersCountIn" class="text-xs text-gray-500">כמה מדבקות נכנסות ב</span>
-                <select id="stickerSizeModeSelect" class="px-3 py-2 border-2 border-gray-300 rounded-lg min-w-[120px]">
-                  <option data-i18n="byWidth" value="width" selected>לפי רוחב</option>
-                  <option data-i18n="byHeight" value="height">לפי אורך</option>
+                <label data-i18n="uploadType" class="text-sm font-medium text-gray-700">סוג העלאה:</label>
+                <select id="namesUploadType" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
+                  <option data-i18n="typeSimple" value="simple">שמות בלבד (עמודה A)</option>
+                  <option data-i18n="typeGroups" value="groups">שמות לפי קבוצות</option>
+                  <option data-i18n="typeTickets" value="tickets">שמות וכמות כרטיסים</option>
+                  <option data-i18n="typeGroupsTickets" value="groupsTickets">שמות קבוצות וכרטיסים</option>
                 </select>
-                <input type="number" id="stickersPerRowInput" min="1" max="30" value="2" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
               </div>
-              <div data-i18n="sizeNote" class="text-xs text-blue-600 mt-1">
-                💡 הגדרות אלו חלות רק על מדבקות חדשות שתעלה
+              <button id="downloadNamesTemplateBtn" data-i18n="downloadTemplate"
+                class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all shadow-md">
+                📄 הורד תבנית
+              </button>
+              <label for="namesExcelInput" data-i18n="uploadExcelBtn"
+                class="cursor-pointer px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md">
+                📁 העלה קובץ אקסל
+              </label>
+              <input type="file" id="namesExcelInput" accept=".xlsx,.xls,.csv" class="hidden">
+              <button id="saveToDriveNamesBtn" data-i18n="saveToDrive"
+                class="hidden px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md">
+                ☁️ שמור ל-Drive
+              </button>
+              <div class="flex flex-col text-xs text-blue-600">
+                <span data-i18n="csvOnlyNote">ניתן לעלות בפורמט csv בלבד!</span>
+                <span data-i18n="templateNote">נא להקפיד להזין את השמות בדיוק לפי התבנית!</span>
+              </div>
+              <span id="namesFileInfo" class="text-sm text-gray-600"></span>
+            </div>
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <p data-i18n="instructions" class="text-sm text-blue-800 font-medium mb-2">📋 הוראות:</p>
+              <div id="namesUploadInstructions">
+                <p class="text-sm text-blue-700"><strong>שמות בלבד:</strong> הזן שמות בעמודה A מתא A2 ומטה (שורה 1
+                  לכותרת)</p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
-              <label data-i18n="pageEdgeMargins" class="text-sm font-medium text-gray-700">שוליים מהדף (px):</label>
-              <input type="number" id="edgeMarginInput" min="0" max="200" value="1" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-            </div>
-            <div class="flex items-center gap-2">
-              <label data-i18n="gapBetweenStickers" class="text-sm font-medium text-gray-700">רווח בין מדבקות (px):</label>
-              <input type="number" id="gapInput" min="0" max="200" value="1" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+            <div id="namesPreviewSection" class="mt-4 hidden">
+              <h3 data-i18n="loadedNames" class="text-lg font-bold text-gray-700 mb-2">שמות שנטענו:</h3>
+              <div id="namesPreviewList" class="max-h-80 overflow-y-auto bg-gray-50 rounded-lg p-3 border"></div>
             </div>
           </div>
-          <div id="stickerLayoutInfo" class="text-xs text-gray-600 mt-2 text-center"></div>
-          <div data-i18n="sizeUpdateSuccess" class="text-xs text-green-600 mt-1 text-center font-medium">
-            ✅ שינוי גודל המדבקה כעת משפיע רק על מדבקות חדשות שתעלה
+
+          <!-- Sub-tabs for Notes and Lottery -->
+          <div class="no-print mb-4 bg-cyan-50 rounded-2xl shadow-lg p-4">
+            <div class="flex gap-12 justify-center">
+              <button id="namesSubTabNotes" data-i18n="prepareNotes"
+                class="btn-disabled main-tab-button tab-names active px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+                🏷️ הכנת פתקים
+              </button>
+              <button id="namesSubTabLottery" data-i18n="namesLotteryTab"
+                class="btn-disabled main-tab-button tab-lottery px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+                🎲 הגרלת שמות
+              </button>
+            </div>
           </div>
-          
-          <!-- כפתור הכנת מדבקה מדויקת - עותק מדויק של כפתור הוסף מדבקה -->
-          <!-- Tutorial for Precision Sticker -->
-          <div class="flex justify-center mt-4 mb-2">
-            <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-900 cursor-pointer" data-tutorial-section="PrecisionSticker" role="button" tabindex="0" aria-label="סרטון הדרכה - מדבקה מדויקת">
-              <span class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-emerald-300 bg-white">?</span>
+
+          <!-- Notes Sub-tab Content -->
+          <div id="namesNotesContent">
+            <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-6">
+              <h2 data-i18n="prepareNotesPrint" class="text-xl font-bold text-gray-800 mb-4">הכנת פתקים להדפסה</h2>
+              <div class="flex gap-4 items-end flex-wrap">
+                <div class="flex-1 min-w-[200px]">
+                  <label data-i18n="uploadNoteImage" class="block text-sm font-medium text-gray-700 mb-2">העלה תמונת
+                    פתק:</label>
+                  <div class="relative inline-block">
+                    <button id="namesNoteImageBtn" data-i18n="selectImage"
+                      class="btn-disabled px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-bold rounded-lg hover:from-indigo-600 hover:to-blue-700 transition-all shadow-md">
+                      📁 בחר תמונה ▾
+                    </button>
+                    <div id="namesNoteImageMenu"
+                      class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
+                      <label for="namesNoteImageInput" data-i18n="fromComputer"
+                        class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-t-lg border-b border-gray-200">
+                        💻 מהמחשב
+                      </label>
+                      <button id="loadNamesNoteFromGithub" data-i18n="fromRepo"
+                        class="w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg">
+                        🌐 מהמאגר
+                      </button>
+                    </div>
+                  </div>
+                  <input type="file" id="namesNoteImageInput" accept="image/*" class="hidden">
+                  <span id="namesNoteFileName" class="text-sm text-gray-600 mr-2"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="notesPerRow" class="text-sm font-medium text-gray-700">פתקים בשורה:</label>
+                  <input type="number" id="namesNotesPerRow" min="1" max="10" value="4"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="spacing" class="text-sm font-medium text-gray-700">רווח (פיקסלים):</label>
+                  <input type="number" id="namesNotesSpacing" min="0" max="200" value="5"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="textColor" class="text-sm font-medium text-gray-700">צבע טקסט:</label>
+                  <input type="color" id="namesNotesColor" class="color-picker-btn" value="#000000">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="fontSize" class="text-sm font-medium text-gray-700">גודל פונט:</label>
+                  <input type="number" id="namesNotesFontSize" min="8" max="72" value="18"
+                    class="w-20 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <button id="generateNamesNotesBtn" data-i18n="generateNotes"
+                  class="btn-disabled px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
+                  🏷️ צור פתקים
+                </button>
+                <button id="centerNamesNotesBtn" data-i18n="centerText"
+                  class="btn-disabled px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
+                  📍 מרכז טקסט
+                </button>
+                <button id="downloadNamesNotesPdfBtn" data-i18n="downloadPdf"
+                  class="btn-disabled px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+                  📥 הורד PDF
+                </button>
+                <button id="printNamesNotesBtn" data-i18n="print"
+                  class="btn-disabled px-6 py-3 bg-gradient-to-r from-slate-500 to-gray-600 text-white font-bold rounded-lg hover:from-slate-600 hover:to-gray-700 transition-all shadow-md hover:shadow-lg">
+                  🖨️ הדפס
+                </button>
+              </div>
+              <p data-i18n="dragTextHint" class="text-sm text-gray-500 mt-2">💡 גרור את הטקסט בפתק אחד וכל הטקסטים
+                בפתקים האחרים יזוזו באותה התזוזה!</p>
+            </div>
+
+            <!-- Names Notes Preview -->
+            <div id="namesNotesPreviewSection" class="mb-8 bg-white rounded-2xl shadow-lg p-6 hidden">
+              <h2 data-i18n="notesToPrint" class="text-xl font-bold text-gray-800 mb-4 text-center">פתקים להדפסה</h2>
+              <div id="namesNotesPreview" class="bg-white"></div>
+            </div>
+
+            <!-- Names Notes Empty State -->
+            <div id="namesNotesEmptyState" class="text-center py-16 text-gray-400">
+              <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01">
+                </path>
+              </svg>
+              <p data-i18n="uploadExcelHint" class="text-xl font-medium">העלה קובץ אקסל ותמונת פתק כדי להתחיל</p>
+            </div>
+          </div>
+
+          <!-- Lottery Sub-tab Content -->
+          <div id="namesLotterySubContent" class="hidden">
+            <div class="no-print mb-6 bg-white rounded-2xl shadow-lg p-6">
+              <h2 data-i18n="lotteryNamesTitle" class="text-xl font-bold text-gray-800 mb-4">הגרלת שמות</h2>
+              <div class="flex gap-4 items-end flex-wrap">
+                <div class="flex items-center gap-2">
+                  <label data-i18n="howManyResults" class="text-sm font-medium text-gray-700">כמה תוצאות:</label>
+                  <input type="number" id="namesLotteryWinners" min="1" value="5"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="resultsPerRow" class="text-sm font-medium text-gray-700">תוצאות בשורה:</label>
+                  <input type="number" id="namesLotteryPerRow" min="1" max="10" value="5"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-center gap-2">
+                  <label data-i18n="fontSize" class="text-sm font-medium text-gray-700">גודל פונט:</label>
+                  <input type="number" id="namesLotteryFontSize" min="12" max="72" value="18"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <button id="downloadNamesLotteryPdfBtn" data-i18n="downloadPdf"
+                  class="btn-disabled px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
+                  📥 הורד PDF
+                </button>
+                <button id="printNamesLotteryBtn" data-i18n="print"
+                  class="btn-disabled px-6 py-3 bg-gradient-to-r from-slate-500 to-gray-600 text-white font-bold rounded-lg hover:from-slate-600 hover:to-gray-700 transition-all shadow-md hover:shadow-lg">
+                  🖨️ הדפס
+                </button>
+              </div>
+              <p data-i18n="lotteryNamesHint" class="text-sm text-gray-500 mt-2">💡 "הגרל את כולם" - מגריל X תוצאות מכל
+                השמות | "הגרל לפי קבוצה" - מגריל X תוצאות מכל קבוצה</p>
+            </div>
+
+            <!-- Names Lottery Results -->
+            <div id="namesLotteryResultsSection" class="mb-8 bg-white rounded-2xl shadow-lg p-6 hidden">
+              <h2 data-i18n="lotteryResults" class="text-xl font-bold text-gray-800 mb-4 text-center">תוצאות ההגרלה</h2>
+              <div id="namesLotteryResults" class="bg-white"></div>
+            </div>
+
+            <!-- Names Lottery Empty State -->
+            <div id="namesLotteryEmptyState" class="text-center py-16 text-gray-400">
+              <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                </path>
+              </svg>
+              <p data-i18n="excelLotteryHint" class="text-xl font-medium">העלה קובץ אקסל ולחץ על הגרל שמות</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Print Preview Section -->
+        <div id="printPreviewSection" class="p-4 min-w-0 flex-1">
+          <!-- Tutorial Help Link -->
+          <div class="no-print mb-2 flex justify-end">
+            <span
+              class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 cursor-pointer"
+              data-tutorial-section="Global" role="button" tabindex="0" aria-label="סרטון הדרכה">
+              <span
+                class="w-4 h-4 flex items-center justify-center rounded-full border border-blue-300 bg-white text-xs">?</span>
               <span data-i18n="tutorial">הדרכה</span>
-              <span>- הכנת מדבקה מדויקת</span>
             </span>
           </div>
-          <div class="flex justify-center">
-            <div class="relative">
-              <button id="precisionStickerBtn" type="button" onclick="openPrecisionModal(event)" style="width: 360px; height: 65px; padding: 10px 20px;" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black rounded-2xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-2xl flex items-center justify-center gap-4 relative overflow-hidden">
-                <!-- אפקט זכוכית עם ברק -->
-                <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/40 to-white/10 opacity-60"></div>
-                <div class="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-50 transform -skew-x-12"></div>
-                <div class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10"></div>
-                <span data-i18n="precisionSticker" style="font-size: 36px !important; line-height: 1; display: inline-block; text-align: center; vertical-align: middle; text-shadow: 0 2px 4px rgba(0,0,0,0.3);" class="relative z-10">🎯 הכנת מדבקה מדויקת</span>
+
+          <!-- Main Toolbar -->
+          <div id="pageOrientationToolbar"
+            class="no-print mb-2 flex items-center justify-between gap-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-indigo-200">
+            <!-- Right side - Undo/Redo and Orientation -->
+            <div class="flex items-center gap-4">
+              <!-- Undo/Redo Buttons -->
+              <div class="flex items-center gap-2">
+                <button id="undoBtn" type="button" data-i18n="undo"
+                  class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">↩️
+                  בטל</button>
+                <button id="redoBtn" type="button" data-i18n="redo"
+                  class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">↪️
+                  אחזר</button>
+              </div>
+
+              <div class="h-6 w-px bg-gray-300"></div>
+
+              <!-- Page Orientation Dropdown -->
+              <div class="relative">
+                <button id="orientationDropdownBtn"
+                  class="px-4 py-2 bg-white border-2 border-indigo-400 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 transition-all flex items-center gap-2">
+                  <span id="orientationDropdownIcon" class="text-lg">📄</span>
+                  <span id="orientationDropdownText">כיוון הדף: לאורך</span>
+                  <span class="text-xs">▾</span>
+                </button>
+                <div id="orientationDropdownMenu"
+                  class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[180px]">
+                  <button id="orientationPortraitBtn"
+                    class="orientation-option w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-t-lg border-b border-gray-200 flex items-center gap-2 font-bold">
+                    <span class="text-lg">📄</span> <span data-i18n="portrait">לאורך</span>
+                  </button>
+                  <button id="orientationLandscapeBtn"
+                    class="orientation-option w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg flex items-center gap-2 font-bold">
+                    <span class="text-lg">📃</span> <span data-i18n="landscape">לרוחב</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Left side - Global Controls -->
+            <div class="flex items-center gap-2">
+              <button id="syncElementsBtn" data-i18n="sync"
+                class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">
+                🔗 סנכרון
               </button>
-            </div>
-            <div class="text-center mt-2">
-              <p data-i18n="precisionStickerDesc" class="text-xs text-gray-600 max-w-xs mx-auto font-medium">
-                בניית מדבקה להדפסה עם דיוק על המילימטר
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Text Section -->
-      <div class="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-        <button type="button" id="toolsSectionBtnText" class="tools-section-header w-full flex items-center justify-between font-bold text-blue-800 mb-3">
-          <span class="flex items-center gap-2">
-            <span data-i18n="textSection">📝 הוספת טקסט</span>
-            <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900" data-tutorial-section="Text" role="button" tabindex="0" aria-label="סרטון הדרכה">
-              <span class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-blue-300 bg-white">?</span>
-              <span data-i18n="tutorial" class="hidden sm:inline">הדרכה</span>
-            </span>
-          </span>
-          <span id="toolsSectionChevronText">▸</span>
-        </button>
-        <div id="toolsSectionContentText" class="hidden">
-        <div class="flex gap-4 items-end flex-wrap">
-         <div class="flex-1 min-w-[200px]">
-          <label for="wordInput" data-i18n="enterWord" class="block text-sm font-medium text-gray-700 mb-2">
-            הזן מילה:
-          </label>
-          <input type="text" id="wordInput" data-i18n="wordPlaceholder" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="הקלד מילה">
-         </div>
-         <div class="flex items-center gap-2">
-          <label data-i18n="textColor" class="text-sm font-medium text-gray-700">צבע טקסט:</label>
-          <div class="relative inline-flex items-center">
-            <button type="button" id="textColorSwatch" class="color-swatch-btn" aria-label="בחר צבע"></button>
-            <div id="textColorPalette" class="color-palette hidden">
-              <div id="textColorPaletteGrid" class="color-palette-grid"></div>
-            </div>
-            <input type="color" id="textColorPicker" class="hidden" value="#000000">
-          </div>
-         </div>
-         <div class="flex items-center gap-2">
-          <label data-i18n="font" class="text-sm font-medium text-gray-700">פונט:</label>
-          <select id="fontFamilyInput" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
-            <option value="Arial">Arial</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Verdana">Verdana</option>
-            <option value="Tahoma">Tahoma</option>
-            <option value="Comic Sans MS">Comic Sans MS</option>
-            <option value="Impact">Impact</option>
-            <option value="Trebuchet MS">Trebuchet MS</option>
-            <option value="Palatino">Palatino</option>
-          </select>
-         </div>
-         <div class="flex items-center gap-2">
-          <label data-i18n="weight" class="text-sm font-medium text-gray-700">עובי:</label>
-          <select id="fontWeightInput" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
-            <option data-i18n="weightThin" value="300">דק</option>
-            <option data-i18n="weightNormal" value="400">רגיל</option>
-            <option data-i18n="weightMedium" value="600">בינוני</option>
-            <option data-i18n="weightBold" value="700" selected>מודגש</option>
-            <option data-i18n="weightBlack" value="900">עבה מאוד</option>
-          </select>
-         </div>
-         <div class="flex items-center gap-2">
-          <label data-i18n="size" class="text-sm font-medium text-gray-700">גודל:</label>
-          <button id="decreaseSelectedWordFontBtn" type="button" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">-</button>
-          <input type="number" id="fontSizeInput" min="8" max="240" value="25" class="w-20 px-3 py-2 border-2 border-gray-300 rounded-lg">
-          <button id="increaseSelectedWordFontBtn" type="button" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">+</button>
-         </div>
-        </div>
-        <div class="flex gap-4 items-center flex-wrap mt-4">
-         <button id="addWordToSelectedBtn" data-i18n="addToSelected" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
-          ➕ הוסף למ מדבקה נבחרת
-         </button>
-         <button id="addToAllBtn" data-i18n="addToAll" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
-          ➕ הוסף לכל המדבקות
-         </button>
-         <button id="replaceAllBtn" data-i18n="replaceAll" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-amber-700 transition-all shadow-md hover:shadow-lg">
-          🔄 החלף בכל המדבקות
-         </button>
-         <p data-i18n="clickStickerHint" class="text-sm text-gray-600 italic">💡 לחץ על מדבקה כדי לבחור אותה, ואז הוסף טקסט רק לה</p>
-        </div>
-        </div>
-      </div>
-      
-      <!-- Image Section -->
-      <div class="mb-6 p-4 bg-pink-50 rounded-lg border-2 border-pink-200">
-        <button type="button" id="toolsSectionBtnImage" class="tools-section-header w-full flex items-center justify-between font-bold text-pink-800 mb-3">
-          <span class="flex items-center gap-2">
-            <span data-i18n="imageSection">🖼️ הוספת תמונה</span>
-            <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-pink-700 hover:text-pink-900" data-tutorial-section="Image" role="button" tabindex="0" aria-label="סרטון הדרכה">
-              <span class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-pink-300 bg-white">?</span>
-              <span data-i18n="tutorial" class="hidden sm:inline">הדרכה</span>
-            </span>
-          </span>
-          <span id="toolsSectionChevronImage">▸</span>
-        </button>
-        <div id="toolsSectionContentImage" class="hidden">
-        <div class="flex gap-4 items-end flex-wrap">
-         <div class="flex-1 min-w-[200px]">
-          <label data-i18n="addImageAll" class="block text-sm font-medium text-gray-700 mb-2">
-            הוסף תמונה לכל המדבקות:
-          </label>
-          <div class="relative inline-block">
-            <button id="addImageAllBtn" data-i18n="selectImage" class="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-rose-700 transition-all shadow-md">
-              🖼️ בחר תמונה ▾
-            </button>
-            <div id="imageAllMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-pink-200 z-50 min-w-[200px]">
-              <label for="imageInput" data-i18n="fromComputer" class="block px-4 py-3 hover:bg-pink-50 cursor-pointer rounded-t-lg border-b border-gray-200">
-                💻 מהמחשב
-              </label>
-              <button id="loadImageFromGithubAll" data-i18n="fromRepo" class="w-full text-right px-4 py-3 hover:bg-pink-50 rounded-b-lg">
-                � מהמאגר
+              <button id="freeEditBtn" data-i18n="freeEdit"
+                class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">
+                ✏️ עריכה חופשית
+              </button>
+              <button id="autoArrangeBtn" data-i18n="autoArrange"
+                class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">
+                🤖 סדר אוטומטי
               </button>
             </div>
           </div>
-          <input type="file" id="imageInput" accept="image/*" class="hidden">
-         </div>
-         <div class="flex-1 min-w-[200px]">
-          <label data-i18n="addImageSingle" class="block text-sm font-medium text-gray-700 mb-2">
-            הוסף תמונה למדבקה נבחרת:
-          </label>
-          <div class="relative inline-block">
-            <button id="addImageSingleBtn" data-i18n="selectImage" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md">
-              🖼️ בחר תמונה ▾
-            </button>
-            <div id="imageSingleMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-purple-200 z-50 min-w-[200px]">
-              <label for="singleImageInput" data-i18n="fromComputer" class="block px-4 py-3 hover:bg-purple-50 cursor-pointer rounded-t-lg border-b border-gray-200">
-                💻 מהמחשב
-              </label>
-              <button id="loadImageFromGithubSingle" data-i18n="fromRepo" class="w-full text-right px-4 py-3 hover:bg-purple-50 rounded-b-lg">
-                � מהמאגר
+
+          <!-- Opacity Control Toolbar (always visible, buttons disabled when nothing selected) -->
+          <div id="opacityControlWrapper"
+            class="no-print mb-2 flex items-center justify-center gap-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+            <div id="opacitySection" class="flex items-center gap-3 opacity-section-disabled">
+              <span class="text-lg">🔍</span>
+              <span data-i18n="opacity" class="text-sm font-bold text-purple-700">שקיפות:</span>
+              <input type="range" id="opacitySlider" min="0" max="100" value="100"
+                class="w-32 h-2 accent-purple-500 cursor-pointer" disabled>
+              <span id="opacityValue" class="text-sm font-bold text-purple-700 w-12">100%</span>
+            </div>
+            <!-- כפתור הסרת רקע -->
+            <div class="flex items-center gap-3 border-r border-purple-300 pr-4">
+              <button id="removeBackgroundBtn" disabled
+                class="px-4 py-2 bg-gray-300 text-gray-500 font-bold rounded-lg shadow-md cursor-not-allowed flex items-center gap-2 relative overflow-hidden">
+                <!-- אנימציית טעינה -->
+                <div id="removeBackgroundLoader"
+                  class="hidden absolute inset-0 bg-gradient-to-r from-red-600 to-pink-700 flex items-center justify-center">
+                  <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span data-i18n="processing" class="text-sm">מעבד...</span>
+                  </div>
+                </div>
+                <!-- תוכן רגיל -->
+                <div id="removeBackgroundContent" class="flex items-center gap-2">
+                  <span class="text-lg">✂️</span>
+                  <span data-i18n="removeBackground">הסרת רקע (AI)</span>
+                </div>
               </button>
             </div>
+            <!-- כפתור מחק -->
+            <div class="flex flex-col items-center gap-2 border-r border-purple-300 pr-4">
+              <button id="eraserBtn" disabled
+                class="px-4 py-2 bg-gray-300 text-gray-500 font-bold rounded-lg shadow-md cursor-not-allowed flex items-center gap-2">
+                <span class="text-lg">🧹</span>
+                <span data-i18n="eraser">מחק</span>
+              </button>
+              <!-- סקלה לגודל המחק (מוסתרת בהתחלה) -->
+              <div id="eraserSizeControl" class="hidden flex items-center gap-2">
+                <span class="text-xs text-gray-600">גודל:</span>
+                <input type="range" id="eraserSizeSlider" min="5" max="100" value="20"
+                  class="w-24 h-2 accent-orange-500 cursor-pointer">
+                <span id="eraserSizeValue" class="text-xs font-bold text-orange-700 w-8">20</span>
+              </div>
+            </div>
           </div>
-          <input type="file" id="singleImageInput" accept="image/*" class="hidden">
-         </div>
-        </div>
-        <p data-i18n="clickStickerImageHint" class="text-sm text-gray-600 italic mt-2">💡 לחץ על מדבקה כדי לבחור אותה לפני הוספת תמונה בודדת</p>
-        
-        <!-- כפתור הכנת תמונה מדויקת -->
-        <div class="flex justify-center mt-4">
-          <div class="relative">
-            <button id="precisionImageBtn" type="button" style="width: 360px; height: 65px; padding: 10px 20px;" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black rounded-2xl hover:from-cyan-600 hover:to-blue-700 transition-all shadow-2xl flex items-center justify-center gap-4 relative overflow-hidden">
-              <!-- אפקט זכוכית עם ברק -->
-              <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/40 to-white/10 opacity-60"></div>
-              <div class="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-50 transform -skew-x-12"></div>
-              <div class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10"></div>
-              <span data-i18n="precisionImage" style="font-size: 36px !important; line-height: 1; display: inline-block; text-align: center; vertical-align: middle; text-shadow: 0 2px 4px rgba(0,0,0,0.3);" class="relative z-10">🎯 הכנת תמונה מדויקת</span>
-            </button>
+
+          <div id="printRuler" class="no-print mb-3">
+            <div id="printRulerTrack">
+              <canvas id="printRulerCanvas"></canvas>
+              <div id="printRulerTicks"></div>
+              <div id="printRulerLabel"></div>
+            </div>
           </div>
-        </div>
-        <div class="text-center mt-2">
-          <p data-i18n="precisionImageDesc" class="text-xs text-gray-600 max-w-xs mx-auto font-medium">
-            הוספת תמונה למדבקה נבחרת עם דיוק על המילימטר
-          </p>
-        </div>
-        </div>
-      </div>
-      
-     </div>
-     
-     <!-- Legal Links -->
-     <div class="mt-4 pt-3 border-t border-cyan-200 text-center text-xs text-gray-600">
-       <a href="legal/privacy-policy.html" 
-          target="_blank" 
-          data-i18n="privacyPolicy" 
-          class="hover:text-indigo-600 transition-colors underline cursor-pointer">
-         מדיניות פרטיות
-       </a>
-       <span class="mx-2">|</span>
-       <a href="legal/terms-of-service.html" 
-          target="_blank" 
-          data-i18n="termsOfService" 
-          class="hover:text-indigo-600 transition-colors underline cursor-pointer">
-         תנאי שימוש
-       </a>
-     </div>
-    </div>
-    
-    <!-- Numbers Mode Content (Combined: מיספור להדפסה + הגרלת מספרים) -->
-    <div id="numbersContent" class="hidden">
-     <!-- Sub-tabs for Numbering and Lottery -->
-     <div class="no-print mb-4 bg-cyan-50 rounded-2xl shadow-lg p-4">
-      <div class="flex gap-12 justify-center">
-       <button id="numbersSubTabNumbering" data-i18n="numberingTab" class="main-tab-button tab-numbers active px-8 py-4 font-bold rounded-lg transition-all shadow-md">
-        🔢 מיספור להדפסה
-       </button>
-       <button id="numbersSubTabLottery" data-i18n="lotteryNumbersTab" class="main-tab-button tab-lottery px-8 py-4 font-bold rounded-lg transition-all shadow-md">
-        🎲 הגרלת מספרים
-       </button>
-      </div>
-     </div>
-     
-     <!-- Numbering Sub-tab Content -->
-     <div id="numberingSubContent">
-     <!-- Numbers Tools -->
-     <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-6">
-      <h2 data-i18n="numberingTools" class="text-xl font-bold text-gray-800 mb-4">כלי מיספור</h2>
-      <div class="flex gap-4 items-end flex-wrap">
-       <div class="flex-1 min-w-[200px]">
-        <label data-i18n="uploadSingleSticker" class="block text-sm font-medium text-gray-700 mb-2">
-          העלה מדבקה אחת:
-        </label>
-        <div class="relative inline-block">
-          <button id="uploadNumberStickerBtn" data-i18n="selectSticker" class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-bold rounded-lg hover:from-indigo-600 hover:to-blue-700 transition-all shadow-md">
-            📁 בחר מדבקה ▾
-          </button>
-          <div id="numbersStickerMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
-            <label for="singleStickerInput" data-i18n="fromComputer" class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-t-lg border-b border-gray-200">
-              💻 מהמחשב
-            </label>
-            <button id="loadFromRepoNumbersSticker" data-i18n="fromRepo" class="w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg">
-              🌐 מהמאגר
-            </button>
-          </div>
-        </div>
-        <input type="file" id="singleStickerInput" accept="image/*,.svg" class="hidden">
-        <span id="stickerFileName" class="text-sm text-gray-600 mr-2"></span>
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="startNumber" class="text-sm font-medium text-gray-700">מספר התחלתי:</label>
-        <input type="number" id="startNumber" min="1" value="1" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="endNumber" class="text-sm font-medium text-gray-700">עד מספר:</label>
-        <input type="number" id="endNumber" min="1" value="150" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="stickersPerRow" class="text-sm font-medium text-gray-700">מדבקות בשורה:</label>
-        <input type="number" id="stickersPerRow" min="1" max="10" value="6" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="spacing" class="text-sm font-medium text-gray-700">רווח (פיקסלים):</label>
-        <input type="number" id="numberSpacing" min="0" max="200" value="1" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="numberColor" class="text-sm font-medium text-gray-700">צבע מספר:</label>
-        <input type="color" id="numberColorPicker" class="color-picker-btn" value="#000000">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="font" class="text-sm font-medium text-gray-700">פונט:</label>
-        <select id="numberFontFamily" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
-          <option value="Arial">Arial</option>
-          <option value="Times New Roman">Times New Roman</option>
-          <option value="Courier New">Courier New</option>
-          <option value="Georgia">Georgia</option>
-          <option value="Verdana">Verdana</option>
-          <option value="Tahoma">Tahoma</option>
-          <option value="Impact">Impact</option>
-        </select>
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="weight" class="text-sm font-medium text-gray-700">עובי:</label>
-        <select id="numberFontWeight" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
-          <option data-i18n="weightThin" value="300">דק</option>
-          <option data-i18n="weightNormal" value="400">רגיל</option>
-          <option data-i18n="weightMedium" value="600">בינוני</option>
-          <option data-i18n="weightBold" value="700" selected>מודגש</option>
-          <option data-i18n="weightBlack" value="900">עבה מאוד</option>
-        </select>
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="size" class="text-sm font-medium text-gray-700">גודל:</label>
-        <input type="number" id="numberFontSize" min="12" max="72" value="32" class="w-20 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <button id="generateNumbersBtn" data-i18n="generateNumberedStickers" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
-        🔢 צור מדבקות ממוספרות
-       </button>
-       <button id="centerNumbersBtn" data-i18n="centerNumbers" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
-        📍 מרכז מספרים
-       </button>
-       <button id="downloadNumbersPdfBtn" data-i18n="downloadPdf" data-i18n-title="highQuality" title="איכות גבוהה" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
-        📥 הורד PDF
-       </button>
-       <button id="downloadNumbersImageBtn" data-i18n="downloadImage" data-i18n-title="highQuality" title="איכות גבוהה" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
-        🖼️ הורד תמונה
-       </button>
-      </div>
-      <p data-i18n="dragNumberHint" class="text-sm text-gray-500 mt-2">💡 גרור את המספר במדבקה אחת וכל המספרים במדבקות האחרות יזוזו באותה התזוזה!</p>
-     </div>
-     
-     <!-- Numbers Preview -->
-     <div id="numbersPreviewSection" class="mb-8 bg-cyan-50 rounded-2xl shadow-lg p-6 hidden">
-      <h2 data-i18n="numberedStickersPage" class="text-xl font-bold text-gray-800 mb-4 text-center">דף המדבקות הממוספרות</h2>
-      <div id="numbersPreview" class="bg-white"></div>
-     </div>
-     
-     <!-- Numbers Empty State -->
-     <div id="numbersEmptyState" class="text-center py-16 text-gray-400">
-      <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
-     </svg>
-     <p data-i18n="uploadStickersStart" class="text-xl font-medium">העלה עיצובי מדבקות כדי להתחיל</p>
-    </div>
-   </div>
-     
-     <!-- Lottery Sub-tab Content -->
-     <div id="lotterySubContent" class="hidden">
-     <!-- Lottery Tools -->
-     <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-6">
-      <h2 data-i18n="lotterySettings" class="text-xl font-bold text-gray-800 mb-4">הגדרות הגרלה</h2>
-      <div class="flex gap-4 items-end flex-wrap">
-       <div class="flex items-center gap-2">
-        <label data-i18n="minNumber" class="text-sm font-medium text-gray-700">מספר מינימלי:</label>
-        <input type="number" id="lotteryMin" min="1" value="1" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="maxNumber" class="text-sm font-medium text-gray-700">מספר מקסימלי:</label>
-        <input type="number" id="lotteryMax" min="1" value="150" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="countToDraw" class="text-sm font-medium text-gray-700">כמה מספרים להגריל:</label>
-        <input type="number" id="lotteryCount" min="1" value="150" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="numbersPerRow" class="text-sm font-medium text-gray-700">מספרים בשורה:</label>
-        <input type="number" id="lotteryPerRow" min="1" max="20" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="fontSize" class="text-sm font-medium text-gray-700">גודל פונט:</label>
-        <input type="number" id="lotteryFontSize" min="12" max="120" value="27" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-       <div class="flex items-center gap-2">
-        <label data-i18n="numberColor" class="text-sm font-medium text-gray-700">צבע מספר:</label>
-        <input type="color" id="lotteryColor" class="color-picker-btn" value="#000000">
-       </div>
-       <button id="generateLotteryBtn" data-i18n="drawNumbers" class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
-        🎲 הגרל מספרים
-       </button>
-       <button id="downloadLotteryPdfBtn" data-i18n="downloadPdf" data-i18n-title="highQuality" title="איכות גבוהה" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
-        📥 הורד PDF
-       </button>
-      </div>
-      <p data-i18n="drawNumbersHint" class="text-sm text-gray-500 mt-2">💡 הזן טווח מספרים וכמה מספרים להגריל, ואז לחץ על הגרל מספרים!</p>
-     </div>
-     
-     <!-- Lottery Results -->
-     <div id="lotteryResultsSection" class="mb-8 bg-cyan-50 rounded-2xl shadow-lg p-6 hidden">
-      <h2 data-i18n="lotteryResults" class="text-xl font-bold text-gray-800 mb-4 text-center">תוצאות ההגרלה</h2>
-      <div id="lotteryResults" class="bg-white"></div>
-     </div>
-     
-     <!-- Lottery Empty State -->
-     <div id="lotteryEmptyState" class="text-center py-16 text-gray-400">
-      <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-      <p data-i18n="lotteryEmptyState" class="text-xl font-medium">הגדר את הטווח ולחץ על הגרל מספרים</p>
-     </div>
-     </div>
-   </div>
-    
-    <!-- Names Lottery Mode Content -->
-    <div id="namesLotteryContent" class="hidden">
-     <!-- Upload Section -->
-     <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-6">
-      <h2 data-i18n="uploadExcel" class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-        העלאת קובץ אקסל
-        <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-green-700 hover:text-green-900" data-tutorial-section="NamesUpload" role="button" tabindex="0" aria-label="סרטון הדרכה">
-          <span class="w-5 h-5 flex items-center justify-center rounded-full border-2 border-green-300 bg-white">?</span>
-          <span data-i18n="tutorial" class="hidden sm:inline">הדרכה</span>
-        </span>
-      </h2>
-      <div class="flex gap-4 items-center flex-wrap mb-4">
-       <div class="flex items-center gap-2">
-        <label data-i18n="uploadType" class="text-sm font-medium text-gray-700">סוג העלאה:</label>
-        <select id="namesUploadType" class="px-3 py-2 border-2 border-gray-300 rounded-lg">
-          <option data-i18n="typeSimple" value="simple">שמות בלבד (עמודה A)</option>
-          <option data-i18n="typeGroups" value="groups">שמות לפי קבוצות</option>
-          <option data-i18n="typeTickets" value="tickets">שמות וכמות כרטיסים</option>
-          <option data-i18n="typeGroupsTickets" value="groupsTickets">שמות קבוצות וכרטיסים</option>
-        </select>
-       </div>
-       <button id="downloadNamesTemplateBtn" data-i18n="downloadTemplate" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all shadow-md">
-        📄 הורד תבנית
-       </button>
-       <label for="namesExcelInput" data-i18n="uploadExcelBtn" class="cursor-pointer px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md">
-        📁 העלה קובץ אקסל
-       </label>
-       <input type="file" id="namesExcelInput" accept=".xlsx,.xls,.csv" class="hidden">
-       <button id="saveToDriveNamesBtn" data-i18n="saveToDrive" class="hidden px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md">
-        ☁️ שמור ל-Drive
-       </button>
-       <div class="flex flex-col text-xs text-blue-600">
-        <span data-i18n="csvOnlyNote">ניתן לעלות בפורמט csv בלבד!</span>
-        <span data-i18n="templateNote">נא להקפיד להזין את השמות בדיוק לפי התבנית!</span>
-       </div>
-       <span id="namesFileInfo" class="text-sm text-gray-600"></span>
-      </div>
-      <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-       <p data-i18n="instructions" class="text-sm text-blue-800 font-medium mb-2">📋 הוראות:</p>
-       <div id="namesUploadInstructions">
-        <p class="text-sm text-blue-700"><strong>שמות בלבד:</strong> הזן שמות בעמודה A מתא A2 ומטה (שורה 1 לכותרת)</p>
-       </div>
-      </div>
-      <div id="namesPreviewSection" class="mt-4 hidden">
-       <h3 data-i18n="loadedNames" class="text-lg font-bold text-gray-700 mb-2">שמות שנטענו:</h3>
-       <div id="namesPreviewList" class="max-h-80 overflow-y-auto bg-gray-50 rounded-lg p-3 border"></div>
-      </div>
-     </div>
-    
-     <!-- Sub-tabs for Notes and Lottery -->
-     <div class="no-print mb-4 bg-cyan-50 rounded-2xl shadow-lg p-4">
-      <div class="flex gap-12 justify-center">
-       <button id="namesSubTabNotes" data-i18n="prepareNotes" class="btn-disabled main-tab-button tab-names active px-8 py-4 font-bold rounded-lg transition-all shadow-md">
-        🏷️ הכנת פתקים
-       </button>
-       <button id="namesSubTabLottery" data-i18n="namesLotteryTab" class="btn-disabled main-tab-button tab-lottery px-8 py-4 font-bold rounded-lg transition-all shadow-md">
-        🎲 הגרלת שמות
-       </button>
-      </div>
-     </div>
-    
-     <!-- Notes Sub-tab Content -->
-     <div id="namesNotesContent">
-      <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-6">
-       <h2 data-i18n="prepareNotesPrint" class="text-xl font-bold text-gray-800 mb-4">הכנת פתקים להדפסה</h2>
-       <div class="flex gap-4 items-end flex-wrap">
-        <div class="flex-1 min-w-[200px]">
-         <label data-i18n="uploadNoteImage" class="block text-sm font-medium text-gray-700 mb-2">העלה תמונת פתק:</label>
-         <div class="relative inline-block">
-           <button id="namesNoteImageBtn" data-i18n="selectImage" class="btn-disabled px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-bold rounded-lg hover:from-indigo-600 hover:to-blue-700 transition-all shadow-md">
-             📁 בחר תמונה ▾
-           </button>
-           <div id="namesNoteImageMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
-             <label for="namesNoteImageInput" data-i18n="fromComputer" class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-t-lg border-b border-gray-200">
-               💻 מהמחשב
-             </label>
-             <button id="loadNamesNoteFromGithub" data-i18n="fromRepo" class="w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg">
-               🌐 מהמאגר
-             </button>
-           </div>
-         </div>
-         <input type="file" id="namesNoteImageInput" accept="image/*" class="hidden">
-         <span id="namesNoteFileName" class="text-sm text-gray-600 mr-2"></span>
-        </div>
-        <div class="flex items-center gap-2">
-         <label data-i18n="notesPerRow" class="text-sm font-medium text-gray-700">פתקים בשורה:</label>
-         <input type="number" id="namesNotesPerRow" min="1" max="10" value="4" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-        </div>
-        <div class="flex items-center gap-2">
-         <label data-i18n="spacing" class="text-sm font-medium text-gray-700">רווח (פיקסלים):</label>
-         <input type="number" id="namesNotesSpacing" min="0" max="200" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-        </div>
-        <div class="flex items-center gap-2">
-         <label data-i18n="textColor" class="text-sm font-medium text-gray-700">צבע טקסט:</label>
-         <input type="color" id="namesNotesColor" class="color-picker-btn" value="#000000">
-        </div>
-        <div class="flex items-center gap-2">
-         <label data-i18n="fontSize" class="text-sm font-medium text-gray-700">גודל פונט:</label>
-         <input type="number" id="namesNotesFontSize" min="8" max="72" value="18" class="w-20 px-3 py-2 border-2 border-gray-300 rounded-lg">
-       </div>
-        <button id="generateNamesNotesBtn" data-i18n="generateNotes" class="btn-disabled px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg">
-         🏷️ צור פתקים
-        </button>
-        <button id="centerNamesNotesBtn" data-i18n="centerText" class="btn-disabled px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold rounded-lg hover:from-purple-600 hover:to-violet-700 transition-all shadow-md hover:shadow-lg">
-         📍 מרכז טקסט
-        </button>
-        <button id="downloadNamesNotesPdfBtn" data-i18n="downloadPdf" class="btn-disabled px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
-         📥 הורד PDF
-        </button>
-        <button id="printNamesNotesBtn" data-i18n="print" class="btn-disabled px-6 py-3 bg-gradient-to-r from-slate-500 to-gray-600 text-white font-bold rounded-lg hover:from-slate-600 hover:to-gray-700 transition-all shadow-md hover:shadow-lg">
-         🖨️ הדפס
-        </button>
-       </div>
-       <p data-i18n="dragTextHint" class="text-sm text-gray-500 mt-2">💡 גרור את הטקסט בפתק אחד וכל הטקסטים בפתקים האחרים יזוזו באותה התזוזה!</p>
-      </div>
-     
-      <!-- Names Notes Preview -->
-      <div id="namesNotesPreviewSection" class="mb-8 bg-white rounded-2xl shadow-lg p-6 hidden">
-       <h2 data-i18n="notesToPrint" class="text-xl font-bold text-gray-800 mb-4 text-center">פתקים להדפסה</h2>
-       <div id="namesNotesPreview" class="bg-white"></div>
-      </div>
-     
-      <!-- Names Notes Empty State -->
-      <div id="namesNotesEmptyState" class="text-center py-16 text-gray-400">
-       <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
-       </svg>
-       <p data-i18n="uploadExcelHint" class="text-xl font-medium">העלה קובץ אקסל ותמונת פתק כדי להתחיל</p>
-      </div>
-     </div>
-    
-     <!-- Lottery Sub-tab Content -->
-     <div id="namesLotterySubContent" class="hidden">
-      <div class="no-print mb-6 bg-white rounded-2xl shadow-lg p-6">
-       <h2 data-i18n="lotteryNamesTitle" class="text-xl font-bold text-gray-800 mb-4">הגרלת שמות</h2>
-       <div class="flex gap-4 items-end flex-wrap">
-        <div class="flex items-center gap-2">
-         <label data-i18n="howManyResults" class="text-sm font-medium text-gray-700">כמה תוצאות:</label>
-         <input type="number" id="namesLotteryWinners" min="1" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-        </div>
-        <div class="flex items-center gap-2">
-         <label data-i18n="resultsPerRow" class="text-sm font-medium text-gray-700">תוצאות בשורה:</label>
-         <input type="number" id="namesLotteryPerRow" min="1" max="10" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-        </div>
-        <div class="flex items-center gap-2">
-         <label data-i18n="fontSize" class="text-sm font-medium text-gray-700">גודל פונט:</label>
-         <input type="number" id="namesLotteryFontSize" min="12" max="72" value="18" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg">
-        </div>
-        <button id="downloadNamesLotteryPdfBtn" data-i18n="downloadPdf" class="btn-disabled px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg">
-         📥 הורד PDF
-        </button>
-        <button id="printNamesLotteryBtn" data-i18n="print" class="btn-disabled px-6 py-3 bg-gradient-to-r from-slate-500 to-gray-600 text-white font-bold rounded-lg hover:from-slate-600 hover:to-gray-700 transition-all shadow-md hover:shadow-lg">
-         🖨️ הדפס
-        </button>
-       </div>
-       <p data-i18n="lotteryNamesHint" class="text-sm text-gray-500 mt-2">💡 "הגרל את כולם" - מגריל X תוצאות מכל השמות | "הגרל לפי קבוצה" - מגריל X תוצאות מכל קבוצה</p>
-      </div>
-     
-      <!-- Names Lottery Results -->
-      <div id="namesLotteryResultsSection" class="mb-8 bg-white rounded-2xl shadow-lg p-6 hidden">
-       <h2 data-i18n="lotteryResults" class="text-xl font-bold text-gray-800 mb-4 text-center">תוצאות ההגרלה</h2>
-       <div id="namesLotteryResults" class="bg-white"></div>
-      </div>
-     
-      <!-- Names Lottery Empty State -->
-      <div id="namesLotteryEmptyState" class="text-center py-16 text-gray-400">
-       <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-       </svg>
-       <p data-i18n="excelLotteryHint" class="text-xl font-medium">העלה קובץ אקסל ולחץ על הגרל שמות</p>
-      </div>
-     </div>
-    </div>
-    
-    <!-- Print Preview Section -->
-    <div id="printPreviewSection" class="p-4 min-w-0 flex-1">
-     <!-- Tutorial Help Link -->
-     <div class="no-print mb-2 flex justify-end">
-       <span class="tutorial-help inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 cursor-pointer" data-tutorial-section="Global" role="button" tabindex="0" aria-label="סרטון הדרכה">
-         <span class="w-4 h-4 flex items-center justify-center rounded-full border border-blue-300 bg-white text-xs">?</span>
-         <span data-i18n="tutorial">הדרכה</span>
-       </span>
-     </div>
-     
-     <!-- Main Toolbar -->
-     <div id="pageOrientationToolbar" class="no-print mb-2 flex items-center justify-between gap-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-indigo-200">
-      <!-- Right side - Undo/Redo and Orientation -->
-      <div class="flex items-center gap-4">
-        <!-- Undo/Redo Buttons -->
-        <div class="flex items-center gap-2">
-          <button id="undoBtn" type="button" data-i18n="undo" class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">↩️ בטל</button>
-          <button id="redoBtn" type="button" data-i18n="redo" class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">↪️ אחזר</button>
-        </div>
-        
-        <div class="h-6 w-px bg-gray-300"></div>
-        
-        <!-- Page Orientation Dropdown -->
-        <div class="relative">
-          <button id="orientationDropdownBtn" class="px-4 py-2 bg-white border-2 border-indigo-400 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 transition-all flex items-center gap-2">
-            <span id="orientationDropdownIcon" class="text-lg">📄</span>
-            <span id="orientationDropdownText">כיוון הדף: לאורך</span>
-            <span class="text-xs">▾</span>
-          </button>
-          <div id="orientationDropdownMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[180px]">
-            <button id="orientationPortraitBtn" class="orientation-option w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-t-lg border-b border-gray-200 flex items-center gap-2 font-bold">
-              <span class="text-lg">📄</span> <span data-i18n="portrait">לאורך</span>
-            </button>
-            <button id="orientationLandscapeBtn" class="orientation-option w-full text-right px-4 py-3 hover:bg-indigo-50 rounded-b-lg flex items-center gap-2 font-bold">
-              <span class="text-lg">📃</span> <span data-i18n="landscape">לרוחב</span>
-            </button>
+          <div id="printPreview" class="bg-white">
+            <div id="printPreviewInner"></div>
           </div>
         </div>
       </div>
-      
-      <!-- Left side - Global Controls -->
-      <div class="flex items-center gap-2">
-        <button id="syncElementsBtn" data-i18n="sync" class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">
-          🔗 סנכרון
-        </button>
-        <button id="freeEditBtn" data-i18n="freeEdit" class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">
-          ✏️ עריכה חופשית
-        </button>
-        <button id="autoArrangeBtn" data-i18n="autoArrange" class="px-3 py-2 bg-white border-2 border-gray-300 hover:bg-gray-100 rounded-lg font-bold text-sm shadow-md transition-all">
-          🤖 סדר אוטומטי
-        </button>
-      </div>
-     </div>
-     
-     <!-- Opacity Control Toolbar (always visible, buttons disabled when nothing selected) -->
-     <div id="opacityControlWrapper" class="no-print mb-2 flex items-center justify-center gap-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
-       <div id="opacitySection" class="flex items-center gap-3 opacity-section-disabled">
-         <span class="text-lg">🔍</span>
-         <span data-i18n="opacity" class="text-sm font-bold text-purple-700">שקיפות:</span>
-         <input type="range" id="opacitySlider" min="0" max="100" value="100" class="w-32 h-2 accent-purple-500 cursor-pointer" disabled>
-         <span id="opacityValue" class="text-sm font-bold text-purple-700 w-12">100%</span>
-       </div>
-       <!-- כפתור הסרת רקע -->
-       <div class="flex items-center gap-3 border-r border-purple-300 pr-4">
-         <button id="removeBackgroundBtn" disabled class="px-4 py-2 bg-gray-300 text-gray-500 font-bold rounded-lg shadow-md cursor-not-allowed flex items-center gap-2 relative overflow-hidden">
-           <!-- אנימציית טעינה -->
-           <div id="removeBackgroundLoader" class="hidden absolute inset-0 bg-gradient-to-r from-red-600 to-pink-700 flex items-center justify-center">
-             <div class="flex items-center gap-2">
-               <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-               <span data-i18n="processing" class="text-sm">מעבד...</span>
-             </div>
-           </div>
-           <!-- תוכן רגיל -->
-           <div id="removeBackgroundContent" class="flex items-center gap-2">
-             <span class="text-lg">✂️</span>
-             <span data-i18n="removeBackground">הסרת רקע (AI)</span>
-           </div>
-         </button>
-       </div>
-       <!-- כפתור מחק -->
-       <div class="flex flex-col items-center gap-2 border-r border-purple-300 pr-4">
-         <button id="eraserBtn" disabled class="px-4 py-2 bg-gray-300 text-gray-500 font-bold rounded-lg shadow-md cursor-not-allowed flex items-center gap-2">
-           <span class="text-lg">🧹</span>
-           <span data-i18n="eraser">מחק</span>
-         </button>
-         <!-- סקלה לגודל המחק (מוסתרת בהתחלה) -->
-         <div id="eraserSizeControl" class="hidden flex items-center gap-2">
-           <span class="text-xs text-gray-600">גודל:</span>
-           <input type="range" id="eraserSizeSlider" min="5" max="100" value="20" class="w-24 h-2 accent-orange-500 cursor-pointer">
-           <span id="eraserSizeValue" class="text-xs font-bold text-orange-700 w-8">20</span>
-         </div>
-       </div>
-     </div>
-     
-     <div id="printRuler" class="no-print mb-3">
-      <div id="printRulerTrack">
-       <canvas id="printRulerCanvas"></canvas>
-       <div id="printRulerTicks"></div>
-       <div id="printRulerLabel"></div>
-      </div>
-     </div>
-     <div id="printPreview" class="bg-white">
-      <div id="printPreviewInner"></div>
-     </div>
     </div>
-    </div>
-   </div>
   </div>
 
   <div id="precisionStickerModal" class="hidden fixed inset-0 z-[9999]">
     <div class="absolute inset-0 bg-black/50" id="precisionStickerModalBackdrop"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border-2 border-indigo-200 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div
+        class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border-2 border-indigo-200 overflow-hidden max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div>
             <h2 data-i18n="precisionStickerTitle" class="text-xl font-bold text-gray-800">הכנת מדבקה מדויקת</h2>
-            <p data-i18n="precisionStickerInstruction" class="text-sm text-gray-500 mt-1">העלה תמונה, בחר צורה ומידה במילימטר, וחתוך חלק מדויק מהתמונה</p>
+            <p data-i18n="precisionStickerInstruction" class="text-sm text-gray-500 mt-1">העלה תמונה, בחר צורה ומידה
+              במילימטר, וחתוך חלק מדויק מהתמונה</p>
           </div>
-          <button id="precisionStickerModalClose" data-i18n="close" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
+          <button id="precisionStickerModalClose" data-i18n="close"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
         </div>
         <div class="p-4 space-y-4">
           <!-- שלב 1: העלאת תמונה -->
@@ -932,11 +1248,14 @@
             <h3 data-i18n="step1" class="text-lg font-bold text-gray-800">שלב 1 – העלאת תמונה</h3>
             <div class="flex flex-wrap items-center gap-3">
               <div class="relative inline-block">
-                <button id="precisionUploadBtn" data-i18n="selectImage" type="button" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-lg shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all">
+                <button id="precisionUploadBtn" data-i18n="selectImage" type="button"
+                  class="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-lg shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all">
                   📁 בחר תמונה ▾
                 </button>
-                <div id="precisionUploadMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
-                  <label for="precisionFileInput" data-i18n="fromComputer" class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-lg">
+                <div id="precisionUploadMenu"
+                  class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-indigo-200 z-50 min-w-[200px]">
+                  <label for="precisionFileInput" data-i18n="fromComputer"
+                    class="block px-4 py-3 hover:bg-indigo-50 cursor-pointer rounded-lg">
                     💻 מהמחשב
                   </label>
                 </div>
@@ -944,7 +1263,8 @@
               <input type="file" id="precisionFileInput" accept="image/*,.svg" class="hidden">
               <span id="precisionFileName" class="text-sm text-gray-600"></span>
             </div>
-            <p data-i18n="step1Desc" class="text-xs text-gray-500">מומלץ להעלות קובץ באיכות טובה כדי לשמור על דיוק בהדפסה.</p>
+            <p data-i18n="step1Desc" class="text-xs text-gray-500">מומלץ להעלות קובץ באיכות טובה כדי לשמור על דיוק
+              בהדפסה.</p>
           </div>
 
           <!-- שלב 2: הגדרת צורה ומידה -->
@@ -972,23 +1292,32 @@
               <div class="flex items-end gap-3">
                 <div>
                   <label data-i18n="widthCm" class="block text-sm font-medium text-gray-700">רוחב (ס"מ):</label>
-                  <input type="text" id="precisionWidth" inputmode="decimal" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg" dir="ltr">
+                  <input type="text" id="precisionWidth" inputmode="decimal" value="5"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg" dir="ltr">
                 </div>
                 <div id="precisionHeightWrapper">
                   <label data-i18n="heightCm" class="block text-sm font-medium text-gray-700">גובה (ס"מ):</label>
-                  <input type="text" id="precisionHeight" inputmode="decimal" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg" dir="ltr">
+                  <input type="text" id="precisionHeight" inputmode="decimal" value="5"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg" dir="ltr">
                 </div>
                 <div class="flex flex-col gap-1 mt-4">
-                  <button id="precisionIncrease" type="button" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-bold">+</button>
-                  <button id="precisionDecrease" type="button" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-bold">−</button>
+                  <button id="precisionIncrease" type="button"
+                    class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-bold">+</button>
+                  <button id="precisionDecrease" type="button"
+                    class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-bold">−</button>
                 </div>
               </div>
               <div class="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg border-2 border-indigo-200">
                 <label data-i18n="scaleAdjustment" class="block text-sm font-bold text-indigo-700">התאמת סקאלה:</label>
-                <button id="precisionMaxWidth" data-i18n="maxWidth" data-i18n-title="maxWidthTitle" type="button" class="px-3 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-all" title="התאם לרוחב מקסימלי">מקס׳ רוחב</button>
-                <button id="precisionMaxHeight" data-i18n="maxHeight" data-i18n-title="maxHeightTitle" type="button" class="px-3 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-all" title="התאם לגובה מקסימלי">מקס׳ גובה</button>
+                <button id="precisionMaxWidth" data-i18n="maxWidth" data-i18n-title="maxWidthTitle" type="button"
+                  class="px-3 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-all"
+                  title="התאם לרוחב מקסימלי">מקס׳ רוחב</button>
+                <button id="precisionMaxHeight" data-i18n="maxHeight" data-i18n-title="maxHeightTitle" type="button"
+                  class="px-3 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-all"
+                  title="התאם לגובה מקסימלי">מקס׳ גובה</button>
                 <input type="range" id="precisionProportion" min="0.1" max="5" step="0.01" value="1" class="w-32">
-                <input type="text" id="precisionProportionNumber" inputmode="decimal" autocomplete="off" value="1" dir="ltr" class="w-16 px-2 py-1 border-2 border-indigo-300 rounded-lg text-sm text-center">
+                <input type="text" id="precisionProportionNumber" inputmode="decimal" autocomplete="off" value="1"
+                  dir="ltr" class="w-16 px-2 py-1 border-2 border-indigo-300 rounded-lg text-sm text-center">
                 <span id="precisionProportionValue" class="text-sm font-bold text-indigo-700">1.00×</span>
               </div>
             </div>
@@ -1003,21 +1332,30 @@
                   <span data-i18n="imageDisplay" class="text-sm font-medium text-gray-700">תצוגת תמונה</span>
                 </div>
                 <div id="precisionEditorArea" class="hidden">
-                  <div id="precisionEditorContainer" class="relative bg-gray-100 rounded-lg border border-gray-300 overflow-hidden flex items-center justify-center" style="min-height:300px;">
+                  <div id="precisionEditorContainer"
+                    class="relative bg-gray-100 rounded-lg border border-gray-300 overflow-hidden flex items-center justify-center"
+                    style="min-height:300px;">
                     <img id="precisionSourceImage" src="" alt="" class="max-w-none">
-                    <div id="precisionCropShape" class="absolute border-2 border-dashed border-red-500" style="display:none;">
-                      <div id="precisionResizeHandle" class="absolute w-4 h-4 bg-red-500 border-2 border-white rounded-full cursor-nwse-resize -bottom-2 -right-2"></div>
+                    <div id="precisionCropShape" class="absolute border-2 border-dashed border-red-500"
+                      style="display:none;">
+                      <div id="precisionResizeHandle"
+                        class="absolute w-4 h-4 bg-red-500 border-2 border-white rounded-full cursor-nwse-resize -bottom-2 -right-2">
+                      </div>
                     </div>
-                    <div id="precisionStickerImageResizeHandle" class="absolute w-5 h-5 bg-blue-500 border-2 border-white rounded-full cursor-nwse-resize shadow-md hidden"></div>
+                    <div id="precisionStickerImageResizeHandle"
+                      class="absolute w-5 h-5 bg-blue-500 border-2 border-white rounded-full cursor-nwse-resize shadow-md hidden">
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="w-full lg:w-64 space-y-2">
                 <p data-i18n="cropPreview" class="text-sm font-medium text-gray-700">תצוגה מקדימה של החיתוך:</p>
-                <div id="precisionPreviewArea" class="hidden border border-gray-300 rounded-lg p-2 flex items-center justify-center bg-gray-50">
+                <div id="precisionPreviewArea"
+                  class="hidden border border-gray-300 rounded-lg p-2 flex items-center justify-center bg-gray-50">
                   <canvas id="precisionPreviewCanvas" class="bg-white border border-gray-200 rounded"></canvas>
                 </div>
-                <p data-i18n="cropPreviewDesc" class="text-xs text-gray-500">כאן תראה איך תיראה המדבקה הסופית לפני הוספה לעורך.</p>
+                <p data-i18n="cropPreviewDesc" class="text-xs text-gray-500">כאן תראה איך תיראה המדבקה הסופית לפני הוספה
+                  לעורך.</p>
               </div>
             </div>
           </div>
@@ -1025,18 +1363,23 @@
           <!-- כפתורי פעולה -->
           <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-              <button id="precisionApplyBtn" data-i18n="applyAndAdd" type="button" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg shadow-md hover:from-emerald-600 hover:to-teal-700 transition-all">
+              <button id="precisionApplyBtn" data-i18n="applyAndAdd" type="button"
+                class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg shadow-md hover:from-emerald-600 hover:to-teal-700 transition-all">
                 ✅ החל והוסף לעורך
               </button>
-              <button id="precisionPreviewBtn" data-i18n="preview" type="button" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all">
+              <button id="precisionPreviewBtn" data-i18n="preview" type="button"
+                class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all">
                 👁️ תצוגה מקדימה
               </button>
             </div>
             <div class="flex items-center gap-2">
-              <button id="precisionResetBtn" data-i18n="reset" type="button" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg border hover:bg-gray-200 transition-all">
+              <button id="precisionResetBtn" data-i18n="reset" type="button"
+                class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg border hover:bg-gray-200 transition-all">
                 ♻️ איפוס
               </button>
-              <button type="button" data-i18n="closeNoSave" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-all" onclick="closePrecisionModal()">
+              <button type="button" data-i18n="closeNoSave"
+                class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-all"
+                onclick="closePrecisionModal()">
                 ✖ סגור בלי לשמור
               </button>
             </div>
@@ -1050,13 +1393,16 @@
   <div id="precisionImageModal" class="hidden fixed inset-0 z-[9999]">
     <div class="absolute inset-0 bg-black/50" id="precisionImageModalBackdrop"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border-2 border-cyan-200 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div
+        class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border-2 border-cyan-200 overflow-hidden max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div>
             <h2 data-i18n="precisionImageTitle" class="text-xl font-bold text-gray-800">הכנת תמונה מדויקת</h2>
-            <p data-i18n="precisionImageInstruction" class="text-sm text-gray-500 mt-1">העלה תמונה, בחר צורה ומידה במילימטר, וחתוך חלק מדויק מהתמונה להוספה למדבקה</p>
+            <p data-i18n="precisionImageInstruction" class="text-sm text-gray-500 mt-1">העלה תמונה, בחר צורה ומידה
+              במילימטר, וחתוך חלק מדויק מהתמונה להוספה למדבקה</p>
           </div>
-          <button id="precisionImageModalClose" data-i18n="close" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
+          <button id="precisionImageModalClose" data-i18n="close"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
         </div>
         <div class="p-4 space-y-4">
           <!-- שלב 1: העלאת תמונה -->
@@ -1064,11 +1410,14 @@
             <h3 data-i18n="step1" class="text-lg font-bold text-gray-800">שלב 1 – העלאת תמונה</h3>
             <div class="flex flex-wrap items-center gap-3">
               <div class="relative inline-block">
-                <button id="precisionImageUploadBtn" data-i18n="selectImage" type="button" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-cyan-600 hover:to-blue-700 transition-all">
+                <button id="precisionImageUploadBtn" data-i18n="selectImage" type="button"
+                  class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-cyan-600 hover:to-blue-700 transition-all">
                   📁 בחר תמונה ▾
                 </button>
-                <div id="precisionImageUploadMenu" class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-cyan-200 z-50 min-w-[200px]">
-                  <label for="precisionImageFileInput" data-i18n="fromComputer" class="block px-4 py-3 hover:bg-cyan-50 cursor-pointer rounded-lg">
+                <div id="precisionImageUploadMenu"
+                  class="hidden absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border-2 border-cyan-200 z-50 min-w-[200px]">
+                  <label for="precisionImageFileInput" data-i18n="fromComputer"
+                    class="block px-4 py-3 hover:bg-cyan-50 cursor-pointer rounded-lg">
                     💻 מהמחשב
                   </label>
                 </div>
@@ -1076,7 +1425,8 @@
               <input type="file" id="precisionImageFileInput" accept="image/*,.svg" class="hidden">
               <span id="precisionImageFileName" class="text-sm text-gray-600"></span>
             </div>
-            <p data-i18n="step1Desc" class="text-xs text-gray-500">מומלץ להעלות קובץ באיכות טובה כדי לשמור על דיוק בהדפסה.</p>
+            <p data-i18n="step1Desc" class="text-xs text-gray-500">מומלץ להעלות קובץ באיכות טובה כדי לשמור על דיוק
+              בהדפסה.</p>
           </div>
 
           <!-- שלב 2: הגדרת צורה ומידה -->
@@ -1104,23 +1454,33 @@
               <div class="flex items-end gap-3">
                 <div>
                   <label data-i18n="widthCm" class="block text-sm font-medium text-gray-700">רוחב (ס"מ):</label>
-                  <input type="text" id="precisionImageWidth" inputmode="decimal" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg" dir="ltr">
+                  <input type="text" id="precisionImageWidth" inputmode="decimal" value="5"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg" dir="ltr">
                 </div>
                 <div id="precisionImageHeightWrapper">
                   <label data-i18n="heightCm" class="block text-sm font-medium text-gray-700">גובה (ס"מ):</label>
-                  <input type="text" id="precisionImageHeight" inputmode="decimal" value="5" class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg" dir="ltr">
+                  <input type="text" id="precisionImageHeight" inputmode="decimal" value="5"
+                    class="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg" dir="ltr">
                 </div>
                 <div class="flex flex-col gap-1 mt-4">
-                  <button id="precisionImageIncrease" type="button" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-bold">+</button>
-                  <button id="precisionImageDecrease" type="button" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-bold">−</button>
+                  <button id="precisionImageIncrease" type="button"
+                    class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-bold">+</button>
+                  <button id="precisionImageDecrease" type="button"
+                    class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-bold">−</button>
                 </div>
               </div>
               <div class="flex items-center gap-3 p-3 bg-cyan-50 rounded-lg border-2 border-cyan-200">
                 <label data-i18n="scaleAdjustment" class="block text-sm font-bold text-cyan-700">התאמת סקאלה:</label>
-                <button id="precisionImageMaxWidth" data-i18n="maxWidth" data-i18n-title="maxWidthTitle" type="button" class="px-3 py-1 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-bold rounded-lg transition-all" title="התאם לרוחב מקסימלי">מקס׳ רוחב</button>
-                <button id="precisionImageMaxHeight" data-i18n="maxHeight" data-i18n-title="maxHeightTitle" type="button" class="px-3 py-1 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-bold rounded-lg transition-all" title="התאם לגובה מקסימלי">מקס׳ גובה</button>
+                <button id="precisionImageMaxWidth" data-i18n="maxWidth" data-i18n-title="maxWidthTitle" type="button"
+                  class="px-3 py-1 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-bold rounded-lg transition-all"
+                  title="התאם לרוחב מקסימלי">מקס׳ רוחב</button>
+                <button id="precisionImageMaxHeight" data-i18n="maxHeight" data-i18n-title="maxHeightTitle"
+                  type="button"
+                  class="px-3 py-1 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-bold rounded-lg transition-all"
+                  title="התאם לגובה מקסימלי">מקס׳ גובה</button>
                 <input type="range" id="precisionImageProportion" min="0.1" max="5" step="0.01" value="1" class="w-32">
-                <input type="text" id="precisionImageProportionNumber" inputmode="decimal" autocomplete="off" value="1" dir="ltr" class="w-16 px-2 py-1 border-2 border-cyan-300 rounded-lg text-sm text-center">
+                <input type="text" id="precisionImageProportionNumber" inputmode="decimal" autocomplete="off" value="1"
+                  dir="ltr" class="w-16 px-2 py-1 border-2 border-cyan-300 rounded-lg text-sm text-center">
                 <span id="precisionImageProportionValue" class="text-sm font-bold text-cyan-700">1.00×</span>
               </div>
             </div>
@@ -1135,21 +1495,30 @@
                   <span data-i18n="imageDisplay" class="text-sm font-medium text-gray-700">תצוגת תמונה</span>
                 </div>
                 <div id="precisionImageEditorArea" class="hidden">
-                  <div id="precisionImageEditorContainer" class="relative bg-gray-100 rounded-lg border border-gray-300 overflow-hidden flex items-center justify-center" style="min-height:300px;">
+                  <div id="precisionImageEditorContainer"
+                    class="relative bg-gray-100 rounded-lg border border-gray-300 overflow-hidden flex items-center justify-center"
+                    style="min-height:300px;">
                     <img id="precisionImageSourceImage" src="" alt="" class="max-w-none">
-                    <div id="precisionImageCropShape" class="absolute border-2 border-dashed border-red-500" style="display:none;">
-                      <div id="precisionImageResizeHandle" class="absolute w-6 h-6 bg-red-500 border-2 border-white rounded-full cursor-nwse-resize shadow-lg z-10" style="bottom: -12px; right: -12px;"></div>
+                    <div id="precisionImageCropShape" class="absolute border-2 border-dashed border-red-500"
+                      style="display:none;">
+                      <div id="precisionImageResizeHandle"
+                        class="absolute w-6 h-6 bg-red-500 border-2 border-white rounded-full cursor-nwse-resize shadow-lg z-10"
+                        style="bottom: -12px; right: -12px;"></div>
                     </div>
-                    <div id="precisionImageImageResizeHandle" class="absolute w-5 h-5 bg-blue-500 border-2 border-white rounded-full cursor-nwse-resize shadow-md hidden"></div>
+                    <div id="precisionImageImageResizeHandle"
+                      class="absolute w-5 h-5 bg-blue-500 border-2 border-white rounded-full cursor-nwse-resize shadow-md hidden">
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="w-full lg:w-64 space-y-2">
                 <p data-i18n="cropPreview" class="text-sm font-medium text-gray-700">תצוגה מקדימה של החיתוך:</p>
-                <div id="precisionImagePreviewArea" class="hidden border border-gray-300 rounded-lg p-2 flex items-center justify-center bg-gray-50">
+                <div id="precisionImagePreviewArea"
+                  class="hidden border border-gray-300 rounded-lg p-2 flex items-center justify-center bg-gray-50">
                   <canvas id="precisionImagePreviewCanvas" class="bg-white border border-gray-200 rounded"></canvas>
                 </div>
-                <p data-i18n="cropPreviewDescImage" class="text-xs text-gray-500">כאן תראה איך תיראה התמונה הסופית לפני הוספה למדבקה.</p>
+                <p data-i18n="cropPreviewDescImage" class="text-xs text-gray-500">כאן תראה איך תיראה התמונה הסופית לפני
+                  הוספה למדבקה.</p>
               </div>
             </div>
           </div>
@@ -1157,18 +1526,22 @@
           <!-- כפתורי פעולה -->
           <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-              <button id="precisionImageApplyBtn" data-i18n="applyAndAddImage" type="button" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg shadow-md hover:from-emerald-600 hover:to-teal-700 transition-all">
+              <button id="precisionImageApplyBtn" data-i18n="applyAndAddImage" type="button"
+                class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg shadow-md hover:from-emerald-600 hover:to-teal-700 transition-all">
                 ✅ החל והוסף למדבקה
               </button>
-              <button id="precisionImagePreviewBtn" data-i18n="preview" type="button" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all">
+              <button id="precisionImagePreviewBtn" data-i18n="preview" type="button"
+                class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all">
                 👁️ תצוגה מקדימה
               </button>
             </div>
             <div class="flex items-center gap-2">
-              <button id="precisionImageResetBtn" data-i18n="reset" type="button" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg border hover:bg-gray-200 transition-all">
+              <button id="precisionImageResetBtn" data-i18n="reset" type="button"
+                class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg border hover:bg-gray-200 transition-all">
                 ♻️ איפוס
               </button>
-              <button type="button" data-i18n="closeNoSave" id="precisionImageCloseNoSave" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-all">
+              <button type="button" data-i18n="closeNoSave" id="precisionImageCloseNoSave"
+                class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-all">
                 ✖ סגור בלי לשמור
               </button>
             </div>
@@ -1182,13 +1555,16 @@
   <div id="printerCalibrationModal" class="hidden fixed inset-0 z-[9999]">
     <div class="absolute inset-0 bg-black/50" onclick="closeCalibrationModal()"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border-2 border-orange-200 overflow-hidden" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
+      <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border-2 border-orange-200 overflow-hidden"
+        onclick="event.stopPropagation()">
+        <div
+          class="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
           <div>
             <h2 data-i18n="calibrationTitle" class="text-xl font-bold text-gray-800">🎯 כיול מדפסת</h2>
             <p data-i18n="calibrationDesc" class="text-sm text-gray-500 mt-1">התאמת המידות לדיוק מקסימלי בהדפסה</p>
           </div>
-          <button onclick="closeCalibrationModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">✕</button>
+          <button onclick="closeCalibrationModal()"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">✕</button>
         </div>
         <div class="p-5 space-y-5">
           <!-- סטטוס כיול נוכחי -->
@@ -1202,8 +1578,10 @@
           <!-- שלב 1: הדפסת מדבקת כיול -->
           <div class="space-y-2">
             <h3 data-i18n="calibrationStep1" class="text-lg font-bold text-gray-800">שלב 1 – הדפסת מדבקת כיול</h3>
-            <p data-i18n="calibrationStep1Desc" class="text-sm text-gray-600">לחץ על הכפתור להוספת מדבקת כיול לעורך, ואז הדפס אותה בכפתור ההדפסה הרגיל</p>
-            <button onclick="printCalibrationSticker()" data-i18n="addCalibrationSticker" class="px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all">
+            <p data-i18n="calibrationStep1Desc" class="text-sm text-gray-600">לחץ על הכפתור להוספת מדבקת כיול לעורך, ואז
+              הדפס אותה בכפתור ההדפסה הרגיל</p>
+            <button onclick="printCalibrationSticker()" data-i18n="addCalibrationSticker"
+              class="px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all">
               📐 הוסף מדבקת כיול לעורך
             </button>
           </div>
@@ -1211,11 +1589,15 @@
           <!-- שלב 2: הזנת המידות -->
           <div class="space-y-3">
             <h3 data-i18n="calibrationStep2" class="text-lg font-bold text-gray-800">שלב 2 – הזנת המידה שנמדדה</h3>
-            <p data-i18n="calibrationStep2Desc" class="text-sm text-gray-600">מדוד את רוחב המלבן שהודפס (20 ס"מ צפוי):</p>
+            <p data-i18n="calibrationStep2Desc" class="text-sm text-gray-600">מדוד את רוחב המלבן שהודפס (20 ס"מ צפוי):
+            </p>
             <div class="flex items-end gap-4">
               <div>
-                <label data-i18n="measuredWidth" class="block text-sm font-medium text-gray-700 mb-1">רוחב שנמדד (ס"מ):</label>
-                <input type="text" id="calibrationMeasuredWidth" inputmode="decimal" placeholder="לדוגמה: 19.8" class="w-32 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none" dir="ltr">
+                <label data-i18n="measuredWidth" class="block text-sm font-medium text-gray-700 mb-1">רוחב שנמדד
+                  (ס"מ):</label>
+                <input type="text" id="calibrationMeasuredWidth" inputmode="decimal" placeholder="לדוגמה: 19.8"
+                  class="w-32 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none"
+                  dir="ltr">
               </div>
             </div>
             <p data-i18n="expectedSize" class="text-xs text-gray-500">המידה הצפויה: 20 ס"מ</p>
@@ -1223,10 +1605,12 @@
 
           <!-- כפתורי פעולה -->
           <div class="flex items-center justify-between pt-3 border-t border-gray-200">
-            <button onclick="applyCalibration()" data-i18n="applyCalibration" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg shadow-md hover:from-emerald-600 hover:to-teal-700 transition-all">
+            <button onclick="applyCalibration()" data-i18n="applyCalibration"
+              class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg shadow-md hover:from-emerald-600 hover:to-teal-700 transition-all">
               ✅ החל כיול
             </button>
-            <button onclick="resetCalibration()" data-i18n="resetCalibration" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg border hover:bg-gray-200 transition-all">
+            <button onclick="resetCalibration()" data-i18n="resetCalibration"
+              class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg border hover:bg-gray-200 transition-all">
               🔄 אפס כיול
             </button>
           </div>
@@ -1234,71 +1618,109 @@
       </div>
     </div>
   </div>
- 
+
   <div id="githubStickersModal" class="hidden fixed inset-0 z-[9999]">
     <div class="absolute inset-0 bg-black/50" id="githubStickersModalBackdrop"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border-2 border-indigo-200 overflow-hidden">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div data-i18n="selectFromRepo" class="text-lg font-bold text-gray-800">בחר מדבקה מהמאגר</div>
-          <button id="githubStickersModalClose" data-i18n="close" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
+          <button id="githubStickersModalClose" data-i18n="close"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
         </div>
         <div class="p-4">
-          <div id="githubStickersGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+          <div id="githubStickersGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          </div>
         </div>
       </div>
     </div>
   </div>
-  
+
   <div id="githubElementsModal" class="hidden fixed inset-0 z-[9999]">
     <div class="absolute inset-0 bg-black/50" id="githubElementsModalBackdrop"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border-2 border-indigo-200 overflow-hidden">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div data-i18n="selectElementFromRepo" class="text-lg font-bold text-gray-800">בחר אלמנט מהמאגר</div>
-          <button id="githubElementsModalClose" data-i18n="close" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
+          <button id="githubElementsModalClose" data-i18n="close"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
         </div>
         <div class="p-4">
-          <div id="githubElementsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+          <div id="githubElementsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          </div>
         </div>
       </div>
     </div>
   </div>
-  
+
   <div id="userGuideModal" class="hidden fixed inset-0 z-[9999]">
     <div class="absolute inset-0 bg-black/50" id="userGuideModalBackdrop"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border-2 border-indigo-200 overflow-hidden">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div data-i18n="userGuideBtn" class="text-lg font-bold text-gray-800">מדריך הפעלה</div>
-          <button id="userGuideModalClose" data-i18n="close" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
+          <button id="userGuideModalClose" data-i18n="close"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
         </div>
         <div class="p-4">
           <div class="max-h-[80vh] overflow-y-auto">
-            <img src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/1a.jpg" alt="מדריך הפעלה - 1" class="w-full h-auto object-contain rounded-lg" loading="lazy">
+            <img src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/1a.jpg"
+              alt="מדריך הפעלה - 1" class="w-full h-auto object-contain rounded-lg" loading="lazy">
             <div class="h-4"></div>
-            <img src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/2a.jpg" alt="מדריך הפעלה - 2" class="w-full h-auto object-contain rounded-lg" loading="lazy">
+            <img src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/2a.jpg"
+              alt="מדריך הפעלה - 2" class="w-full h-auto object-contain rounded-lg" loading="lazy">
           </div>
         </div>
       </div>
     </div>
   </div>
-  
+
   <div id="contactModal" class="hidden fixed inset-0 z-[9999]">
     <div class="absolute inset-0 bg-black/50" id="contactModalBackdrop"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border-2 border-indigo-200 overflow-hidden">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <div data-i18n="contactTitle" class="text-lg font-bold text-gray-800">יצירת קשר</div>
-          <button id="contactModalClose" data-i18n="close" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
+          <button id="contactModalClose" data-i18n="close"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
         </div>
         <div class="p-6">
-          <div data-i18n="contactText" class="text-gray-800 text-lg font-medium leading-relaxed">
-            נשמח לשמוע תגובות הצעות ולדעת שזה הועיל למישהו
-          </div>
-          <div class="mt-4">
-            <a class="text-indigo-700 font-bold underline" href="mailto:yoelyoel8a@gmail.com">yoelyoel8a@gmail.com</a>
-          </div>
+          <p data-i18n="feedbackSubtitle" class="text-gray-600 text-center mb-4">יש לך תגובות, הצעות או רעיונות? שתף אותנו!</p>
+          
+          <form id="feedbackForm" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="feedbackName" data-i18n="feedbackName" class="block text-sm font-medium text-gray-700 mb-1">שם (אופציונלי)</label>
+                <input type="text" id="feedbackName" name="name" data-i18n-placeholder="feedbackNamePlaceholder"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="השם שלך">
+              </div>
+              <div>
+                <label for="feedbackEmail" data-i18n="feedbackEmail" class="block text-sm font-medium text-gray-700 mb-1">אימייל (אופציונלי)</label>
+                <input type="email" id="feedbackEmail" name="email" data-i18n-placeholder="feedbackEmailPlaceholder"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="your@email.com">
+              </div>
+            </div>
+            
+            <div>
+              <label for="feedbackMessage" class="block text-sm font-medium text-gray-700 mb-1">
+                <span data-i18n="feedbackMessage">תגובה / הערה</span> <span class="text-red-500">*</span>
+              </label>
+              <textarea id="feedbackMessage" name="message" rows="4" required data-i18n-placeholder="feedbackMessagePlaceholder"
+                class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="כתוב כאן את התגובה, ההצעה או השאלה שלך..."></textarea>
+            </div>
+            
+            <div class="flex justify-center">
+              <button type="submit" data-i18n="feedbackSubmit"
+                class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">
+                📤 שלח תגובה
+              </button>
+            </div>
+            
+            <div id="feedbackStatus" class="hidden text-center text-sm font-medium"></div>
+          </form>
         </div>
       </div>
     </div>
@@ -1309,8 +1731,10 @@
     <div class="absolute inset-0 flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border-2 border-indigo-200 overflow-hidden">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
-          <div data-i18n="tutorialVideoTitle" class="text-lg font-bold text-gray-800" id="tutorialVideoModalTitle">סרטון הדרכה</div>
-          <button id="tutorialVideoModalClose" data-i18n="close" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
+          <div data-i18n="tutorialVideoTitle" class="text-lg font-bold text-gray-800" id="tutorialVideoModalTitle">סרטון
+            הדרכה</div>
+          <button id="tutorialVideoModalClose" data-i18n="close"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold">סגור</button>
         </div>
         <div class="p-4">
           <video id="tutorialVideoEl" class="w-full max-h-[70vh] rounded-lg bg-black" controls playsinline></video>
@@ -1318,16 +1742,129 @@
       </div>
     </div>
   </div>
-  
-  <script src="js/translations.js?v=20250120-01"></script>
-    <script src="js/makor-core.js?v=20250120-01"></script>
-    <script src="js/precision-sticker.js?v=20250120-01"></script>
-    <script src="js/precision-image.js?v=20250120-01"></script>
-    <script src="js/background-removal.js?v=20250120-01"></script>
-    <script src="js/eraser-tool.js?v=20250120-01"></script>
-    <script src="js/makor-names.js?v=20250120-01"></script>
-    <script src="js/google-drive.js?v=20250120-01"></script>
-    <script src="js/makor-init.js?v=20250120-01"></script>
 
- </body>
+  <script>
+    // Tools Tabs Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabButtons = {
+        stickers: document.getElementById('toolsTabStickers'),
+        text: document.getElementById('toolsTabText'),
+        image: document.getElementById('toolsTabImage')
+      };
+
+      const tabContents = {
+        stickers: document.getElementById('toolsTabContentStickers'),
+        text: document.getElementById('toolsTabContentText'),
+        image: document.getElementById('toolsTabContentImage')
+      };
+
+      function switchTab(tabName) {
+        // Remove active class from all buttons
+        Object.values(tabButtons).forEach(btn => btn?.classList.remove('active'));
+        
+        // Hide all tab contents
+        Object.values(tabContents).forEach(content => content?.classList.add('hidden'));
+        
+        // Activate selected tab
+        tabButtons[tabName]?.classList.add('active');
+        tabContents[tabName]?.classList.remove('hidden');
+      }
+
+      // Add click handlers
+      tabButtons.stickers?.addEventListener('click', () => switchTab('stickers'));
+      tabButtons.text?.addEventListener('click', () => switchTab('text'));
+      tabButtons.image?.addEventListener('click', () => switchTab('image'));
+
+      // Set default tab (stickers)
+      switchTab('stickers');
+    });
+
+    // Initialize EmailJS
+    (function(){
+      emailjs.init({
+        publicKey: "NGSmM6FAWAMa-ksnW", // תחליף את זה במפתח שלך
+      });
+    })();
+
+    // Feedback form handler
+    document.addEventListener('DOMContentLoaded', function() {
+      const feedbackForm = document.getElementById('feedbackForm');
+      if (feedbackForm) {
+        feedbackForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const name = document.getElementById('feedbackName').value || 'אנונימי';
+          const email = document.getElementById('feedbackEmail').value || 'לא צוין';
+          const message = document.getElementById('feedbackMessage').value;
+          const statusEl = document.getElementById('feedbackStatus');
+          const submitBtn = feedbackForm.querySelector('button[type="submit"]');
+          
+          if (!message.trim()) {
+            statusEl.textContent = translations[currentLanguage]?.feedbackError || '❌ נא למלא את שדה התגובה';
+            statusEl.className = 'text-center text-sm font-medium text-red-600';
+            statusEl.classList.remove('hidden');
+            return;
+          }
+          
+          // Disable submit button and show loading
+          submitBtn.disabled = true;
+          submitBtn.textContent = currentLanguage === 'he' ? '⏳ שולח...' : '⏳ Sending...';
+          
+          // Send email using EmailJS
+          emailjs.send('service_wny6lgo', 'template_ocqatys', {
+            from_name: name,
+            from_email: email,
+            message: message,
+            to_email: 'yoelyoel8a@gmail.com'
+          })
+          .then(function(response) {
+            console.log('SUCCESS!', response.status, response.text);
+            
+            // Show success message
+            statusEl.textContent = translations[currentLanguage]?.feedbackSuccess || '✅ תודה! ההודעה נשלחה בהצלחה!';
+            statusEl.className = 'text-center text-sm font-medium text-green-600';
+            statusEl.classList.remove('hidden');
+            
+            // Reset form after 2 seconds
+            setTimeout(() => {
+              feedbackForm.reset();
+              statusEl.classList.add('hidden');
+              submitBtn.disabled = false;
+              submitBtn.textContent = translations[currentLanguage]?.feedbackSubmit || '📤 שלח תגובה';
+            }, 2000);
+          }, function(error) {
+            console.log('FAILED...', error);
+            
+            // Show error message
+            statusEl.textContent = currentLanguage === 'he' 
+              ? '❌ שגיאה בשליחה. נסה שוב או שלח ישירות ל-yoelyoel8a@gmail.com'
+              : '❌ Sending failed. Try again or email directly to yoelyoel8a@gmail.com';
+            statusEl.className = 'text-center text-sm font-medium text-red-600';
+            statusEl.classList.remove('hidden');
+            
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.textContent = translations[currentLanguage]?.feedbackSubmit || '📤 שלח תגובה';
+          });
+        });
+      }
+    });
+  </script>
+
+  <script src="js/translations.js?v=20250127-05"></script>
+  <script src="js/makor-core.js?v=20250127-05"></script>
+  <script src="js/precision-sticker.js?v=20250127-01"></script>
+  <script src="js/precision-image.js?v=20250127-01"></script>
+  <script src="js/background-removal.js?v=20250127-05"></script>
+  <script src="js/eraser-tool.js?v=20250127-01"></script>
+  <script src="js/makor-names.js?v=20250127-01"></script>
+  <script src="js/google-drive.js?v=20250127-05"></script>
+  <script src="js/makor-init.js?v=20250127-05"></script>
+
+  <!-- Google APIs - loaded after google-drive.js defines the callback functions -->
+  <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+  <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+
+</body>
+
 </html>
