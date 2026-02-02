@@ -174,9 +174,17 @@
       updateStickerLayoutInfo();
     });
     const stickersPerRowInput = document.getElementById('stickersPerRowInput');
-    if (stickersPerRowInput) stickersPerRowInput.addEventListener('input', applyStickerLayoutAndRender);
+    if (stickersPerRowInput) stickersPerRowInput.addEventListener('input', () => {
+      // עדכון רק של המידע בממשק, לא של המדבקות הקיימות
+      getStickerLayoutConfigFromUI();
+      updateStickerLayoutInfo();
+    });
     const stickerSizeModeSelect = document.getElementById('stickerSizeModeSelect');
-    if (stickerSizeModeSelect) stickerSizeModeSelect.addEventListener('change', applyStickerLayoutAndRender);
+    if (stickerSizeModeSelect) stickerSizeModeSelect.addEventListener('change', () => {
+      // עדכון רק של המידע בממשק, לא של המדבקות הקיימות
+      getStickerLayoutConfigFromUI();
+      updateStickerLayoutInfo();
+    });
     const edgeMarginInput = document.getElementById('edgeMarginInput');
     if (edgeMarginInput) edgeMarginInput.addEventListener('input', applyStickerLayoutAndRender);
     const gapInput = document.getElementById('gapInput');

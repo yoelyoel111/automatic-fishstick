@@ -705,8 +705,12 @@
           });
         }
 
-        // תמיד קוראים ל-reflowStickers כדי לחשב גדלים נכון
-        reflowStickers();
+        // החלת פריסה רק על המדבקות החדשות
+        console.log('🚀 About to call applyLayoutToNewStickers after loading from GitHub');
+        console.log('Total stickers now:', stickers.length);
+        
+        // עבור טעינה מ-GitHub, נשמור על המדבקות הקיימות
+        applyLayoutToNewStickers(startIndex, true);
         renderStickers();
         scrollToAddedElement(`[data-sticker-index="${startIndex}"]`);
         updateFileCount();
@@ -2318,178 +2322,48 @@
       updateFileCount();
     }
 
-    // פונקציה חדשה שמחילה פריסה רק על מדבקות חדשות (RTL - מימין לשמאל)
-    function applyLayoutToNewStickers(startIndex = 0) {
-      const cfg = stickerLayoutConfig;
-      const pageWidth = pageOrientation === 'landscape' ? 297 * MM_TO_PX : 210 * MM_TO_PX;
-      const pageHeight = pageOrientation === 'landscape' ? 210 * MM_TO_PX : 297 * MM_TO_PX;
-      const edge = Math.max(0, cfg.edgeMargin);
-      const gap = Math.max(0, cfg.gap);
-
-      const contentWidth = Math.max(1, pageWidth - (edge * 2));
-      const contentHeight = Math.max(1, pageHeight - (edge * 2));
-      const maxH = contentHeight;
-
-      const mode = (cfg.sizeMode === 'height') ? 'height' : 'width';
-      const cols = (mode === 'width')
-        ? Math.max(1, cfg.stickersPerRow)
-        : 1; // במצב לאורך - תמיד עמודה אחת
-      const cellWidth = (mode === 'width')
-        ? Math.max(1, (contentWidth - gap * (cols - 1)) / cols)
-        : contentWidth; // במצב לאורך - הרוחב המלא הזמין
-      const rows = (mode === 'height')
-        ? Math.max(1, cfg.stickersPerRow)
-        : 1;
-      const cellHeight = (mode === 'height')
-        ? Math.max(1, (contentHeight - gap * (rows - 1)) / rows)
-        : contentHeight;
-
-      // חישוב מיקום התחלתי בהתבסס על מדבקות קיימות (RTL)
-      let page = 0;
-      let colIndex = 0;
-      let y = edge;
-      let rowMaxHeight = 0;
-
-      // מציאת המיקום הנוכחי בהתבסס על מדבקות קיימות
-      if (startIndex > 0) {
-        // מציאת העמוד והשורה האחרונים
-        let lastPage = 0;
-        let lastY = edge;
-        let lastRowMaxHeight = 0;
-        let itemsInCurrentRow = 0;
-        
-        for (let i = 0; i < startIndex && i < stickers.length; i++) {
-          const sticker = stickers[i];
-          if (sticker.page > lastPage) {
-            lastPage = sticker.page;
-            lastY = edge;
-            lastRowMaxHeight = 0;
-            itemsInCurrentRow = 0;
-          }
-          
-          if (sticker.page === lastPage) {
-            // בדיקה אם זו שורה חדשה
-            if (Math.abs(sticker.y - lastY) > 1) {
-              lastY = sticker.y;
-              lastRowMaxHeight = sticker.height;
-              itemsInCurrentRow = 1;
-            } else {
-              itemsInCurrentRow++;
-              lastRowMaxHeight = Math.max(lastRowMaxHeight, sticker.height);
-            }
-          }
-        }
-        
-        page = lastPage;
-        y = lastY;
-        colIndex = itemsInCurrentRow;
-        rowMaxHeight = lastRowMaxHeight;
-        
-        // אם השורה מלאה, עוברים לשורה הבאה
-        if (colIndex >= cols) {
-          colIndex = 0;
-          y = y + rowMaxHeight + gap;
-          rowMaxHeight = 0;
+    // פונקציה שמחילה פריסה על מדבקות חדשות
+    // אם preserveExisting = true, שומרת על המדבקות הקיימות
+    // אם preserveExisting = false, מחילה פריסה אופטימלית על הכל
+    function applyLayoutToNewStickers(startIndex = 0, preserveExisting = true) {
+      if (startIndex >= stickers.length) return;
+      
+      // אם אין מדבקות קיימות או המשתמש רוצה פריסה אופטימלית, נריץ reflowStickers על הכל
+      if (startIndex === 0 || !preserveExisting) {
+        reflowStickers();
+        return;
+      }
+      
+      // שמירת המדבקות הקיימות
+      const existingStickers = [];
+      for (let i = 0; i < startIndex; i++) {
+        if (stickers[i]) {
+          existingStickers.push({
+            page: stickers[i].page,
+            x: stickers[i].x,
+            y: stickers[i].y,
+            width: stickers[i].width,
+            height: stickers[i].height,
+            originalWidth: stickers[i].originalWidth,
+            originalHeight: stickers[i].originalHeight
+          });
         }
       }
-
-      // החלת פריסה רק על מדבקות חדשות (RTL)
-      for (let i = startIndex; i < stickers.length; i++) {
-        const sticker = stickers[i];
-        sticker.words = sticker.words || [];
-        sticker.images = sticker.images || [];
-
-        // מדבקות מדויקות - שמירה על הגודל המקורי במילימטרים (עם כיול אם קיים)
-        if (sticker.precisionCut && sticker.precisionWidthMM && sticker.precisionHeightMM) {
-          // החלת כיול מדפסת אם קיים
-          let precisionW, precisionH;
-          if (typeof getCalibratedPxFromMM === 'function') {
-            const calibrated = getCalibratedPxFromMM(sticker.precisionWidthMM, sticker.precisionHeightMM, MM_TO_PX);
-            precisionW = calibrated.widthPx;
-            precisionH = calibrated.heightPx;
-          } else {
-            precisionW = sticker.precisionWidthMM * MM_TO_PX;
-            precisionH = sticker.precisionHeightMM * MM_TO_PX;
-          }
-          
-          if (colIndex >= cols) {
-            colIndex = 0;
-            y = y + rowMaxHeight + gap;
-            rowMaxHeight = 0;
-          }
-
-          if (y + precisionH > pageHeight - edge) {
-            page += 1;
-            colIndex = 0;
-            y = edge;
-            rowMaxHeight = 0;
-          }
-
-          const xPos = pageWidth - edge - (colIndex * (cellWidth + gap)) - cellWidth + Math.max(0, (cellWidth - precisionW) / 2);
-
-          sticker.page = page;
-          sticker.x = xPos;
-          sticker.y = y;
-          sticker.width = precisionW;
-          sticker.height = precisionH;
-          sticker.originalWidth = precisionW;
-          sticker.originalHeight = precisionH;
-
-          rowMaxHeight = Math.max(rowMaxHeight, precisionH);
-          colIndex += 1;
-          continue; // מעבר למדבקה הבאה
+      
+      // הרצת reflowStickers על כל המדבקות כדי לקבל פריסה אופטימלית למדבקות החדשות
+      reflowStickers();
+      
+      // שחזור המדבקות הקיימות למיקומן המקורי
+      for (let i = 0; i < startIndex && i < existingStickers.length; i++) {
+        if (stickers[i] && existingStickers[i]) {
+          stickers[i].page = existingStickers[i].page;
+          stickers[i].x = existingStickers[i].x;
+          stickers[i].y = existingStickers[i].y;
+          stickers[i].width = existingStickers[i].width;
+          stickers[i].height = existingStickers[i].height;
+          stickers[i].originalWidth = existingStickers[i].originalWidth;
+          stickers[i].originalHeight = existingStickers[i].originalHeight;
         }
-
-        if (!Number.isFinite(sticker.originalWidth) || !Number.isFinite(sticker.originalHeight) || sticker.originalWidth <= 0 || sticker.originalHeight <= 0) {
-          const fallbackCell = cellWidth;
-          sticker.originalWidth = fallbackCell;
-          sticker.originalHeight = fallbackCell;
-        }
-
-        const aspectRatio = sticker.originalWidth / sticker.originalHeight;
-
-        let newW;
-        let newH;
-        if (mode === 'height') {
-          newH = cellHeight;
-          newW = newH * aspectRatio;
-          if (newW > cellWidth) {
-            newW = cellWidth;
-            newH = newW / aspectRatio;
-          }
-        } else {
-          newW = cellWidth;
-          newH = newW / aspectRatio;
-          if (newH > maxH) {
-            newH = maxH;
-            newW = newH * aspectRatio;
-          }
-        }
-
-        if (colIndex >= cols) {
-          colIndex = 0;
-          y = y + (mode === 'height' ? cellHeight : rowMaxHeight) + gap;
-          rowMaxHeight = 0;
-        }
-
-        if (y + (mode === 'height' ? cellHeight : newH) > pageHeight - edge) {
-          page += 1;
-          colIndex = 0;
-          y = edge;
-          rowMaxHeight = 0;
-        }
-
-        // חישוב X מימין לשמאל (RTL)
-        const xPos = pageWidth - edge - (colIndex * (cellWidth + gap)) - cellWidth + Math.max(0, (cellWidth - newW) / 2);
-
-        sticker.page = page;
-        sticker.x = xPos;
-        sticker.y = y;
-        sticker.width = newW;
-        sticker.height = newH;
-
-        rowMaxHeight = Math.max(rowMaxHeight, newH);
-        colIndex += 1;
       }
     }
 
@@ -2538,21 +2412,50 @@
       console.log('pageWidth:', pageWidth, 'pageHeight:', pageHeight);
       console.log('contentWidth:', contentWidth, 'contentHeight:', contentHeight);
       
-      const cols = (mode === 'width')
-        ? Math.max(1, cfg.stickersPerRow)
-        : 1; // במצב לאורך - תמיד עמודה אחת
-      const cellWidth = (mode === 'width')
-        ? Math.max(1, (contentWidth - gap * (cols - 1)) / cols)
-        : contentWidth; // במצב לאורך - הרוחב המלא הזמין
+      // במצב width: stickersPerRow = כמה מדבקות לרוחב (cols)
+      // במצב height: stickersPerRow = כמה מדבקות לאורך (rows)
       const rows = (mode === 'height')
         ? Math.max(1, cfg.stickersPerRow)
         : 1;
       const cellHeight = (mode === 'height')
         ? Math.max(1, (contentHeight - gap * (rows - 1)) / rows)
         : contentHeight;
+      
+      console.log('Calculated rows:', rows, 'cellHeight:', cellHeight);
+      
+      // חישוב cols ו-cellWidth
+      let cols, cellWidth;
+      if (mode === 'width') {
+        cols = Math.max(1, cfg.stickersPerRow);
+        cellWidth = Math.max(1, (contentWidth - gap * (cols - 1)) / cols);
+        console.log('Width mode - cols:', cols, 'cellWidth:', cellWidth);
+      } else {
+        // במצב height: המטרה היא למלא את הדף בצורה אופטימלית
+        // נחשב כמה מדבקות נכנסות לרוחב בהתבסס על יחס גובה-רוחב ממוצע
+        if (stickers.length > 0 && stickers[0].originalWidth && stickers[0].originalHeight) {
+          const aspectRatio = stickers[0].originalWidth / stickers[0].originalHeight;
+          const estimatedWidth = cellHeight * aspectRatio;
+          
+          // חישוב כמה מדבקות בגודל זה נכנסות לרוחב (עם gaps)
+          cols = Math.floor((contentWidth + gap) / (estimatedWidth + gap));
+          cols = Math.max(1, cols);
+          
+          // במקום לחשב cellWidth מחדש, נשתמש ב-estimatedWidth
+          // כדי שהמדבקות יהיו בגודל הנכון
+          cellWidth = estimatedWidth;
+          
+          console.log('Height mode - aspectRatio:', aspectRatio);
+          console.log('Height mode - estimatedWidth:', estimatedWidth, 'calculated cols:', cols);
+          console.log('Height mode - using cellWidth:', cellWidth, '(same as estimatedWidth)');
+        } else {
+          cols = 1;
+          cellWidth = contentWidth;
+          console.log('Height mode - fallback: cols=1, cellWidth=', cellWidth);
+        }
+      }
         
-      console.log('cols:', cols, 'rows:', rows);
-      console.log('cellWidth:', cellWidth, 'cellHeight:', cellHeight);
+      console.log('FINAL: cols:', cols, 'rows:', rows);
+      console.log('FINAL: cellWidth:', cellWidth, 'cellHeight:', cellHeight);
 
       const derivedCellWidth = cellWidth;
       const derivedCols = cols;
@@ -2562,7 +2465,10 @@
       let y = edge;
       let rowMaxHeight = 0;
 
-      stickers.forEach((sticker) => {
+      stickers.forEach((sticker, stickerIndex) => {
+        console.log(`\n--- Processing sticker ${stickerIndex} ---`);
+        console.log('Original size:', sticker.originalWidth, 'x', sticker.originalHeight);
+        
         sticker.words = sticker.words || [];
         sticker.images = sticker.images || [];
 
@@ -2623,6 +2529,8 @@
         const prevH = Number.isFinite(sticker.height) && sticker.height > 0 ? sticker.height : fallbackCell;
         const aspectRatio = sticker.originalWidth / sticker.originalHeight;
 
+        console.log('aspectRatio:', aspectRatio, 'prevW:', prevW, 'prevH:', prevH);
+
         let newW;
         let newH;
         if (mode === 'height') {
@@ -2639,19 +2547,26 @@
         } else {
           newW = cellWidth;
           newH = newW / aspectRatio;
+          console.log('Width mode - cellWidth:', cellWidth, 'newW:', newW, 'newH:', newH);
           if (newH > maxH) {
             newH = maxH;
             newW = newH * aspectRatio;
+            console.log('Height too large, adjusted to:', newW, newH);
           }
         }
 
+        console.log('Before positioning - colIndex:', colIndex, 'derivedCols:', derivedCols, 'y:', y, 'page:', page);
+
         if (colIndex >= derivedCols) {
+          console.log('Moving to next row - colIndex reset to 0');
           colIndex = 0;
           y = y + (mode === 'height' ? cellHeight : rowMaxHeight) + gap;
           rowMaxHeight = 0;
+          console.log('New y:', y);
         }
 
         if (y + (mode === 'height' ? cellHeight : newH) > pageHeight - edge) {
+          console.log('Moving to next page - page:', page + 1);
           page += 1;
           colIndex = 0;
           y = edge;
@@ -2663,11 +2578,13 @@
         // חישוב X מימין לשמאל (RTL)
         let xPos;
         if (mode === 'height') {
-          // במצב לאורך - ממרכזים את המדבקה או מיישרים לימין
-          xPos = pageWidth - edge - newW; // יישור לימין
+          // במצב לאורך - מחשבים מיקום לפי colIndex עם המרווח הנכון
+          xPos = pageWidth - edge - (colIndex * (cellWidth + gap)) - cellWidth;
+          console.log('Height mode X calc - cellWidth:', cellWidth, 'colIndex:', colIndex, 'xPos:', xPos);
         } else {
           const usedCellWidth = cellWidth;
           xPos = pageWidth - edge - (colIndex * (usedCellWidth + gap)) - usedCellWidth + Math.max(0, (usedCellWidth - newW) / 2);
+          console.log('Width mode X calc - usedCellWidth:', usedCellWidth, 'colIndex:', colIndex, 'xPos:', xPos);
         }
 
         sticker.page = page;
@@ -2675,6 +2592,8 @@
         sticker.y = y;
         sticker.width = newW;
         sticker.height = newH;
+
+        console.log('Final position - page:', page, 'x:', xPos, 'y:', y, 'size:', newW, 'x', newH);
 
         sticker.words.forEach(w => {
           if (Number.isFinite(w.x)) w.x = w.x * scale;
@@ -2691,7 +2610,10 @@
 
         rowMaxHeight = Math.max(rowMaxHeight, newH);
         colIndex += 1;
+        console.log('Updated colIndex to:', colIndex, 'rowMaxHeight:', rowMaxHeight);
       });
+      
+      console.log('=== reflowStickers END ===');
     }
 
     function reflowStickersPositionsOnly() {
@@ -5858,7 +5780,10 @@
         }
 
         // החלת פריסה רק על המדבקות החדשות
-        applyLayoutToNewStickers(startIndex);
+        console.log('🚀 applyLayoutToNewStickers called for single sticker from GitHub');
+        
+        // עבור מדבקה יחידה, נשמור על המדבקות הקיימות
+        applyLayoutToNewStickers(startIndex, true);
         renderStickers();
         scrollToAddedElement(`[data-sticker-index="${startIndex}"]`);
         updateFileCount();
@@ -6848,9 +6773,13 @@
             });
           }
 
-          // החלת פריסה על המדבקות החדשות
-          // במקום לנסות לחשב מיקומים חלקיים, פשוט נריץ את reflowStickers על הכל
-          reflowStickers();
+          // החלת פריסה רק על המדבקות החדשות
+          console.log('🚀 About to call applyLayoutToNewStickers after uploading', countToAdd, 'stickers');
+          console.log('Total stickers now:', stickers.length);
+          
+          // אם מעלים הרבה מדבקות (יותר מ-3), נשתמש בפריסה אופטימלית
+          const useOptimalLayout = countToAdd > 3;
+          applyLayoutToNewStickers(startIndex, !useOptimalLayout);
           renderStickers();
           scrollToAddedElement(`[data-sticker-index="${startIndex}"]`);
           updateFileCount();
@@ -6911,9 +6840,13 @@
             });
           }
 
-          // החלת פריסה על המדבקות החדשות
-          // במקום לנסות לחשב מיקומים חלקיים, פשוט נריץ את reflowStickers על הכל
-          reflowStickers();
+          // החלת פריסה רק על המדבקות החדשות
+          console.log('🚀 About to call applyLayoutToNewStickers after uploading', countToAdd, 'stickers (second function)');
+          console.log('Total stickers now:', stickers.length);
+          
+          // אם מעלים הרבה מדבקות (יותר מ-3), נשתמש בפריסה אופטימלית
+          const useOptimalLayout = countToAdd > 3;
+          applyLayoutToNewStickers(startIndex, !useOptimalLayout);
           renderStickers();
           scrollToAddedElement(`[data-sticker-index="${startIndex}"]`);
           updateFileCount();
