@@ -269,7 +269,18 @@ const translations = {
         "termsOfService": "תנאי שימוש",
         "removeBackground": "הסרת רקע (AI)",
         "eraser": "מחק",
-        "processing": "מעבד..."
+        "processing": "מעבד...",
+        "feedbackTitle": "💬 נשמח לשמוע ממך!",
+        "feedbackSubtitle": "יש לך תגובות, הצעות או רעיונות? שתף אותנו!",
+        "feedbackName": "שם (אופציונלי)",
+        "feedbackNamePlaceholder": "השם שלך",
+        "feedbackEmail": "אימייל (אופציונלי)",
+        "feedbackEmailPlaceholder": "your@email.com",
+        "feedbackMessage": "תגובה / הערה",
+        "feedbackMessagePlaceholder": "כתוב כאן את התגובה, ההצעה או השאלה שלך...",
+        "feedbackSubmit": "📤 שלח תגובה",
+        "feedbackSuccess": "✅ תודה! ההודעה נשלחה בהצלחה!",
+        "feedbackError": "❌ נא למלא את שדה התגובה"
     },
     en: {
         "site-title": "Hagralomat",
@@ -541,7 +552,18 @@ const translations = {
         "termsOfService": "Terms of Service",
         "removeBackground": "Remove Background (AI)",
         "eraser": "Eraser",
-        "processing": "Processing..."
+        "processing": "Processing...",
+        "feedbackTitle": "💬 We'd Love to Hear From You!",
+        "feedbackSubtitle": "Have feedback, suggestions, or ideas? Share them with us!",
+        "feedbackName": "Name (optional)",
+        "feedbackNamePlaceholder": "Your name",
+        "feedbackEmail": "Email (optional)",
+        "feedbackEmailPlaceholder": "your@email.com",
+        "feedbackMessage": "Feedback / Comment",
+        "feedbackMessagePlaceholder": "Write your feedback, suggestion, or question here...",
+        "feedbackSubmit": "📤 Send Feedback",
+        "feedbackSuccess": "✅ Thank you! Your message has been sent successfully!",
+        "feedbackError": "❌ Please fill in the feedback field"
     }
 };
 

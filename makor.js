@@ -5046,7 +5046,7 @@
       Text: { file: 'טקסט.mp4', title: 'הוספת טקסט' },
       Image: { file: 'תמונות.mp4', title: 'הוספת תמונה' },
       Global: { file: 'הגדרות.webm', title: 'הגדרות כלליות' },
-      NamesUpload: { file: 'הגרלתמספרים.webm', title: 'הגרלת מספרים' },
+      // NamesUpload: { file: '../הגרלתמספרים.webm', title: 'הגרלת מספרים' }, // לא קיים עדיין
       Calibration: { file: 'כיול.mp4', title: 'כיול מדבקות' },
       PrecisionSticker: { file: 'מדבקהמדיוקת.mp4', title: 'מדבקה מדויקת' }
     };
@@ -5171,36 +5171,30 @@
 
     function setActiveToolsSection(sectionKey) {
       const sections = [
-        { key: 'Stickers', contentId: 'toolsSectionContentStickers', chevronId: 'toolsSectionChevronStickers', buttonId: 'toolsSectionBtnStickers' },
-        { key: 'Text', contentId: 'toolsSectionContentText', chevronId: 'toolsSectionChevronText', buttonId: 'toolsSectionBtnText' },
-        { key: 'Image', contentId: 'toolsSectionContentImage', chevronId: 'toolsSectionChevronImage', buttonId: 'toolsSectionBtnImage' },
-        { key: 'Global', contentId: 'toolsSectionContentGlobal', chevronId: 'toolsSectionChevronGlobal', buttonId: 'toolsSectionBtnGlobal' }
+        { key: 'Stickers', contentId: 'toolsTabContentStickers', buttonId: 'toolsTabStickers' },
+        { key: 'Text', contentId: 'toolsTabContentText', buttonId: 'toolsTabText' },
+        { key: 'Image', contentId: 'toolsTabContentImage', buttonId: 'toolsTabImage' }
       ];
 
       sections.forEach(s => {
         const content = document.getElementById(s.contentId);
-        const chevron = document.getElementById(s.chevronId);
         const button = document.getElementById(s.buttonId);
-        const isOpen = s.key === sectionKey;
+        const isActive = s.key === sectionKey;
         
-        if (content) content.classList.toggle('hidden', !isOpen);
-        if (chevron) chevron.textContent = isOpen ? '▾' : '▸';
-        
-        // הוספת/הסרת המחלקה collapsed לכפתור
-        if (button) button.classList.toggle('collapsed', !isOpen);
+        if (content) content.classList.toggle('hidden', !isActive);
+        if (button) {
+          if (isActive) {
+            button.classList.add('active');
+          } else {
+            button.classList.remove('active');
+          }
+        }
       });
 
       preloadTutorialVideo(sectionKey);
     }
 
-    const toolsSectionBtnStickers = document.getElementById('toolsSectionBtnStickers');
-    if (toolsSectionBtnStickers) toolsSectionBtnStickers.addEventListener('click', () => setActiveToolsSection('Stickers'));
-    const toolsSectionBtnText = document.getElementById('toolsSectionBtnText');
-    if (toolsSectionBtnText) toolsSectionBtnText.addEventListener('click', () => setActiveToolsSection('Text'));
-    const toolsSectionBtnImage = document.getElementById('toolsSectionBtnImage');
-    if (toolsSectionBtnImage) toolsSectionBtnImage.addEventListener('click', () => setActiveToolsSection('Image'));
-    const toolsSectionBtnGlobal = document.getElementById('toolsSectionBtnGlobal');
-    if (toolsSectionBtnGlobal) toolsSectionBtnGlobal.addEventListener('click', () => setActiveToolsSection('Global'));
+    // Tab event listeners are now in makor-init.js
 
     document.querySelectorAll('[data-tutorial-section]').forEach(el => {
       const sectionKey = el.dataset.tutorialSection;
@@ -5217,8 +5211,6 @@
         }
       });
     });
-
-    setActiveToolsSection('Stickers');
 
     const tutorialVideoModalClose = document.getElementById('tutorialVideoModalClose');
     if (tutorialVideoModalClose) tutorialVideoModalClose.addEventListener('click', closeTutorialVideoModal);
@@ -5741,9 +5733,17 @@
       updateStickerLayoutInfo();
     });
     const stickersPerRowInput = document.getElementById('stickersPerRowInput');
-    if (stickersPerRowInput) stickersPerRowInput.addEventListener('input', applyStickerLayoutAndRender);
+    if (stickersPerRowInput) stickersPerRowInput.addEventListener('input', () => {
+      // עדכון רק של המידע בממשק, לא של המדבקות הקיימות
+      getStickerLayoutConfigFromUI();
+      updateStickerLayoutInfo();
+    });
     const stickerSizeModeSelect = document.getElementById('stickerSizeModeSelect');
-    if (stickerSizeModeSelect) stickerSizeModeSelect.addEventListener('change', applyStickerLayoutAndRender);
+    if (stickerSizeModeSelect) stickerSizeModeSelect.addEventListener('change', () => {
+      // עדכון רק של המידע בממשק, לא של המדבקות הקיימות
+      getStickerLayoutConfigFromUI();
+      updateStickerLayoutInfo();
+    });
     const edgeMarginInput = document.getElementById('edgeMarginInput');
     if (edgeMarginInput) edgeMarginInput.addEventListener('input', applyStickerLayoutAndRender);
     const gapInput = document.getElementById('gapInput');

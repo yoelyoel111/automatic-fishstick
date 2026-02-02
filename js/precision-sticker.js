@@ -814,7 +814,7 @@ function setupCropArea() {
   // הגדרת כיוון וצורה התחלתיים
   updateContainerOrientation();
   updateCropAreaShape();
-  
+
   // עדכון שדות המידות לפי הגודל ההתחלתי
   syncMmInputsFromCropPx();
 }
@@ -823,27 +823,66 @@ function setupDragging(cropArea, img) {
   let isDragging = false;
   let startX, startY, startLeft, startTop;
 
-  cropArea.addEventListener('mousedown', function(e) {
+  if (cropArea._precisionDraggingSetup) return;
+  cropArea._precisionDraggingSetup = true;
+
+  const supportsPointerEvents = typeof window !== 'undefined' && 'PointerEvent' in window;
+  function getEventPoint(e) {
+    if (e && e.touches && e.touches.length) return e.touches[0];
+    if (e && e.changedTouches && e.changedTouches.length) return e.changedTouches[0];
+    return e;
+  }
+  function getEventClientX(e) {
+    const p = getEventPoint(e);
+    return p ? p.clientX : 0;
+  }
+  function getEventClientY(e) {
+    const p = getEventPoint(e);
+    return p ? p.clientY : 0;
+  }
+
+  let activePointerId = null;
+
+  function onStart(e) {
     // אם לוחצים על ידית השינוי גודל, לא נתחיל גרירה
     if (e.target.id === 'precisionResizeHandle') return;
+
+    if (typeof e.isPrimary === 'boolean' && !e.isPrimary) return;
+    if (typeof e.button === 'number' && e.button !== 0) return;
     
     isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
+    startX = getEventClientX(e);
+    startY = getEventClientY(e);
     startLeft = parseInt(cropArea.style.left) || 0;
     startTop = parseInt(cropArea.style.top) || 0;
+
+    if (e.pointerId != null) {
+      activePointerId = e.pointerId;
+      if (typeof cropArea.setPointerCapture === 'function') {
+        try {
+          cropArea.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+    } else {
+      activePointerId = null;
+    }
     
     cropArea.style.cursor = 'grabbing';
-    e.preventDefault();
+
+    if (e.cancelable) e.preventDefault();
     
     console.log('Started dragging');
-  });
+  }
   
-  document.addEventListener('mousemove', function(e) {
+  function onMove(e) {
     if (!isDragging) return;
+
+    if (activePointerId != null && e.pointerId != null && e.pointerId !== activePointerId) return;
+
+    if (e.cancelable) e.preventDefault();
     
-    const deltaX = e.clientX - startX;
-    const deltaY = e.clientY - startY;
+    const deltaX = getEventClientX(e) - startX;
+    const deltaY = getEventClientY(e) - startY;
     
     let newLeft = startLeft + deltaX;
     let newTop = startTop + deltaY;
@@ -875,42 +914,98 @@ function setupDragging(cropArea, img) {
     
     cropArea.style.left = newLeft + 'px';
     cropArea.style.top = newTop + 'px';
-  });
+  }
   
-  document.addEventListener('mouseup', function() {
+  function onEnd(e) {
+    if (activePointerId != null && e && e.pointerId != null && e.pointerId !== activePointerId) return;
     if (isDragging) {
       isDragging = false;
+      activePointerId = null;
       cropArea.style.cursor = 'move';
       console.log('Stopped dragging');
     }
-  });
+  }
+
+  const startOptions = { passive: false };
+  if (supportsPointerEvents) {
+    cropArea.addEventListener('pointerdown', onStart, startOptions);
+    document.addEventListener('pointermove', onMove, startOptions);
+    document.addEventListener('pointerup', onEnd, startOptions);
+    document.addEventListener('pointercancel', onEnd, startOptions);
+  }
+
+  cropArea.addEventListener('mousedown', onStart, startOptions);
+  document.addEventListener('mousemove', onMove, startOptions);
+  document.addEventListener('mouseup', onEnd, startOptions);
+
+  cropArea.addEventListener('touchstart', onStart, startOptions);
+  document.addEventListener('touchmove', onMove, startOptions);
+  document.addEventListener('touchend', onEnd, startOptions);
+  document.addEventListener('touchcancel', onEnd, startOptions);
 }
 
 function setupResizing(cropArea) {
   const resizeHandle = document.getElementById('precisionResizeHandle');
   if (!resizeHandle) return;
+
+  if (resizeHandle._precisionResizingSetup) return;
+  resizeHandle._precisionResizingSetup = true;
   
   let isResizing = false;
   let startX, startY, startWidth, startHeight;
+
+  const supportsPointerEvents = typeof window !== 'undefined' && 'PointerEvent' in window;
+  function getEventPoint(e) {
+    if (e && e.touches && e.touches.length) return e.touches[0];
+    if (e && e.changedTouches && e.changedTouches.length) return e.changedTouches[0];
+    return e;
+  }
+  function getEventClientX(e) {
+    const p = getEventPoint(e);
+    return p ? p.clientX : 0;
+  }
+  function getEventClientY(e) {
+    const p = getEventPoint(e);
+    return p ? p.clientY : 0;
+  }
+
+  let activePointerId = null;
   
-  resizeHandle.addEventListener('mousedown', function(e) {
+  function onStart(e) {
+    if (typeof e.isPrimary === 'boolean' && !e.isPrimary) return;
+    if (typeof e.button === 'number' && e.button !== 0) return;
     isResizing = true;
-    startX = e.clientX;
-    startY = e.clientY;
+    startX = getEventClientX(e);
+    startY = getEventClientY(e);
     startWidth = cropArea.offsetWidth;
     startHeight = cropArea.offsetHeight;
+
+    if (e.pointerId != null) {
+      activePointerId = e.pointerId;
+      if (typeof resizeHandle.setPointerCapture === 'function') {
+        try {
+          resizeHandle.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+    } else {
+      activePointerId = null;
+    }
     
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     e.stopPropagation();
     
     console.log('Started resizing');
-  });
+  }
   
-  document.addEventListener('mousemove', function(e) {
+  function onMove(e) {
     if (!isResizing) return;
+
+    if (activePointerId != null && e.pointerId != null && e.pointerId !== activePointerId) return;
+
+    if (e.cancelable) e.preventDefault();
     
-    const deltaX = e.clientX - startX;
-    const deltaY = e.clientY - startY;
+    const deltaX = getEventClientX(e) - startX;
+    const deltaY = getEventClientY(e) - startY;
     
     const selectedShape = document.querySelector('input[name="precisionShape"]:checked');
     const shape = selectedShape?.value || 'rectangle';
@@ -935,13 +1030,13 @@ function setupResizing(cropArea) {
       const imgOffsetY = img.offsetTop;
       const scaledWidth = img.offsetWidth;
       const scaledHeight = img.offsetHeight;
-      
+
       const currentLeft = parseInt(cropArea.style.left) || 0;
       const currentTop = parseInt(cropArea.style.top) || 0;
-      
+
       const maxWidth = imgOffsetX + scaledWidth - currentLeft;
       const maxHeight = imgOffsetY + scaledHeight - currentTop;
-      
+
       if (shape === 'square' || shape === 'circle') {
         // עבור עיגול וריבוע - הגבלה לפי הקטן מבין הרוחב והגובה
         const maxSize = Math.min(maxWidth, maxHeight);
@@ -952,7 +1047,7 @@ function setupResizing(cropArea) {
         newWidth = Math.min(newWidth, maxWidth);
         newHeight = Math.min(newHeight, maxHeight);
       }
-      
+
       console.log('Resize constrained to visible image:', { 
         scaledWidth, scaledHeight,
         imgOffsetX, imgOffsetY,
@@ -970,14 +1065,33 @@ function setupResizing(cropArea) {
     
     // עדכון תצוגת המידות
     updateSizeDisplayFromPx(newWidth, newHeight, shape);
-  });
+  }
   
-  document.addEventListener('mouseup', function() {
+  function onEnd(e) {
+    if (activePointerId != null && e && e.pointerId != null && e.pointerId !== activePointerId) return;
     if (isResizing) {
       isResizing = false;
+      activePointerId = null;
       console.log('Stopped resizing');
     }
-  });
+  }
+
+  const startOptions = { passive: false };
+  if (supportsPointerEvents) {
+    resizeHandle.addEventListener('pointerdown', onStart, startOptions);
+    document.addEventListener('pointermove', onMove, startOptions);
+    document.addEventListener('pointerup', onEnd, startOptions);
+    document.addEventListener('pointercancel', onEnd, startOptions);
+  }
+
+  resizeHandle.addEventListener('mousedown', onStart, startOptions);
+  document.addEventListener('mousemove', onMove, startOptions);
+  document.addEventListener('mouseup', onEnd, startOptions);
+
+  resizeHandle.addEventListener('touchstart', onStart, startOptions);
+  document.addEventListener('touchmove', onMove, startOptions);
+  document.addEventListener('touchend', onEnd, startOptions);
+  document.addEventListener('touchcancel', onEnd, startOptions);
 }
 
 function updateSizeDisplayFromPx(widthPx, heightPx, shape) {
@@ -1540,7 +1654,45 @@ function applyPrecisionCrop() {
       // המרה מס"מ למ"מ ואז לפיקסלים (מ"מ * 3.78 = פיקסלים)
       const outWidthMm = outWidthCm * 10;
       const outHeightMm = outHeightCm * 10;
-      addPrecisionStickerToMain(croppedDataUrl, outWidthMm * 3.78, outHeightMm * 3.78);
+
+      // הוספה לעורך הראשי
+      if (typeof stickers !== 'undefined') {
+        if (typeof pushHistory === 'function') {
+          pushHistory();
+        }
+
+        const widthPx = outWidthMm * 3.78;
+        const heightPx = outHeightMm * 3.78;
+        const newSticker = {
+          id: `precision-sticker-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          dataUrl: croppedDataUrl,
+          fileName: `מדבקה מדויקת ${outWidthMm.toFixed(0)}×${outHeightMm.toFixed(0)} מ"מ`,
+          page: 0,
+          x: 20,
+          y: 20,
+          width: widthPx,
+          height: heightPx,
+          originalWidth: widthPx,
+          originalHeight: heightPx,
+          words: [],
+          images: [],
+          precisionCut: true,
+          precisionWidthMM: outWidthMm,
+          precisionHeightMM: outHeightMm
+        };
+
+        stickers.push(newSticker);
+
+        if (typeof renderStickers === 'function') {
+          renderStickers();
+        }
+        if (typeof scrollToAddedElement === 'function') {
+          scrollToAddedElement(`[data-sticker-index="${stickers.length - 1}"]`);
+        }
+        if (typeof updateFileCount === 'function') {
+          updateFileCount();
+        }
+      }
 
       // סגירת המודל
       closePrecisionModal();
@@ -1575,46 +1727,6 @@ function addPrecisionStickerToMain(dataUrl, widthPx, heightPx) {
   const widthMM = (widthPx / 3.78).toFixed(1);
   const heightMM = (heightPx / 3.78).toFixed(1);
   
-  // הוספה למערך המדבקות הגלובלי
-  if (typeof stickers !== 'undefined' && typeof pushHistory === 'function') {
-    pushHistory();
-    
-    const newSticker = {
-      id: `sticker-precision-${Date.now()}`,
-      dataUrl: dataUrl,
-      fileName: `מדבקה-מדויקת-${widthMM}x${heightMM}mm.png`,
-      page: 0,
-      x: 20,
-      y: 20,
-      width: widthPx,
-      height: heightPx,
-      originalWidth: widthPx,
-      originalHeight: heightPx,
-      words: [],
-      images: [],
-      precisionCut: true,
-      precisionWidthMM: parseFloat(widthMM),
-      precisionHeightMM: parseFloat(heightMM)
-    };
-    
-    stickers.push(newSticker);
-    
-    // רענון התצוגה
-    if (typeof renderStickers === 'function') {
-      renderStickers();
-    }
-    if (typeof updateFileCount === 'function') {
-      updateFileCount();
-    }
-    
-    console.log('Precision sticker added successfully:', newSticker);
-  } else {
-    console.warn('Global stickers array or pushHistory function not found');
-    alert('המדבקה נוצרה אבל לא ניתן להוסיף אותה לעורך הראשי');
-  }
-}
-
-function showPrecisionPreview() {
   const cropArea = document.getElementById('precisionCropShape');
   const img = document.getElementById('precisionSourceImage');
   const container = document.getElementById('precisionEditorContainer');

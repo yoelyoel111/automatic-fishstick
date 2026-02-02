@@ -24,6 +24,7 @@ async function ensureBackgroundRemovalLibraryLoaded() {
 
   _bgRemovalImportPromise = (async () => {
     const candidates = [
+      './vendor/imgly-background-removal.mjs',
       `https://esm.sh/@imgly/background-removal@${IMGLY_BG_REMOVAL_VERSION}?bundle&target=es2020`,
       `https://cdn.skypack.dev/@imgly/background-removal@${IMGLY_BG_REMOVAL_VERSION}`,
       `https://unpkg.com/@imgly/background-removal@${IMGLY_BG_REMOVAL_VERSION}/dist/index.mjs`,

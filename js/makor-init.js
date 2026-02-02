@@ -6,6 +6,44 @@
       });
     }
 
+    // Tools Tabs Event Listeners
+    const toolsTabStickers = document.getElementById('toolsTabStickers');
+    if (toolsTabStickers) {
+      console.log('Attaching click listener to toolsTabStickers');
+      toolsTabStickers.addEventListener('click', () => {
+        console.log('Stickers tab clicked');
+        setActiveToolsSection('Stickers');
+      });
+    } else {
+      console.error('toolsTabStickers not found!');
+    }
+    
+    const toolsTabText = document.getElementById('toolsTabText');
+    if (toolsTabText) {
+      console.log('Attaching click listener to toolsTabText');
+      toolsTabText.addEventListener('click', () => {
+        console.log('Text tab clicked');
+        setActiveToolsSection('Text');
+      });
+    } else {
+      console.error('toolsTabText not found!');
+    }
+    
+    const toolsTabImage = document.getElementById('toolsTabImage');
+    if (toolsTabImage) {
+      console.log('Attaching click listener to toolsTabImage');
+      toolsTabImage.addEventListener('click', () => {
+        console.log('Image tab clicked');
+        setActiveToolsSection('Image');
+      });
+    } else {
+      console.error('toolsTabImage not found!');
+    }
+
+    // Initialize with Stickers tab active
+    console.log('Initializing with Stickers tab');
+    setActiveToolsSection('Stickers');
+
     // Names Lottery Print
     const printNamesLotteryBtn = document.getElementById('printNamesLotteryBtn');
     if (printNamesLotteryBtn) {
@@ -136,9 +174,17 @@
       updateStickerLayoutInfo();
     });
     const stickersPerRowInput = document.getElementById('stickersPerRowInput');
-    if (stickersPerRowInput) stickersPerRowInput.addEventListener('input', applyStickerLayoutAndRender);
+    if (stickersPerRowInput) stickersPerRowInput.addEventListener('input', () => {
+      // עדכון רק של המידע בממשק, לא של המדבקות הקיימות
+      getStickerLayoutConfigFromUI();
+      updateStickerLayoutInfo();
+    });
     const stickerSizeModeSelect = document.getElementById('stickerSizeModeSelect');
-    if (stickerSizeModeSelect) stickerSizeModeSelect.addEventListener('change', applyStickerLayoutAndRender);
+    if (stickerSizeModeSelect) stickerSizeModeSelect.addEventListener('change', () => {
+      // עדכון רק של המידע בממשק, לא של המדבקות הקיימות
+      getStickerLayoutConfigFromUI();
+      updateStickerLayoutInfo();
+    });
     const edgeMarginInput = document.getElementById('edgeMarginInput');
     if (edgeMarginInput) edgeMarginInput.addEventListener('input', applyStickerLayoutAndRender);
     const gapInput = document.getElementById('gapInput');
