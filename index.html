@@ -6,6 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>הגרלומט – עיצוב מדבקות, מיספור שמות ומספר כרטיסים להגרלה</title>
   <meta name="description" content="הגרלומט הוא כלי אונליין לעיצוב מדבקות מדויקות להדפסה, מיספור מדבקות והגרלת שמות או מספרים – פשוט, מהיר וחינמי.")
+  
+  <!-- hreflang tags for multilingual SEO -->
+  <link rel="alternate" hreflang="he" href="https://yoelyoel111.github.io/automatic-fishstick/" />
+  <link rel="alternate" hreflang="en" href="https://yoelyoel111.github.io/automatic-fishstick/?lang=en" />
+  <link rel="alternate" hreflang="x-default" href="https://yoelyoel111.github.io/automatic-fishstick/" />
+  
+  <!-- User Guide hreflang -->
+  <link rel="alternate" hreflang="he" href="https://yoelyoel111.github.io/automatic-fishstick/user-guide.html" />
+  <link rel="alternate" hreflang="en" href="https://yoelyoel111.github.io/automatic-fishstick/user-guide-en.html" />
+  
+  <!-- FAQ hreflang -->
+  <link rel="alternate" hreflang="he" href="https://yoelyoel111.github.io/automatic-fishstick/faq.html" />
+  <link rel="alternate" hreflang="en" href="https://yoelyoel111.github.io/automatic-fishstick/faq-en.html" />
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-73WVBRR9X1"></script>
   <script>
@@ -209,20 +222,24 @@
         </button>
       </div>
       <div id="header-flex" class="flex gap-4 items-stretch">
-        <img id="siteLogo" data-i18n-alt="logoAlt"
-          src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/660aea3d9a52acac6b6c60f8647d6b52bbf6dea4/logo.png"
+        <img id="siteLogo" data-i18n-alt="logoAlt" data-i18n-src="logoSrc"
+          src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png"
           alt="לוגו" class="flex-1 w-full h-56 object-contain" />
-        <div id="nav-buttons" class="w-44 h-56 flex flex-col gap-3">
+        <div id="nav-buttons" class="w-44 h-56 flex flex-col gap-2">
           <button id="contactBtn" type="button" data-i18n="contactBtn"
-            class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
+            class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
             יצירת קשר
           </button>
           <button id="userGuideBtn" type="button" data-i18n="userGuideBtn"
-            class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
-            מדריך הפעלה
+            class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
+            📖 מדריך הפעלה
+          </button>
+          <button id="faqBtn" type="button" data-i18n="faqBtn"
+            class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
+            ❓ שאלות נפוצות
           </button>
           <button id="tutorialVideoBtn" type="button" data-i18n="tutorialVideoBtn"
-            class="flex-1 px-4 py-3 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
+            class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
             סרטון הדרכה
           </button>
         </div>
@@ -310,7 +327,7 @@
             class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
             🖼️ הורד תמונה
           </button>
-          <button id="offlineBundleBtn"
+          <button id="offlineBundleBtn" data-i18n="offlineBundleBtn"
             class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md hover:shadow-lg">
             ⬇️ הורד גרסת אופליין
           </button>
@@ -526,7 +543,7 @@
                   <div class="flex items-center gap-2">
                     <label data-i18n="textColor" class="text-sm font-medium text-gray-700">צבע טקסט:</label>
                     <div class="relative inline-flex items-center">
-                      <button type="button" id="textColorSwatch" class="color-swatch-btn" aria-label="בחר צבע"></button>
+                      <button type="button" id="textColorSwatch" class="color-swatch-btn" data-i18n-aria-label="selectColor" aria-label="בחר צבע"></button>
                       <div id="textColorPalette" class="color-palette hidden">
                         <div id="textColorPaletteGrid" class="color-palette-grid"></div>
                       </div>
@@ -1134,7 +1151,7 @@
                 <button id="orientationDropdownBtn"
                   class="px-4 py-2 bg-white border-2 border-indigo-400 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 transition-all flex items-center gap-2">
                   <span id="orientationDropdownIcon" class="text-lg">📄</span>
-                  <span id="orientationDropdownText">כיוון הדף: לאורך</span>
+                  <span id="orientationDropdownText" data-i18n="pageOrientationPortrait">כיוון הדף: לאורך</span>
                   <span class="text-xs">▾</span>
                 </button>
                 <div id="orientationDropdownMenu"

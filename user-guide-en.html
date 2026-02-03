@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Guide - Hagralomat</title>
+    
+    <!-- hreflang tags for multilingual SEO -->
+    <link rel="alternate" hreflang="he" href="https://yoelyoel111.github.io/automatic-fishstick/user-guide.html" />
+    <link rel="alternate" hreflang="en" href="https://yoelyoel111.github.io/automatic-fishstick/user-guide-en.html" />
+    <link rel="alternate" hreflang="x-default" href="https://yoelyoel111.github.io/automatic-fishstick/user-guide.html" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .section-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .print-hide {
+            display: none;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-hide { display: block !important; }
+            body { font-size: 12pt; }
+            .feature-card { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="no-print bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold mb-2">📖 User Guide</h1>
+                    <p class="text-xl opacity-90">Hagralomat - Sticker Design, Numbering and Lottery System</p>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="window.print()" class="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg font-bold transition-all">
+                        🖨️ Print Guide
+                    </button>
+                    <a href="index.html?lang=en" class="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg font-bold transition-all">
+                        🏠 Back to Site
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Print Header -->
+    <div class="print-hide text-center py-4 border-b-2 border-gray-300">
+        <h1 class="text-3xl font-bold">User Guide - Hagralomat</h1>
+        <p class="text-lg text-gray-600">Sticker Design, Numbering and Lottery System</p>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Table of Contents -->
+        <div class="no-print mb-12 bg-white rounded-2xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-6 text-center">📋 Table of Contents</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <a href="#getting-started" class="block p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all">
+                    <span class="font-bold text-blue-800">🚀 Getting Started</span>
+                </a>
+                <a href="#sticker-design" class="block p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-all">
+                    <span class="font-bold text-purple-800">📝 Sticker Design</span>
+                </a>
+                <a href="#number-lottery" class="block p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-all">
+                    <span class="font-bold text-green-800">🔢 Number Lottery</span>
+                </a>
+                <a href="#name-lottery" class="block p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-all">
+                    <span class="font-bold text-orange-800">👥 Name Lottery</span>
+                </a>
+                <a href="#precision-tools" class="block p-4 bg-teal-50 rounded-lg hover:bg-teal-100 transition-all">
+                    <span class="font-bold text-teal-800">🎯 Precision Tools</span>
+                </a>
+                <a href="#project-management" class="block p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-all">
+                    <span class="font-bold text-indigo-800">💾 Project Management</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Getting Started -->
+        <section id="getting-started" class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">🚀 Getting Started</h2>
+                <p class="text-lg opacity-90 mt-2">Everything you need to know to begin</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="feature-card bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
+                        <div class="flex items-center mb-4">
+                            <div class="step-number w-8 h-8 rounded-full text-white flex items-center justify-center font-bold mr-3">1</div>
+                            <h3 class="text-xl font-bold text-blue-800">Choose Work Mode</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Select the mode that suits you:</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="text-blue-600 mr-2">📝</span> Sticker Design - Create custom stickers</li>
+                            <li class="flex items-center"><span class="text-green-600 mr-2">🔢</span> Number Lottery - Draw random numbers</li>
+                            <li class="flex items-center"><span class="text-orange-600 mr-2">👥</span> Name Lottery - Draw names from a list</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
+                        <div class="flex items-center mb-4">
+                            <div class="step-number w-8 h-8 rounded-full text-white flex items-center justify-center font-bold mr-3">2</div>
+                            <h3 class="text-xl font-bold text-purple-800">Google Account Connection</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Connect to save projects to Google Drive:</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="text-purple-600 mr-2">☁️</span> Automatic cloud saving</li>
+                            <li class="flex items-center"><span class="text-purple-600 mr-2">📱</span> Access from any device</li>
+                            <li class="flex items-center"><span class="text-purple-600 mr-2">🔄</span> Sync between devices</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sticker Design -->
+        <section id="sticker-design" class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">📝 Sticker Design</h2>
+                <p class="text-lg opacity-90 mt-2">Create custom stickers for printing</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="space-y-8">
+                    <!-- Upload Stickers -->
+                    <div class="feature-card bg-indigo-50 p-6 rounded-xl border-2 border-indigo-200">
+                        <h3 class="text-2xl font-bold text-indigo-800 mb-4">📁 Upload Stickers</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">🖼️ From Computer</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-indigo-600 mr-2">•</span> Supports formats: JPG, PNG, SVG</li>
+                                    <li class="flex items-center"><span class="text-indigo-600 mr-2">•</span> Multiple file upload</li>
+                                    <li class="flex items-center"><span class="text-indigo-600 mr-2">•</span> Drag and drop files</li>
+                                    <li class="flex items-center"><span class="text-indigo-600 mr-2">•</span> Upload entire folders</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">🌐 From Repository</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-indigo-600 mr-2">•</span> Ready-made sticker library</li>
+                                    <li class="flex items-center"><span class="text-indigo-600 mr-2">•</span> Automatic content updates</li>
+                                    <li class="flex items-center"><span class="text-indigo-600 mr-2">•</span> Various themed stickers</li>
+                                    <li class="flex items-center"><span class="text-indigo-600 mr-2">•</span> High quality for printing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout Settings -->
+                    <div class="feature-card bg-green-50 p-6 rounded-xl border-2 border-green-200">
+                        <h3 class="text-2xl font-bold text-green-800 mb-4">📐 Layout Settings</h3>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">📏 Sticker Size</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> By width or height</li>
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> Number of stickers per row</li>
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> Auto-fit to page</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">📄 Margins and Spacing</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> Page margins</li>
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> Spacing between stickers</li>
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> Cutting optimization</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">🔢 Quantity and Limits</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> Number of stickers to upload</li>
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> Multi-page management</li>
+                                    <li class="flex items-center"><span class="text-green-600 mr-2">•</span> Preview display</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text and Image Tools -->
+                    <div class="feature-card bg-yellow-50 p-6 rounded-xl border-2 border-yellow-200">
+                        <h3 class="text-2xl font-bold text-yellow-800 mb-4">✏️ Editing Tools</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">📝 Add Text</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-yellow-600 mr-2">•</span> Free text on stickers</li>
+                                    <li class="flex items-center"><span class="text-yellow-600 mr-2">•</span> Automatic numbering</li>
+                                    <li class="flex items-center"><span class="text-yellow-600 mr-2">•</span> Change colors and fonts</li>
+                                    <li class="flex items-center"><span class="text-yellow-600 mr-2">•</span> Custom position and size</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">🖼️ Add Images</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-yellow-600 mr-2">•</span> Additional images on stickers</li>
+                                    <li class="flex items-center"><span class="text-yellow-600 mr-2">•</span> Resize and reposition</li>
+                                    <li class="flex items-center"><span class="text-yellow-600 mr-2">•</span> Adjustable transparency</li>
+                                    <li class="flex items-center"><span class="text-yellow-600 mr-2">•</span> Automatic background removal</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Precision Tools -->
+        <section id="precision-tools" class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">🎯 Precision Tools</h2>
+                <p class="text-lg opacity-90 mt-2">Maximum precision for professional printing</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="space-y-8">
+                    <!-- Precision Sticker -->
+                    <div class="feature-card bg-teal-50 p-6 rounded-xl border-2 border-teal-200">
+                        <h3 class="text-2xl font-bold text-teal-800 mb-4">📐 Precision Sticker</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">🎨 Precise Design</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-teal-600 mr-2">•</span> Millimeter-precise cutting</li>
+                                    <li class="flex items-center"><span class="text-teal-600 mr-2">•</span> Select area from image</li>
+                                    <li class="flex items-center"><span class="text-teal-600 mr-2">•</span> Shapes: rectangle, square, circle</li>
+                                    <li class="flex items-center"><span class="text-teal-600 mr-2">•</span> Zoom and preview</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-3">📏 Precise Measurements</h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-center"><span class="text-teal-600 mr-2">•</span> Set dimensions in cm</li>
+                                    <li class="flex items-center"><span class="text-teal-600 mr-2">•</span> Adjustable aspect ratio</li>
+                                    <li class="flex items-center"><span class="text-teal-600 mr-2">•</span> Fit to max width/height</li>
+                                    <li class="flex items-center"><span class="text-teal-600 mr-2">•</span> Real-time dimension display</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Printer Calibration -->
+                    <div class="feature-card bg-orange-50 p-6 rounded-xl border-2 border-orange-200">
+                        <h3 class="text-2xl font-bold text-orange-800 mb-4">🎯 Printer Calibration</h3>
+                        <div class="space-y-4">
+                            <p class="text-gray-700">Printer calibration ensures maximum printing precision:</p>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="bg-white p-4 rounded-lg border border-orange-200">
+                                    <div class="step-number w-8 h-8 rounded-full text-white flex items-center justify-center font-bold mb-2">1</div>
+                                    <h4 class="font-bold mb-2">Print Calibration Sticker</h4>
+                                    <p class="text-sm text-gray-600">Print a 20×5 cm calibration sticker</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg border border-orange-200">
+                                    <div class="step-number w-8 h-8 rounded-full text-white flex items-center justify-center font-bold mb-2">2</div>
+                                    <h4 class="font-bold mb-2">Measure Result</h4>
+                                    <p class="text-sm text-gray-600">Measure the printed sticker with a ruler</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg border border-orange-200">
+                                    <div class="step-number w-8 h-8 rounded-full text-white flex items-center justify-center font-bold mb-2">3</div>
+                                    <h4 class="font-bold mb-2">Enter Measurements</h4>
+                                    <p class="text-sm text-gray-600">Enter the measured dimension into the system</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Number Lottery -->
+        <section id="number-lottery" class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">🔢 Number Lottery</h2>
+                <p class="text-lg opacity-90 mt-2">Draw random numbers for any purpose</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="feature-card bg-green-50 p-6 rounded-xl border-2 border-green-200">
+                        <h3 class="text-xl font-bold text-green-800 mb-4">⚙️ Lottery Settings</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center">
+                                <span class="text-green-600 mr-2">📊</span>
+                                <span><strong>Number Range:</strong> Set start and end numbers</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-green-600 mr-2">🔢</span>
+                                <span><strong>Number Count:</strong> How many numbers to draw</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-green-600 mr-2">🔄</span>
+                                <span><strong>No Repeats:</strong> Numbers won't be drawn twice</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-green-600 mr-2">🎲</span>
+                                <span><strong>Instant Draw:</strong> Immediate results</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="feature-card bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
+                        <h3 class="text-xl font-bold text-blue-800 mb-4">📋 Results Management</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center">
+                                <span class="text-blue-600 mr-2">📝</span>
+                                <span><strong>Winners List:</strong> Display all drawn numbers</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-600 mr-2">🔄</span>
+                                <span><strong>Reset Lottery:</strong> Start over</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-600 mr-2">📊</span>
+                                <span><strong>Statistics:</strong> Track lottery history</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-600 mr-2">💾</span>
+                                <span><strong>Save Results:</strong> Save for future use</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Name Lottery -->
+        <section id="name-lottery" class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">👥 Name Lottery</h2>
+                <p class="text-lg opacity-90 mt-2">Draw names from a custom list</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="feature-card bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
+                        <h3 class="text-xl font-bold text-purple-800 mb-4">📝 Prepare List</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center">
+                                <span class="text-purple-600 mr-2">✍️</span>
+                                <span><strong>Type Names:</strong> Enter names in the list</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-purple-600 mr-2">📄</span>
+                                <span><strong>Upload File:</strong> Load name list from file</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-purple-600 mr-2">✏️</span>
+                                <span><strong>Edit List:</strong> Add, delete and update names</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-purple-600 mr-2">🔍</span>
+                                <span><strong>Search:</strong> Find names in the list</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="feature-card bg-pink-50 p-6 rounded-xl border-2 border-pink-200">
+                        <h3 class="text-xl font-bold text-pink-800 mb-4">🎯 Advanced Lottery</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center">
+                                <span class="text-pink-600 mr-2">🎲</span>
+                                <span><strong>Random Draw:</strong> Fair and random selection</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-pink-600 mr-2">🏆</span>
+                                <span><strong>Multiple Winners:</strong> Draw multiple names at once</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-pink-600 mr-2">🚫</span>
+                                <span><strong>Remove Winners:</strong> Prevent re-drawing</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-pink-600 mr-2">📊</span>
+                                <span><strong>Lottery History:</strong> Track all draws</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Management -->
+        <section id="project-management" class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">💾 Project Management</h2>
+                <p class="text-lg opacity-90 mt-2">Save and load projects</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="feature-card bg-indigo-50 p-6 rounded-xl border-2 border-indigo-200">
+                        <h3 class="text-xl font-bold text-indigo-800 mb-4">💾 Local Saving</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center">
+                                <span class="text-indigo-600 mr-2">📁</span>
+                                <span><strong>Save Project:</strong> Save as JSON file</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-indigo-600 mr-2">📂</span>
+                                <span><strong>Load Project:</strong> Load saved project</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-indigo-600 mr-2">🔄</span>
+                                <span><strong>Auto Backup:</strong> Automatic browser saving</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-indigo-600 mr-2">📱</span>
+                                <span><strong>Offline Version:</strong> Work without internet</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="feature-card bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
+                        <h3 class="text-xl font-bold text-blue-800 mb-4">☁️ Google Drive</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center">
+                                <span class="text-blue-600 mr-2">🔐</span>
+                                <span><strong>Secure Connection:</strong> Connect to Google account</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-600 mr-2">☁️</span>
+                                <span><strong>Cloud Saving:</strong> Access from any device</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-600 mr-2">🔄</span>
+                                <span><strong>Auto Sync:</strong> Real-time updates</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-600 mr-2">📋</span>
+                                <span><strong>Project Management:</strong> List all projects</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Export Options -->
+        <section class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">📤 Export Options</h2>
+                <p class="text-lg opacity-90 mt-2">Download and print in high quality</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="feature-card bg-red-50 p-6 rounded-xl border-2 border-red-200">
+                        <div class="text-center mb-4">
+                            <div class="text-4xl mb-2">📥</div>
+                            <h3 class="text-xl font-bold text-red-800">PDF</h3>
+                        </div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="text-red-600 mr-2">•</span> Professional print quality</li>
+                            <li class="flex items-center"><span class="text-red-600 mr-2">•</span> Preserve proportions</li>
+                            <li class="flex items-center"><span class="text-red-600 mr-2">•</span> Multiple pages</li>
+                            <li class="flex items-center"><span class="text-red-600 mr-2">•</span> Compatible with all printers</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card bg-orange-50 p-6 rounded-xl border-2 border-orange-200">
+                        <div class="text-center mb-4">
+                            <div class="text-4xl mb-2">🖼️</div>
+                            <h3 class="text-xl font-bold text-orange-800">Image</h3>
+                        </div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="text-orange-600 mr-2">•</span> High quality PNG format</li>
+                            <li class="flex items-center"><span class="text-orange-600 mr-2">•</span> Transparency supported</li>
+                            <li class="flex items-center"><span class="text-orange-600 mr-2">•</span> Further editing possible</li>
+                            <li class="flex items-center"><span class="text-orange-600 mr-2">•</span> Easy sharing</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                        <div class="text-center mb-4">
+                            <div class="text-4xl mb-2">🖨️</div>
+                            <h3 class="text-xl font-bold text-gray-800">Direct Print</h3>
+                        </div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><span class="text-gray-600 mr-2">•</span> Direct browser printing</li>
+                            <li class="flex items-center"><span class="text-gray-600 mr-2">•</span> Printer optimization</li>
+                            <li class="flex items-center"><span class="text-gray-600 mr-2">•</span> Print preview</li>
+                            <li class="flex items-center"><span class="text-gray-600 mr-2">•</span> Ink saving</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tips and Tricks -->
+        <section class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">💡 Tips and Tricks</h2>
+                <p class="text-lg opacity-90 mt-2">How to get the most out of the site</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🎯 For Best Results</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-2 mt-1">✓</span>
+                                <span><strong>Use high quality images</strong> - At least 300 DPI for professional printing</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-2 mt-1">✓</span>
+                                <span><strong>Calibrate your printer</strong> - For maximum precision in measurements</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-2 mt-1">✓</span>
+                                <span><strong>Save projects</strong> - For faster work in the future</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-500 mr-2 mt-1">✓</span>
+                                <span><strong>Use print preview</strong> - Before printing</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">⚠️ Things to Avoid</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start">
+                                <span class="text-red-500 mr-2 mt-1">✗</span>
+                                <span><strong>Low resolution images</strong> - Will cause blurring in print</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-red-500 mr-2 mt-1">✗</span>
+                                <span><strong>Too small margins</strong> - May get cut off in printing</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-red-500 mr-2 mt-1">✗</span>
+                                <span><strong>Too light colors</strong> - Won't print well</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-red-500 mr-2 mt-1">✗</span>
+                                <span><strong>Too small text</strong> - Won't be readable</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Support -->
+        <section class="mb-12">
+            <div class="section-header text-white p-6 rounded-t-2xl">
+                <h2 class="text-3xl font-bold">🆘 Support and Help</h2>
+                <p class="text-lg opacity-90 mt-2">Find additional help here</p>
+            </div>
+            <div class="bg-white rounded-b-2xl shadow-lg p-6">
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="text-center p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
+                        <div class="text-4xl mb-4">📹</div>
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">Tutorial Videos</h3>
+                        <p class="text-gray-600 mb-4">Watch detailed tutorial videos</p>
+                        <button onclick="window.location.href='index.html?lang=en'" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
+                            Watch Videos
+                        </button>
+                    </div>
+                    <div class="text-center p-6 bg-green-50 rounded-xl border-2 border-green-200">
+                        <div class="text-4xl mb-4">💬</div>
+                        <h3 class="text-xl font-bold text-green-800 mb-2">Contact Us</h3>
+                        <p class="text-gray-600 mb-4">Send us questions and suggestions</p>
+                        <button onclick="window.location.href='index.html?lang=en#contact'" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all">
+                            Contact Us
+                        </button>
+                    </div>
+                    <div class="text-center p-6 bg-purple-50 rounded-xl border-2 border-purple-200">
+                        <div class="text-4xl mb-4">❓</div>
+                        <h3 class="text-xl font-bold text-purple-800 mb-2">FAQ</h3>
+                        <p class="text-gray-600 mb-4">Answers to the most common questions</p>
+                        <button onclick="window.location.href='faq-en.html'" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all">
+                            FAQ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-bold mb-4">Hagralomat</h3>
+            <p class="text-gray-300 mb-4">Sticker Design, Numbering and Lottery System - Simple, Fast and Free</p>
+            <div class="flex justify-center gap-4">
+                <a href="index.html?lang=en" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all">
+                    🏠 Back to Site
+                </a>
+                <button onclick="window.print()" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-all">
+                    🖨️ Print Guide
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add print styles
+        window.addEventListener('beforeprint', function() {
+            document.body.classList.add('printing');
+        });
+
+        window.addEventListener('afterprint', function() {
+            document.body.classList.remove('printing');
+        });
+    </script>
+</body>
+</html>

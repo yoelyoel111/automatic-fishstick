@@ -5231,7 +5231,19 @@
     if (userGuideBtn) {
       userGuideBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        openUserGuideModal();
+        // עבור לדף המדריך בהתאם לשפה הנוכחית
+        const guidePage = currentLanguage === 'he' ? 'user-guide.html' : 'user-guide-en.html';
+        window.location.href = guidePage;
+      });
+    }
+
+    const faqBtn = document.getElementById('faqBtn');
+    if (faqBtn) {
+      faqBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // עבור לדף השאלות הנפוצות בהתאם לשפה הנוכחית
+        const faqPage = currentLanguage === 'he' ? 'faq.html' : 'faq-en.html';
+        window.location.href = faqPage;
       });
     }
 

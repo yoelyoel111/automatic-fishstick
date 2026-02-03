@@ -296,7 +296,7 @@ function applyCalibration() {
   
   // בדיקת סבירות - יחס הכיול צריך להיות קרוב ל-1
   if (scale < 0.8 || scale > 1.2) {
-    const confirm = window.confirm(`יחס הכיול שחושב (${scale.toFixed(3)}) נראה קיצוני.\n\nהאם הזנת את המידה בס"מ? (צפוי: ${targetWidthCM} ס"מ)\n\nלחץ אישור להמשיך בכל זאת, או ביטול לתיקון.`);
+    const confirm = window.confirm(t('calibrationWarning', { scale: scale.toFixed(3), expected: targetWidthCM }));
     if (!confirm) return;
   }
   

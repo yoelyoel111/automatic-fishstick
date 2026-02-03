@@ -3,6 +3,7 @@ const translations = {
         "site-title": "הגרלומט",
         "contactBtn": "יצירת קשר",
         "userGuideBtn": "מדריך הפעלה",
+        "faqBtn": "❓ שאלות נפוצות",
         "tutorialVideoBtn": "סרטון הדרכה",
         "googleSignInBtn": "התחבר עם Google",
         "googleSignOutBtn": "התנתק",
@@ -115,6 +116,19 @@ const translations = {
         "pageOrientation": "כיוון הדף:",
         "portrait": "לאורך",
         "landscape": "לרוחב",
+        "pageOrientationPortrait": "כיוון הדף: לאורך",
+        "pageOrientationLandscape": "כיוון הדף: לרוחב",
+        "cmUnit": "ס\"מ",
+        "stickerDimensionInfo": "יוצא בערך: {count} מדבקות לאורך העמוד (גובה כל מדבקה: ~{height} ס\"מ, רוחב לפי יחס המדבקה)",
+        "stickerWidthInfo": "יוצא בערך: {count} מדבקות ברוחב (רוחב כל מדבקה: ~{width} ס\"מ)",
+        "selectColor": "בחר צבע",
+        "gradient": "גרדיאנט",
+        "horizontal": "אופקי",
+        "vertical": "אנכי",
+        "circular": "עגול",
+        "calibrationWarning": "יחס הכיול שחושב ({scale}) נראה קיצוני.\n\nהאם הזנת את המידה בס\"מ? (צפוי: {expected} ס\"מ)\n\nלחץ אישור להמשיך בכל זאת, או ביטול לתיקון.",
+        "logoAlt": "לוגו הגרלומט",
+        "logoSrc": typeof window !== 'undefined' && window.OFFLINE_LOGO_PATHS ? window.OFFLINE_LOGO_PATHS.he : "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
         "sync": "🔗 סנכרון",
         "freeEdit": "✏️ עריכה חופשית",
         "autoArrange": "🤖 סדר אוטומטי",
@@ -150,7 +164,7 @@ const translations = {
         "printerCalibration": "🎯 כיול מדפסת",
         "closeNoSave": "✖ סגור בלי לשמור",
         "calibrationTitle": "🎯 כיול מדפסת",
-        "calibrationDesc": "התאמת המידות לדיוק מקסימלי בהדפסה",
+        "calibrationDesc": "התאמת מידות לדיוק הדפסה מקסימלי",
         "calibrationStatusLabel": "סטטוס כיול:",
         "notCalibrated": "⚠ לא מכויל",
         "calibrated": "✅ מכויל",
@@ -253,7 +267,6 @@ const translations = {
         "highQuality": "איכות גבוהה",
         "maxWidthTitle": "התאם לרוחב מקסימלי",
         "maxHeightTitle": "התאם לגובה מקסימלי",
-        "logoAlt": "לוגו",
         "projectTitle": "מחליף מילים במדבקות",
         "defaultWord": "שם",
         "catRectangles": "מלבנים",
@@ -280,12 +293,14 @@ const translations = {
         "feedbackMessagePlaceholder": "כתוב כאן את התגובה, ההצעה או השאלה שלך...",
         "feedbackSubmit": "📤 שלח תגובה",
         "feedbackSuccess": "✅ תודה! ההודעה נשלחה בהצלחה!",
-        "feedbackError": "❌ נא למלא את שדה התגובה"
+        "feedbackError": "❌ נא למלא את שדה התגובה",
+        "offlineBundleBtn": "⬇️ הורד גרסת אופליין"
     },
     en: {
         "site-title": "Hagralomat",
         "contactBtn": "Contact Us",
         "userGuideBtn": "User Guide",
+        "faqBtn": "❓ FAQ",
         "tutorialVideoBtn": "Tutorial Video",
         "googleSignInBtn": "Sign in with Google",
         "googleSignOutBtn": "Sign Out",
@@ -398,6 +413,19 @@ const translations = {
         "pageOrientation": "Page Orientation:",
         "portrait": "Portrait",
         "landscape": "Landscape",
+        "pageOrientationPortrait": "Page Orientation: Portrait",
+        "pageOrientationLandscape": "Page Orientation: Landscape",
+        "cmUnit": "cm",
+        "stickerDimensionInfo": "Approximately: {count} stickers per page height (each sticker height: ~{height} cm, width by sticker ratio)",
+        "stickerWidthInfo": "Approximately: {count} stickers per page width (each sticker width: ~{width} cm)",
+        "selectColor": "Select Color",
+        "gradient": "Gradient",
+        "horizontal": "Horizontal",
+        "vertical": "Vertical",
+        "circular": "Circular",
+        "calibrationWarning": "The calculated calibration ratio ({scale}) seems extreme.\n\nDid you enter the measurement in cm? (Expected: {expected} cm)\n\nClick OK to continue anyway, or Cancel to correct.",
+        "logoAlt": "Hagralomat Logo",
+        "logoSrc": typeof window !== 'undefined' && window.OFFLINE_LOGO_PATHS ? window.OFFLINE_LOGO_PATHS.en : "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logoen.png",
         "sync": "🔗 Sync",
         "freeEdit": "✏️ Free Edit",
         "autoArrange": "🤖 Auto Arrange",
@@ -536,7 +564,6 @@ const translations = {
         "highQuality": "High Quality",
         "maxWidthTitle": "Fit to Maximum Width",
         "maxHeightTitle": "Fit to Maximum Height",
-        "logoAlt": "Logo",
         "projectTitle": "Sticker Word Replacer",
         "defaultWord": "Name",
         "catRectangles": "Rectangles",
@@ -563,7 +590,8 @@ const translations = {
         "feedbackMessagePlaceholder": "Write your feedback, suggestion, or question here...",
         "feedbackSubmit": "📤 Send Feedback",
         "feedbackSuccess": "✅ Thank you! Your message has been sent successfully!",
-        "feedbackError": "❌ Please fill in the feedback field"
+        "feedbackError": "❌ Please fill in the feedback field",
+        "offlineBundleBtn": "⬇️ Download Offline Version"
     }
 };
 
@@ -607,6 +635,22 @@ function setLanguage(lang) {
         }
     });
 
+    // Update all elements with data-i18n-aria-label attribute
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+        const key = el.getAttribute('data-i18n-aria-label');
+        if (translations[lang][key]) {
+            el.setAttribute('aria-label', translations[lang][key]);
+        }
+    });
+
+    // Update all elements with data-i18n-src attribute
+    document.querySelectorAll('[data-i18n-src]').forEach(el => {
+        const key = el.getAttribute('data-i18n-src');
+        if (translations[lang][key]) {
+            el.src = translations[lang][key];
+        }
+    });
+
     // Handle special cases (HTML content)
     const instructions = document.getElementById('namesUploadInstructions');
     if (instructions) {
@@ -638,8 +682,15 @@ function t(key, params = {}) {
 
 // Initialize language on load
 document.addEventListener('DOMContentLoaded', () => {
+    // Check for language parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    
+    // Priority: URL parameter > saved preference > default Hebrew
     const savedLang = localStorage.getItem('preferredLanguage') || 'he';
-    setLanguage(savedLang);
+    const initialLang = urlLang && (urlLang === 'he' || urlLang === 'en') ? urlLang : savedLang;
+    
+    setLanguage(initialLang);
     
     const toggleBtn = document.getElementById('languageToggleBtn');
     if (toggleBtn) {

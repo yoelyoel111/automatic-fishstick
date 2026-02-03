@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>שאלות נפוצות - הגרלומט</title>
+    
+    <!-- hreflang tags for multilingual SEO -->
+    <link rel="alternate" hreflang="he" href="https://yoelyoel111.github.io/automatic-fishstick/faq.html" />
+    <link rel="alternate" hreflang="en" href="https://yoelyoel111.github.io/automatic-fishstick/faq-en.html" />
+    <link rel="alternate" hreflang="x-default" href="https://yoelyoel111.github.io/automatic-fishstick/faq.html" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .faq-item {
+            transition: all 0.3s ease;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .faq-answer { max-height: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="no-print bg-gradient-to-r from-purple-600 to-pink-600 text-white py-8 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold mb-2">❓ שאלות נפוצות</h1>
+                    <p class="text-xl opacity-90">תשובות לשאלות הנפוצות ביותר על הגרלומט</p>
+                </div>
+                <div class="flex gap-4">
+                    <a href="user-guide.html" class="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg font-bold transition-all">
+                        📖 מדריך משתמש
+                    </a>
+                    <a href="index.html" class="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg font-bold transition-all">
+                        🏠 חזור לאתר
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Quick Navigation -->
+        <div class="no-print mb-8 bg-white rounded-2xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-4 text-center">🔍 חיפוש מהיר</h2>
+            <div class="flex flex-wrap gap-2 justify-center">
+                <button onclick="filterFAQ('all')" class="filter-btn active px-4 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-all">
+                    הכל
+                </button>
+                <button onclick="filterFAQ('stickers')" class="filter-btn px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-all">
+                    📝 מדבקות
+                </button>
+                <button onclick="filterFAQ('lottery')" class="filter-btn px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-all">
+                    🎲 הגרלות
+                </button>
+                <button onclick="filterFAQ('technical')" class="filter-btn px-4 py-2 bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200 transition-all">
+                    🔧 טכני
+                </button>
+                <button onclick="filterFAQ('printing')" class="filter-btn px-4 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-all">
+                    🖨️ הדפסה
+                </button>
+            </div>
+        </div>
+
+        <!-- FAQ Items -->
+        <div class="space-y-4">
+            <!-- FAQ 1 -->
+            <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden" data-category="stickers">
+                <div class="faq-question p-6 cursor-pointer hover:bg-gray-50 transition-all flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-4">📝</span>
+                        <h3 class="text-xl font-bold text-gray-800">איך אני יוצר מדבקות מדויקות בגודל ספציפי?</h3>
+                    </div>
+                    <span class="faq-icon text-2xl text-purple-600 transition-transform">+</span>
+                </div>
+                <div class="faq-answer bg-purple-50 px-6 pb-6">
+                    <div class="pt-4 text-gray-700">
+                        <p class="mb-4"><strong>השתמש בכלי "הכנת מדבקה מדויקת":</strong></p>
+                        <ol class="list-decimal list-inside space-y-2">
+                            <li>לחץ על כפתור "הכנת מדבקה מדויקת" (הכפתור הירוק)</li>
+                            <li>העלה את התמונה שלך</li>
+                            <li>הגדר את הגודל הרצוי בס"מ (רוחב וגובה)</li>
+                            <li>בחר את אזור החיתוך מהתמונה</li>
+                            <li>לחץ "החל" כדי ליצור את המדבקה</li>
+                        </ol>
+                        <p class="mt-4 text-sm text-purple-700"><strong>טיפ:</strong> השתמש בכיול מדפסת לדיוק מקסימלי!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden" data-category="printing">
+                <div class="faq-question p-6 cursor-pointer hover:bg-gray-50 transition-all flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-4">🎯</span>
+                        <h3 class="text-xl font-bold text-gray-800">מה זה כיול מדפסת ולמה זה חשוב?</h3>
+                    </div>
+                    <span class="faq-icon text-2xl text-purple-600 transition-transform">+</span>
+                </div>
+                <div class="faq-answer bg-orange-50 px-6 pb-6">
+                    <div class="pt-4 text-gray-700">
+                        <p class="mb-4"><strong>כיול מדפסת מבטיח שהמדבקות יודפסו בגודל המדויק:</strong></p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li>כל מדפסת מדפיסה קצת אחרת מהגודל הנדרש</li>
+                            <li>הכיול מתקן את ההבדל הזה</li>
+                            <li>מבטיח דיוק של עד מילימטר</li>
+                        </ul>
+                        <p><strong>איך לכייל:</strong> לחץ על "כיול מדפסת", הדפס את מדבקת הכיול, מדוד אותה והזן את התוצאה.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- FAQ 3 -->
+            <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden" data-category="lottery">
+                <div class="faq-question p-6 cursor-pointer hover:bg-gray-50 transition-all flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-4">🎲</span>
+                        <h3 class="text-xl font-bold text-gray-800">איך עובדת הגרלת השמות? האם זה באמת אקראי?</h3>
+                    </div>
+                    <span class="faq-icon text-2xl text-purple-600 transition-transform">+</span>
+                </div>
+                <div class="faq-answer bg-green-50 px-6 pb-6">
+                    <div class="pt-4 text-gray-700">
+                        <p class="mb-4"><strong>כן! ההגרלה היא אקראית לחלוטין:</strong></p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li>המערכת משתמשת באלגוריתם אקראי מתקדם</li>
+                            <li>כל שם בעל סיכוי שווה לזכות</li>
+                            <li>אין אפשרות לחזות או להשפיע על התוצאה</li>
+                            <li>ההגרלה מתבצעת במחשב שלך (לא בשרת)</li>
+                        </ul>
+                        <p><strong>איך להשתמש:</strong> הזן רשימת שמות, בחר כמה זוכים ולחץ "הגרל".</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden" data-category="stickers">
+                <div class="faq-question p-6 cursor-pointer hover:bg-gray-50 transition-all flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-4">📐</span>
+                        <h3 class="text-xl font-bold text-gray-800">איך אני קובע כמה מדבקות יכנסו בדף?</h3>
+                    </div>
+                    <span class="faq-icon text-2xl text-purple-600 transition-transform">+</span>
+                </div>
+                <div class="faq-answer bg-blue-50 px-6 pb-6">
+                    <div class="pt-4 text-gray-700">
+                        <p class="mb-4"><strong>יש לך שליטה מלאה על פריסת המדבקות:</strong></p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li><strong>גודל המדבקה:</strong> בחר "לפי רוחב" או "לפי אורך"</li>
+                            <li><strong>מספר מדבקות:</strong> הגדר כמה מדבקות בשורה/עמודה</li>
+                            <li><strong>שוליים:</strong> קבע מרחק מקצה הדף</li>
+                            <li><strong>רווחים:</strong> קבע מרחק בין המדבקות</li>
+                        </ul>
+                        <p class="text-sm text-blue-700"><strong>טיפ:</strong> המערכת מראה לך תצוגה מקדימה של הפריסה!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 5 -->
+            <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden" data-category="technical">
+                <div class="faq-question p-6 cursor-pointer hover:bg-gray-50 transition-all flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-4">💾</span>
+                        <h3 class="text-xl font-bold text-gray-800">איך אני שומר את הפרויקט שלי לשימוש עתידי?</h3>
+                    </div>
+                    <span class="faq-icon text-2xl text-purple-600 transition-transform">+</span>
+                </div>
+                <div class="faq-answer bg-gray-50 px-6 pb-6">
+                    <div class="pt-4 text-gray-700">
+                        <p class="mb-4"><strong>יש לך מספר אפשרויות לשמירה:</strong></p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li><strong>שמירה מקומית:</strong> לחץ "שמור פרויקט" - ישמר כקובץ JSON</li>
+                            <li><strong>Google Drive:</strong> התחבר לחשבון Google ולחץ "שמור ל-Drive"</li>
+                            <li><strong>גיבוי אוטומטי:</strong> המערכת שומרת אוטומטי בדפדפן</li>
+                        </ul>
+                        <p><strong>לטעינה:</strong> לחץ "טען פרויקט" או בחר מרשימת הפרויקטים ב-Drive.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- FAQ 6 -->
+            <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden" data-category="printing">
+                <div class="faq-question p-6 cursor-pointer hover:bg-gray-50 transition-all flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-4">🖨️</span>
+                        <h3 class="text-xl font-bold text-gray-800">איזה פורמט הכי טוב להדפסה - PDF או תמונה?</h3>
+                    </div>
+                    <span class="faq-icon text-2xl text-purple-600 transition-transform">+</span>
+                </div>
+                <div class="faq-answer bg-red-50 px-6 pb-6">
+                    <div class="pt-4 text-gray-700">
+                        <p class="mb-4"><strong>PDF הוא הפורמט המומלץ להדפסה:</strong></p>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <h4 class="font-bold text-green-700 mb-2">✅ PDF - מומלץ</h4>
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    <li>איכות הדפסה מקצועית</li>
+                                    <li>שמירת פרופורציות מדויקות</li>
+                                    <li>תואם לכל מדפסת</li>
+                                    <li>גודל קובץ קטן</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-orange-700 mb-2">📷 תמונה - לעריכה</h4>
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    <li>טוב לעריכה נוספת</li>
+                                    <li>שיתוף ברשתות חברתיות</li>
+                                    <li>צפייה מהירה</li>
+                                    <li>גודל קובץ גדול יותר</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="text-sm text-red-700"><strong>המלצה:</strong> השתמש ב-PDF להדפסה וב-PNG לעריכה או שיתוף.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 7 -->
+            <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden" data-category="stickers">
+                <div class="faq-question p-6 cursor-pointer hover:bg-gray-50 transition-all flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-4">🎨</span>
+                        <h3 class="text-xl font-bold text-gray-800">איך אני מוסיף טקסט ותמונות על המדבקות?</h3>
+                    </div>
+                    <span class="faq-icon text-2xl text-purple-600 transition-transform">+</span>
+                </div>
+                <div class="faq-answer bg-yellow-50 px-6 pb-6">
+                    <div class="pt-4 text-gray-700">
+                        <p class="mb-4"><strong>יש כלי עריכה מתקדמים:</strong></p>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-blue-700 mb-2">📝 הוספת טקסט:</h4>
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    <li>עבור לטאב "טקסט" בכלי העריכה</li>
+                                    <li>הזן את הטקסט הרצוי</li>
+                                    <li>בחר צבע, גודל ומיקום</li>
+                                    <li>אפשרות למיספור אוטומטי</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-green-700 mb-2">🖼️ הוספת תמונות:</h4>
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    <li>עבור לטאב "תמונה" בכלי העריכה</li>
+                                    <li>העלה תמונה מהמחשב</li>
+                                    <li>שנה גודל ומיקום</li>
+                                    <li>התאם שקיפות</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 8 -->
+            <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden" data-category="technical">
+                <div class="faq-question p-6 cursor-pointer hover:bg-gray-50 transition-all flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-4">🌐</span>
+                        <h3 class="text-xl font-bold text-gray-800">האם האתר עובד ללא חיבור לאינטרנט?</h3>
+                    </div>
+                    <span class="faq-icon text-2xl text-purple-600 transition-transform">+</span>
+                </div>
+                <div class="faq-answer bg-indigo-50 px-6 pb-6">
+                    <div class="pt-4 text-gray-700">
+                        <p class="mb-4"><strong>כן! האתר תומך בעבודה אופליין:</strong></p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li><strong>הורד גרסת אופליין:</strong> לחץ על "הורד גרסת אופליין"</li>
+                            <li><strong>עבודה מקומית:</strong> כל העיבוד נעשה במחשב שלך</li>
+                            <li><strong>אין צורך בשרת:</strong> הכל עובד בדפדפן</li>
+                            <li><strong>פרטיות מלאה:</strong> הקבצים שלך לא נשלחים לשום מקום</li>
+                        </ul>
+                        <p class="text-sm text-indigo-700"><strong>הערה:</strong> חיבור לאינטרנט נדרש רק לשמירה ב-Google Drive ולטעינה מהמאגר.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="mt-12 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl shadow-lg p-8 text-center">
+            <h2 class="text-3xl font-bold mb-4">🤔 לא מצאת את התשובה?</h2>
+            <p class="text-xl mb-6">אנחנו כאן לעזור! צור איתנו קשר ונענה על כל שאלה</p>
+            <button id="contactFromFAQ" class="px-8 py-4 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100 transition-all shadow-lg">
+                💬 צור קשר
+            </button>
+        </div>
+    </div>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-bold mb-4">הגרלומט</h3>
+            <p class="text-gray-300 mb-4">עיצוב מדבקות, מיספור ומספר כרטיסים להגרלה - פשוט, מהיר וחינמי</p>
+            <div class="flex justify-center gap-4">
+                <a href="index.html" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all">
+                    🏠 חזור לאתר
+                </a>
+                <a href="user-guide.html" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
+                    📖 מדריך משתמש
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // FAQ Toggle functionality
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const faqItem = question.parentElement;
+                const isActive = faqItem.classList.contains('active');
+                
+                // Close all other FAQ items
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Toggle current item
+                if (!isActive) {
+                    faqItem.classList.add('active');
+                }
+            });
+        });
+
+        // Filter functionality
+        function filterFAQ(category) {
+            const faqItems = document.querySelectorAll('.faq-item');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            // Update button states
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide FAQ items
+            faqItems.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Contact button functionality - opens the same modal as the main site
+        document.getElementById('contactFromFAQ').addEventListener('click', function() {
+            // If we're in the main site context, open the modal
+            if (window.opener && window.opener.openContactModal) {
+                window.opener.openContactModal();
+                window.focus();
+            } else {
+                // Otherwise, redirect to main site and trigger contact
+                window.location.href = 'index.html#contact';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add CSS for active filter button
+        const style = document.createElement('style');
+        style.textContent = `
+            .filter-btn.active {
+                background-color: rgb(147 51 234) !important;
+                color: white !important;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

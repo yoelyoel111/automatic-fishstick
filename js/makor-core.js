@@ -272,8 +272,10 @@
 
         safeSetStatus('מוריד לוגו...');
         try {
-          const logoUrl = 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/660aea3d9a52acac6b6c60f8647d6b52bbf6dea4/logo.png';
+          const logoUrl = 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png';
+          const logoEnUrl = 'https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logoen.png';
           zip.file('assets/logo.png', await fetchAsArrayBuffer(logoUrl));
+          zip.file('assets/logoen.png', await fetchAsArrayBuffer(logoEnUrl));
         } catch (_) {}
 
         safeSetStatus('מכין index.html לאופליין...');
@@ -288,7 +290,11 @@
         offlineHtml = offlineHtml.replace('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'vendor/jspdf.umd.min.js');
         offlineHtml = offlineHtml.replace('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'vendor/jszip.min.js');
         offlineHtml = offlineHtml.replace('https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js', 'vendor/email.min.js');
-        offlineHtml = offlineHtml.replace('https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/660aea3d9a52acac6b6c60f8647d6b52bbf6dea4/logo.png', 'assets/logo.png');
+        offlineHtml = offlineHtml.replace('https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png', 'assets/logo.png');
+
+        // Update offline config to include local logo paths
+        const offlineLogoConfig = `\n    window.OFFLINE_LOGO_PATHS = {\n      he: './assets/logo.png',\n      en: './assets/logoen.png'\n    };\n`;
+        offlineHtml = offlineHtml.replace('window.OFFLINE_REPO_BASE = \'./repo/\';', 'window.OFFLINE_REPO_BASE = \'./repo/\';' + offlineLogoConfig);
 
         offlineHtml = offlineHtml.replace(/\s*<script async src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=[^"]+"><\/script>[\s\S]*?<\/script>/, '');
         offlineHtml = offlineHtml.replace(/\s*<script async defer src="https:\/\/apis\.google\.com\/js\/api\.js"[^>]*><\/script>\s*<script async defer src="https:\/\/accounts\.google\.com\/gsi\/client"[^>]*><\/script>/, '');
@@ -558,10 +564,10 @@
         if (orientationDropdownIcon && orientationDropdownText) {
           if (pageOrientation === 'portrait') {
             orientationDropdownIcon.textContent = '📄';
-            orientationDropdownText.textContent = 'כיוון הדף: לאורך';
+            orientationDropdownText.textContent = t('pageOrientationPortrait');
           } else {
             orientationDropdownIcon.textContent = '📃';
-            orientationDropdownText.textContent = 'כיוון הדף: לרוחב';
+            orientationDropdownText.textContent = t('pageOrientationLandscape');
           }
         }
       }
@@ -1064,12 +1070,12 @@
           
           const widthLabel = document.createElement('div');
           widthLabel.className = 'sticker-dimension sticker-dimension-width no-print';
-          widthLabel.textContent = `${widthInCm} ס"מ`;
+          widthLabel.textContent = `${widthInCm} ${t('cmUnit')}`;
           stickerDiv.appendChild(widthLabel);
           
           const heightLabel = document.createElement('div');
           heightLabel.className = 'sticker-dimension sticker-dimension-height no-print';
-          heightLabel.textContent = `${heightInCm} ס"מ`;
+          heightLabel.textContent = `${heightInCm} ${t('cmUnit')}`;
           stickerDiv.appendChild(heightLabel);
           
           sticker.images = sticker.images || [];
@@ -2286,12 +2292,12 @@
         const rows = Math.max(1, cfg.stickersPerRow);
         const cellHeight = Math.max(1, (contentHeight - gap * (rows - 1)) / rows);
         const cellHeightCM = (cellHeight / MM_TO_PX / 10).toFixed(1);
-        info.textContent = `יוצא בערך: ${rows} מדבקות לאורך העמוד (גובה כל מדבקה: ~${cellHeightCM} ס"מ, רוחב לפי יחס המדבקה)`;
+        info.textContent = t('stickerDimensionInfo', { count: rows, height: cellHeightCM });
       } else {
         const cols = Math.max(1, cfg.stickersPerRow);
         const cellWidth = Math.max(1, (contentWidth - gap * (cols - 1)) / cols);
         const cellWidthCM = (cellWidth / MM_TO_PX / 10).toFixed(1);
-        info.textContent = `יוצא בערך: ${cols} מדבקות ברוחב (רוחב כל מדבקה: ~${cellWidthCM} ס"מ)`;
+        info.textContent = t('stickerWidthInfo', { count: cols, width: cellWidthCM });
       }
     }
     
@@ -3084,11 +3090,11 @@
       const heightLabel = stickerEl.querySelector('.sticker-dimension-height');
       if (widthLabel) {
         const widthInCm = (newWidth / MM_TO_PX / 10).toFixed(1);
-        widthLabel.textContent = `${widthInCm} ס"מ`;
+        widthLabel.textContent = `${widthInCm} ${t('cmUnit')}`;
       }
       if (heightLabel) {
         const heightInCm = (calculatedHeight / MM_TO_PX / 10).toFixed(1);
-        heightLabel.textContent = `${heightInCm} ס"מ`;
+        heightLabel.textContent = `${heightInCm} ${t('cmUnit')}`;
       }
     }
 
@@ -5504,10 +5510,10 @@
           if (orientationDropdownIcon && orientationDropdownText) {
             if (pageOrientation === 'portrait') {
               orientationDropdownIcon.textContent = '📄';
-              orientationDropdownText.textContent = 'כיוון הדף: לאורך';
+              orientationDropdownText.textContent = t('pageOrientationPortrait');
             } else {
               orientationDropdownIcon.textContent = '📃';
-              orientationDropdownText.textContent = 'כיוון הדף: לרוחב';
+              orientationDropdownText.textContent = t('pageOrientationLandscape');
             }
           }
         }
@@ -6146,7 +6152,19 @@
     if (userGuideBtn) {
       userGuideBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        openUserGuideModal();
+        // עבור לדף המדריך בהתאם לשפה הנוכחית
+        const guidePage = currentLanguage === 'he' ? 'user-guide.html' : 'user-guide-en.html';
+        window.location.href = guidePage;
+      });
+    }
+
+    const faqBtn = document.getElementById('faqBtn');
+    if (faqBtn) {
+      faqBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // עבור לדף השאלות הנפוצות בהתאם לשפה הנוכחית
+        const faqPage = currentLanguage === 'he' ? 'faq.html' : 'faq-en.html';
+        window.location.href = faqPage;
       });
     }
 
@@ -6407,10 +6425,10 @@
       if (orientationDropdownIcon && orientationDropdownText) {
         if (orientation === 'portrait') {
           orientationDropdownIcon.textContent = '📄';
-          orientationDropdownText.textContent = 'כיוון הדף: לאורך';
+          orientationDropdownText.textContent = t('pageOrientationPortrait');
         } else {
           orientationDropdownIcon.textContent = '📃';
-          orientationDropdownText.textContent = 'כיוון הדף: לרוחב';
+          orientationDropdownText.textContent = t('pageOrientationLandscape');
         }
       }
     }
@@ -7338,7 +7356,7 @@
       
       const gradientSeparator = document.createElement('div');
       gradientSeparator.className = 'gradient-separator';
-      gradientSeparator.textContent = 'גרדיאנט';
+      gradientSeparator.textContent = t('gradient');
       gradientSection.appendChild(gradientSeparator);
 
       // Gradient type buttons
@@ -7346,11 +7364,11 @@
       gradientTypes.className = 'gradient-types';
       
       const gradientOptions = [
-        { type: 'horizontal', label: 'אופקי', bg: 'linear-gradient(to left, #FF6B6B, #4ECDC4)' },
-        { type: 'vertical', label: 'אנכי', bg: 'linear-gradient(to bottom, #FF6B6B, #4ECDC4)' },
+        { type: 'horizontal', label: t('horizontal'), bg: 'linear-gradient(to left, #FF6B6B, #4ECDC4)' },
+        { type: 'vertical', label: t('vertical'), bg: 'linear-gradient(to bottom, #FF6B6B, #4ECDC4)' },
         { type: 'diagonal-down', label: '↘', bg: 'linear-gradient(135deg, #FF6B6B, #4ECDC4)' },
         { type: 'diagonal-up', label: '↙', bg: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)' },
-        { type: 'radial', label: 'עגול', bg: 'radial-gradient(circle, #FF6B6B, #4ECDC4)' }
+        { type: 'radial', label: t('circular'), bg: 'radial-gradient(circle, #FF6B6B, #4ECDC4)' }
       ];
 
       gradientOptions.forEach(option => {
