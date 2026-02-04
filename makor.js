@@ -4502,6 +4502,9 @@
 
       renderNumberedStickers();
       showStatus(`נוצרו ${numberedStickers.length} מדבקות ממוספרות!`);
+      
+      // Enable download buttons after generating numbered stickers
+      enableDownloadButtons();
     }
 
     function startNumberDrag(e) {
@@ -5926,21 +5929,51 @@
     }
 
     function enableNumbersButtons() {
-      const numbersButtons = ['generateNumbersBtn', 'centerNumbersBtn', 'downloadNumbersPdfBtn', 'downloadNumbersImageBtn'];
-      numbersButtons.forEach(id => {
+      // Only enable the generate button when sticker is uploaded
+      const generateBtn = document.getElementById('generateNumbersBtn');
+      if (generateBtn) {
+        generateBtn.disabled = false;
+        generateBtn.classList.remove('bg-gray-400', 'text-gray-600', 'cursor-not-allowed');
+        generateBtn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-emerald-600', 'text-white', 'hover:from-green-600', 'hover:to-emerald-700');
+      }
+      
+      // Keep download buttons disabled until numbers are generated
+      const downloadButtons = ['downloadNumbersPdfBtn', 'downloadNumbersImageBtn'];
+      downloadButtons.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
-          btn.classList.remove('btn-disabled');
+          btn.disabled = true;
+          btn.classList.remove('bg-gradient-to-r');
+          btn.classList.add('bg-gray-400', 'text-gray-600', 'cursor-not-allowed');
+        }
+      });
+    }
+
+    function enableDownloadButtons() {
+      // Enable download buttons after numbers are generated
+      const downloadButtons = [
+        { id: 'downloadNumbersPdfBtn', colors: ['from-red-500', 'to-pink-600', 'hover:from-red-600', 'hover:to-pink-700'] },
+        { id: 'downloadNumbersImageBtn', colors: ['from-orange-500', 'to-yellow-600', 'hover:from-orange-600', 'hover:to-yellow-700'] }
+      ];
+      
+      downloadButtons.forEach(btnInfo => {
+        const btn = document.getElementById(btnInfo.id);
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('bg-gray-400', 'text-gray-600', 'cursor-not-allowed');
+          btn.classList.add('bg-gradient-to-r', 'text-white', 'transition-all', 'shadow-md', 'hover:shadow-lg', ...btnInfo.colors);
         }
       });
     }
 
     function disableNumbersButtons() {
-      const numbersButtons = ['generateNumbersBtn', 'centerNumbersBtn', 'downloadNumbersPdfBtn', 'downloadNumbersImageBtn'];
+      const numbersButtons = ['generateNumbersBtn', 'downloadNumbersPdfBtn', 'downloadNumbersImageBtn'];
       numbersButtons.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
-          btn.classList.add('btn-disabled');
+          btn.disabled = true;
+          btn.classList.remove('bg-gradient-to-r', 'text-white');
+          btn.classList.add('bg-gray-400', 'text-gray-600', 'cursor-not-allowed');
         }
       });
     }
