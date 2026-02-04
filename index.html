@@ -2427,6 +2427,29 @@
             }, 500);
           }
         }, 1000);
+      } else if (action === 'numbering') {
+        // Navigate specifically to numbering/printing sub-tab
+        setTimeout(() => {
+          // Click on numbers tab
+          const numbersTab = document.getElementById('tabNumbers');
+          if (numbersTab) {
+            numbersTab.click();
+            // Explicitly click on numbering sub-tab
+            setTimeout(() => {
+              const numberingSubTab = document.getElementById('numbersSubTabNumbering');
+              if (numberingSubTab) {
+                numberingSubTab.click();
+                // Scroll to the numbering tools section
+                setTimeout(() => {
+                  const numberingContent = document.getElementById('numberingSubContent');
+                  if (numberingContent) {
+                    numberingContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 300);
+              }
+            }, 500);
+          }
+        }, 1000);
       } else if (action === 'names-lottery') {
         // Navigate to names lottery tab and lottery sub-tab
         setTimeout(() => {
