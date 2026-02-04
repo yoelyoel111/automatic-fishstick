@@ -27,7 +27,7 @@
     {
       "id": "number-lottery",
       "name": "הכנת פתקים להגרלת מספרים",
-      "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+      "description": "מיספור מדבקות אוטומטי ויצירת פתקים ממוספרים להדפסה",
       "icon": "🎲",
       "url": "?action=number-lottery"
     },

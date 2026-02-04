@@ -16,7 +16,7 @@
     },
     {
       "name": "הכנת פתקים להגרלת מספרים",
-      "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+      "description": "מיספור מדבקות אוטומטי ויצירת פתקים ממוספרים להדפסה",
       "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery",
       "icon": "🎲",
       "category": "lottery"

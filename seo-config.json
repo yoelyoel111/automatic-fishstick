@@ -29,7 +29,7 @@
     },
     "number-lottery": {
       "title": "הכנת פתקים להגרלת מספרים - הגרלומט",
-      "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+      "description": "מיספור מדבקות אוטומטי ויצירת פתקים ממוספרים להדפסה",
       "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery",
       "priority": 0.8
     },

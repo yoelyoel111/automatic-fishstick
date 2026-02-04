@@ -17,9 +17,9 @@
 - כיול מדפסת לדיוק מקסימלי
 
 ### 🎲 הכנת פתקים להגרלת מספרים
-- יצירת פתקים ממוספרים להגרלה והדפסה
-- הגדרת טווח מספרים מותאם אישית
-- בחירת כמות מספרים להגרלה
+- מיספור מדבקות אוטומטי ויצירת פתקים ממוספרים להדפסה
+- העלאת מדבקה בסיס והגדרת טווח מספרים
+- יצירת מדבקות ממוספרות לכל מספר בטווח
 - הורדה כ-PDF להדפסה
 
 ### 👥 הכנת פתקים להגרלת שמות לפי מספר כרטיסים
@@ -38,7 +38,7 @@
 
 - **עיצוב מדבקות**: [https://yoelyoel111.github.io/automatic-fishstick/#wordsContent](https://yoelyoel111.github.io/automatic-fishstick/#wordsContent)
 - **הכנת מדבקה מדויקת על המ"מ**: [https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker](https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker)
-- **הכנת פתקים להגרלת מספרים**: [https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery](https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery)
+- **הכנת פתקים ממוספרים להדפסה**: [https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery](https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery)
 - **הכנת פתקים להגרלת שמות לפי מספר כרטיסים**: [https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery](https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery)
 - **מדריך הפעלה**: [user-guide.html](user-guide.html)
 - **שאלות נפוצות**: [faq.html](faq.html)

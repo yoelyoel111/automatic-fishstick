@@ -107,7 +107,7 @@
       {
         "@type": "Action",
         "name": "הכנת פתקים להגרלת מספרים", 
-        "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+        "description": "מיספור מדבקות אוטומטי ויצירת פתקים ממוספרים להדפסה",
         "target": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery",
         "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery"
       },
@@ -197,7 +197,7 @@
         "name": "איך מכינים פתקים להגרלת מספרים?",
         "acceptedAnswer": {
           "@type": "Answer", 
-          "text": "בהגרלומט תוכלו ליצור פתקים ממוספרים להגרלה: הגדירו טווח מספרים, בחרו כמה מספרים להגריל, לחצו 'הגרל מספרים' והורידו כ-PDF להדפסה."
+          "text": "בהגרלומט תוכלו ליצור מדבקות ממוספרות: העלו מדבקה בסיס, הגדירו טווח מספרים, לחצו 'צור מדבקות ממוספרות' והורידו כ-PDF להדפסה."
         }
       },
       {
@@ -368,8 +368,8 @@
   {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    "name": "איך להכין פתקים להגרלת מספרים בהגרלומט",
-    "description": "מדריך שלב אחר שלב ליצירת פתקים ממוספרים להגרלה והדפסה",
+    "name": "איך להכין פתקים ממוספרים להדפסה בהגרלומט",
+    "description": "מדריך שלב אחר שלב למיספור מדבקות אוטומטי ויצירת פתקים ממוספרים להדפסה",
     "image": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
     "totalTime": "PT3M",
     "estimatedCost": {
@@ -381,27 +381,27 @@
       {
         "@type": "HowToStep",
         "position": 1,
-        "name": "מעבר לכלי הגרלת מספרים",
-        "text": "לחץ על 'הגרלת מספרים' ואז על 'הגרלת מספרים' בתת-התפריט",
+        "name": "מעבר לכלי מיספור מדבקות",
+        "text": "לחץ על 'הגרלת מספרים' ואז על 'מיספור להדפסה' בתת-התפריט",
         "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery"
       },
       {
         "@type": "HowToStep",
         "position": 2,
-        "name": "הגדרת טווח מספרים",
-        "text": "הגדר מספר מינימלי ומקסימלי לטווח ההגרלה"
+        "name": "העלאת מדבקה בסיס",
+        "text": "העלה מדבקה אחת שתשמש כבסיס למיספור"
       },
       {
         "@type": "HowToStep",
         "position": 3,
-        "name": "בחירת כמות מספרים",
-        "text": "קבע כמה מספרים להגריל ואיך לסדר אותם בעמוד"
+        "name": "הגדרת טווח מספרים",
+        "text": "הגדר מספר התחלתי ומספר סיום לטווח המיספור"
       },
       {
         "@type": "HowToStep",
         "position": 4,
-        "name": "הגרלה והדפסה",
-        "text": "לחץ 'הגרל מספרים' והורד כ-PDF להדפסה"
+        "name": "יצירת מדבקות ממוספרות",
+        "text": "לחץ 'צור מדבקות ממוספרות' והורד כ-PDF להדפסה"
       }
     ]
   }
@@ -484,7 +484,7 @@
         "@type": "ListItem",
         "position": 3,
         "name": "הכנת פתקים להגרלת מספרים",
-        "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+        "description": "מיספור מדבקות אוטומטי ויצירת פתקים ממוספרים להדפסה",
         "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery"
       },
       {
@@ -2404,17 +2404,25 @@
           }
         }, 1000);
       } else if (action === 'number-lottery') {
-        // Navigate to numbers tab and lottery sub-tab
+        // Navigate to numbers tab and stay on numbering sub-tab (default)
         setTimeout(() => {
           // Click on numbers tab
           const numbersTab = document.getElementById('tabNumbers');
           if (numbersTab) {
             numbersTab.click();
-            // Then click on lottery sub-tab
+            // Make sure we're on the numbering sub-tab (it should be default, but let's be explicit)
             setTimeout(() => {
-              const lotterySubTab = document.getElementById('numbersSubTabLottery');
-              if (lotterySubTab) {
-                lotterySubTab.click();
+              const numberingSubTab = document.getElementById('numbersSubTabNumbering');
+              if (numberingSubTab) {
+                // Ensure numbering tab is active (not lottery)
+                numberingSubTab.click();
+                // Scroll to the numbering tools section
+                setTimeout(() => {
+                  const numberingContent = document.getElementById('numberingSubContent');
+                  if (numberingContent) {
+                    numberingContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 300);
               }
             }, 500);
           }
