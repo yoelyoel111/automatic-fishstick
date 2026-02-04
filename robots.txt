@@ -24,3 +24,5 @@ Allow: /user-guide-en.html
 Allow: /faq.html
 Allow: /faq-en.html
 Allow: /terms-of-service-en.html
+Allow: /LICENSE
+Allow: /COPYRIGHT

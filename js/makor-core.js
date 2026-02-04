@@ -1,4 +1,13 @@
 ﻿
+/*
+ * הגרלומט - כלי עיצוב מדבקות מתקדם
+ * זכויות יוצרים © 2026 הגרלומט. כל הזכויות שמורות.
+ * 
+ * שימוש פרטי: מותר חופשי
+ * שימוש מסחרי: דורש רשות מפורשת
+ * ליצירת קשר: yoelyoel8a@gmail.com
+ */
+
     const defaultConfig = {
       page_title: t('projectTitle'),
       default_word: t('defaultWord'),

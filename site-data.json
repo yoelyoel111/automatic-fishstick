@@ -75,6 +75,13 @@
     "email": "yoelyoel8a@gmail.com",
     "support_url": "#contactModal"
   },
+  "license": {
+    "type": "Custom License",
+    "personal_use": "Free",
+    "commercial_use": "Permission Required",
+    "contact_email": "yoelyoel8a@gmail.com",
+    "description": "שימוש פרטי חופשי. שימוש מסחרי דורש רשות מפורשת."
+  },
   "analytics": {
     "google_analytics": "G-73WVBRR9X1"
   }
