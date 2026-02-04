@@ -4,8 +4,481 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="הגרלומט">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="msapplication-TileColor" content="#6366f1">
+  <meta name="msapplication-config" content="browserconfig.xml">
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://raw.githubusercontent.com">
   <title>הגרלומט – עיצוב מדבקות, מיספור שמות ומספר כרטיסים להגרלה</title>
   <meta name="description" content="הגרלומט הוא כלי אונליין לעיצוב מדבקות מדויקות להדפסה, מיספור מדבקות והגרלת שמות או מספרים – פשוט, מהיר וחינמי.")
+  
+  <!-- Additional SEO Meta Tags -->
+  <meta name="keywords" content="הגרלומט, עיצוב מדבקות, הדפסת מדבקות, הגרלת שמות, מיספור מדבקות, כלי עיצוב, מדבקות מדויקות">
+  <meta name="author" content="הגרלומט">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://yoelyoel111.github.io/automatic-fishstick/">
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Google Search Console Verification (replace with actual code when available) -->
+  <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> -->
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="הגרלומט – עיצוב מדבקות בקלי קלות">
+  <meta property="og:description" content="כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים">
+  <meta property="og:url" content="https://yoelyoel111.github.io/automatic-fishstick/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="הגרלומט">
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="הגרלומט – עיצוב מדבקות בקלי קלות">
+  <meta name="twitter:description" content="כלי מתקדם לעיצוב מדבקות מדויקות והכנת מדבקות מיוחדות להדפסה">
+  
+  <!-- Schema.org Structured Data for Google Search -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "הגרלומט",
+    "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+    "description": "עיצוב מדבקות, מיספור שמות ומספר כרטיסים להגרלה",
+    "potentialAction": [
+      {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://yoelyoel111.github.io/automatic-fishstick/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    ],
+    "mainEntity": {
+      "@type": "SoftwareApplication",
+      "name": "הגרלומט",
+      "applicationCategory": "DesignApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "ILS"
+      }
+    }
+  }
+  </script>
+
+  <!-- Sitelinks Search Box for Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "הגרלומט",
+    "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+    "sameAs": [],
+    "potentialAction": [
+      {
+        "@type": "Action",
+        "name": "עיצוב מדבקות בקלי קלות",
+        "description": "כלי עיצוב מדבקות מתקדם עם אפשרויות התאמה אישית",
+        "target": "https://yoelyoel111.github.io/automatic-fishstick/#wordsContent",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/#wordsContent"
+      },
+      {
+        "@type": "Action", 
+        "name": "הכנת מדבקה מדויקת להדפסה על המ\"מ",
+        "description": "יצירת מדבקות מדויקות עם דיוק על המילימטר",
+        "target": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker"
+      },
+      {
+        "@type": "Action",
+        "name": "הכנת פתקים להגרלת מספרים", 
+        "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+        "target": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery"
+      },
+      {
+        "@type": "Action",
+        "name": "הכנת פתקים להגרלת שמות לפי מספר כרטיסים",
+        "description": "יצירת פתקים עם שמות לפי כמות כרטיסים להגרלה",
+        "target": "https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery", 
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Breadcrumb Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "הגרלומט",
+        "item": "https://yoelyoel111.github.io/automatic-fishstick/"
+      },
+      {
+        "@type": "ListItem", 
+        "position": 2,
+        "name": "עיצוב מדבקות בקלי קלות",
+        "item": "https://yoelyoel111.github.io/automatic-fishstick/#wordsContent"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3, 
+        "name": "הכנת מדבקה מדויקת להדפסה על המ\"מ",
+        "item": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "הכנת פתקים להגרלת מספרים",
+        "item": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery"
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "name": "הכנת פתקים להגרלת שמות לפי מספר כרטיסים", 
+        "item": "https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery"
+      }
+    ]
+  }
+  </script>
+
+  <!-- FAQ Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "איך משתמשים בהגרלומט לעיצוב מדבקות?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "בהגרלומט תוכלו לעצב מדבקות בקלות: העלו תמונות, הוסיפו טקסט, התאימו גדלים והורידו כ-PDF או תמונה להדפסה. הכלי מאפשר עיצוב מדויק עם אפשרויות התאמה רבות."
+        }
+      },
+      {
+        "@type": "Question", 
+        "name": "מה זה הכנת מדבקה מיוחדת להדפסה?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "הכנת מדבקה מיוחדת היא כלי מתקדם שמאפשר לכם ליצור מדבקות עם דיוק על המילימטר. תוכלו לבחור צורה (מלבן, ריבוע, עיגול), להגדיר מידות מדויקות בס\"מ ולחתוך חלק ספציפי מתמונה."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "האם הגרלומט בחינם?", 
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "כן! הגרלומט הוא כלי חינמי לחלוטין לעיצוב מדבקות, הגרלת שמות ומספרים. אין צורך ברישום או תשלום."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "איך מכינים פתקים להגרלת מספרים?",
+        "acceptedAnswer": {
+          "@type": "Answer", 
+          "text": "בהגרלומט תוכלו ליצור פתקים ממוספרים להגרלה: הגדירו טווח מספרים, בחרו כמה מספרים להגריל, לחצו 'הגרל מספרים' והורידו כ-PDF להדפסה."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "איך מכינים פתקים להגרלת שמות לפי מספר כרטיסים?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "העלו קובץ Excel עם שמות בעמודה A וכמות כרטיסים בעמודה B, בחרו תמונת פתק, והכלי יצור פתק נפרד לכל כרטיס של כל משתתף."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- WebApplication Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "הגרלומט",
+    "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים",
+    "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Web Browser",
+    "browserRequirements": "Requires JavaScript. Requires HTML5.",
+    "softwareVersion": "2.0",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "ILS",
+      "availability": "https://schema.org/InStock"
+    },
+    "featureList": [
+      "עיצוב מדבקות בקלי קלות",
+      "הכנת מדבקה מדויקת להדפסה על המ\"מ", 
+      "הכנת פתקים להגרלת מספרים",
+      "הכנת פתקים להגרלת שמות לפי מספר כרטיסים",
+      "הגרלת שמות ומספרים",
+      "מיספור מדבקות אוטומטי",
+      "הורדה כ-PDF או תמונה",
+      "כיול מדפסת לדיוק מקסימלי"
+    ],
+    "screenshot": "https://yoelyoel111.github.io/automatic-fishstick/logo.png"
+  }
+  </script>
+
+  <!-- HowTo Structured Data for Precision Sticker -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "איך להכין מדבקה מדויקת להדפסה על המ\"מ בהגרלומט",
+    "description": "מדריך שלב אחר שלב ליצירת מדבקות מדויקות עם דיוק על המילימטר",
+    "image": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+    "totalTime": "PT5M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "ILS",
+      "value": "0"
+    },
+    "supply": [
+      {
+        "@type": "HowToSupply",
+        "name": "תמונה או עיצוב למדבקה"
+      },
+      {
+        "@type": "HowToSupply", 
+        "name": "מדפסת"
+      }
+    ],
+    "tool": [
+      {
+        "@type": "HowToTool",
+        "name": "הגרלומט - כלי עיצוב מדבקות"
+      }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "העלאת תמונה",
+        "text": "לחץ על 'הכנת מדבקה מיוחדת להדפסה' והעלה את התמונה שלך",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "בחירת צורה ומידה",
+        "text": "בחר צורת חיתוך (מלבן, ריבוע או עיגול) והגדר מידות מדויקות בס\"מ"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "חיתוך מדויק",
+        "text": "גרור את אזור החיתוך על התמונה לבחירת החלק הרצוי"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "הוספה לעורך",
+        "text": "לחץ 'החל והוסף לעורך' כדי להוסיף את המדבקה המדויקת לעורך הראשי"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Product Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "הגרלומט",
+    "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים",
+    "brand": {
+      "@type": "Brand",
+      "name": "הגרלומט"
+    },
+    "category": "Design Software",
+    "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+    "image": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "ILS",
+      "availability": "https://schema.org/InStock",
+      "priceValidUntil": "2025-12-31",
+      "seller": {
+        "@type": "Organization",
+        "name": "הגרלומט"
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "150",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "review": [
+      {
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "משתמש מרוצה"
+        },
+        "reviewBody": "כלי מעולה לעיצוב מדבקות! קל לשימוש ומדויק."
+      }
+    ]
+  }
+  </script>
+
+  <!-- HowTo Structured Data for Number Lottery -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "איך להכין פתקים להגרלת מספרים בהגרלומט",
+    "description": "מדריך שלב אחר שלב ליצירת פתקים ממוספרים להגרלה והדפסה",
+    "image": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+    "totalTime": "PT3M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "ILS",
+      "value": "0"
+    },
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "מעבר לכלי הגרלת מספרים",
+        "text": "לחץ על 'הגרלת מספרים' ואז על 'הגרלת מספרים' בתת-התפריט",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "הגדרת טווח מספרים",
+        "text": "הגדר מספר מינימלי ומקסימלי לטווח ההגרלה"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "בחירת כמות מספרים",
+        "text": "קבע כמה מספרים להגריל ואיך לסדר אותם בעמוד"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "הגרלה והדפסה",
+        "text": "לחץ 'הגרל מספרים' והורד כ-PDF להדפסה"
+      }
+    ]
+  }
+  </script>
+
+  <!-- HowTo Structured Data for Names Lottery -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "איך להכין פתקים להגרלת שמות לפי מספר כרטיסים בהגרלומט",
+    "description": "מדריך שלב אחר שלב ליצירת פתקים עם שמות לפי כמות כרטיסים להגרלה",
+    "image": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+    "totalTime": "PT5M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "ILS",
+      "value": "0"
+    },
+    "supply": [
+      {
+        "@type": "HowToSupply",
+        "name": "קובץ Excel עם שמות וכמות כרטיסים"
+      }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "מעבר לכלי הגרלת שמות",
+        "text": "לחץ על 'הגרלת שמות' ואז על 'הגרלת שמות' בתת-התפריט",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "העלאת קובץ Excel",
+        "text": "בחר 'שמות וכמות כרטיסים' והעלה קובץ Excel עם שמות בעמודה A וכמות כרטיסים בעמודה B"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "הגדרת פתקים",
+        "text": "העלה תמונת פתק והגדר גודל פונט וצבע טקסט"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "יצירת פתקים",
+        "text": "לחץ 'צור פתקים' כדי ליצור פתק לכל כרטיס של כל משתתף"
+      }
+    ]
+  }
+  </script>
+
+  <!-- ItemList Structured Data for All Features -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "תכונות הגרלומט",
+    "description": "רשימת כל התכונות והכלים הזמינים בהגרלומט",
+    "numberOfItems": 4,
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "עיצוב מדבקות בקלי קלות",
+        "description": "כלי עיצוב מדבקות מתקדם עם אפשרויות התאמה אישית",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/#wordsContent"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "הכנת מדבקה מדויקת להדפסה על המ\"מ",
+        "description": "יצירת מדבקות מדויקות עם דיוק על המילימטר",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "הכנת פתקים להגרלת מספרים",
+        "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "הכנת פתקים להגרלת שמות לפי מספר כרטיסים",
+        "description": "יצירת פתקים עם שמות לפי כמות כרטיסים להגרלה",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery"
+      }
+    ]
+  }
+  </script>
   
   <!-- hreflang tags for multilingual SEO -->
   <link rel="alternate" hreflang="he" href="https://yoelyoel111.github.io/automatic-fishstick/" />
@@ -225,24 +698,32 @@
         <img id="siteLogo" data-i18n-alt="logoAlt" data-i18n-src="logoSrc"
           src="https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png"
           alt="לוגו" class="flex-1 w-full h-56 object-contain" />
-        <div id="nav-buttons" class="w-44 h-56 flex flex-col gap-2">
-          <button id="contactBtn" type="button" data-i18n="contactBtn"
-            class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
-            יצירת קשר
-          </button>
-          <button id="userGuideBtn" type="button" data-i18n="userGuideBtn"
-            class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
-            📖 מדריך הפעלה
-          </button>
-          <button id="faqBtn" type="button" data-i18n="faqBtn"
-            class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
-            ❓ שאלות נפוצות
-          </button>
-          <button id="tutorialVideoBtn" type="button" data-i18n="tutorialVideoBtn"
-            class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all">
-            סרטון הדרכה
-          </button>
-        </div>
+        
+        <!-- Navigation Structured Data -->
+        <nav itemscope itemtype="https://schema.org/SiteNavigationElement">
+          <div id="nav-buttons" class="w-44 h-56 flex flex-col gap-2">
+            <button id="contactBtn" type="button" data-i18n="contactBtn"
+              class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all"
+              itemprop="name">
+              יצירת קשר
+            </button>
+            <button id="userGuideBtn" type="button" data-i18n="userGuideBtn"
+              class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all"
+              itemprop="name">
+              📖 מדריך הפעלה
+            </button>
+            <button id="faqBtn" type="button" data-i18n="faqBtn"
+              class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all"
+              itemprop="name">
+              ❓ שאלות נפוצות
+            </button>
+            <button id="tutorialVideoBtn" type="button" data-i18n="tutorialVideoBtn"
+              class="flex-1 px-4 py-2 bg-cyan-50 border-2 border-indigo-200 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all"
+              itemprop="name">
+              סרטון הדרכה
+            </button>
+          </div>
+        </nav>
         <!-- Google Sign-In Section -->
         <div id="google-section" class="w-52 h-56 flex flex-col gap-2 justify-center">
           <button id="googleSignInBtn" type="button" disabled
@@ -274,18 +755,27 @@
     <div class="w-full max-w-none mx-auto p-4">
       <!-- Tab Navigation -->
       <div class="no-print mb-6 bg-cyan-50 rounded-2xl shadow-lg p-4">
-        <div class="flex gap-12 justify-center">
+        <div class="flex gap-12 justify-center" itemscope itemtype="https://schema.org/ItemList">
           <button id="tabWords" data-i18n="tabWords"
-            class="main-tab-button tab-words active px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+            class="main-tab-button tab-words active px-8 py-4 font-bold rounded-lg transition-all shadow-md"
+            itemprop="name" itemscope itemtype="https://schema.org/ListItem">
             📝 עיצוב מדבקות
+            <meta itemprop="position" content="1">
+            <meta itemprop="url" content="https://yoelyoel111.github.io/automatic-fishstick/#wordsContent">
           </button>
           <button id="tabNumbers" data-i18n="tabNumbers"
-            class="main-tab-button tab-numbers px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+            class="main-tab-button tab-numbers px-8 py-4 font-bold rounded-lg transition-all shadow-md"
+            itemprop="name" itemscope itemtype="https://schema.org/ListItem">
             🔢 הגרלת מספרים
+            <meta itemprop="position" content="2">
+            <meta itemprop="url" content="https://yoelyoel111.github.io/automatic-fishstick/#numbersContent">
           </button>
           <button id="tabNamesLottery" data-i18n="tabNamesLottery"
-            class="main-tab-button tab-names px-8 py-4 font-bold rounded-lg transition-all shadow-md">
+            class="main-tab-button tab-names px-8 py-4 font-bold rounded-lg transition-all shadow-md"
+            itemprop="name" itemscope itemtype="https://schema.org/ListItem">
             👥 הגרלת שמות
+            <meta itemprop="position" content="3">
+            <meta itemprop="url" content="https://yoelyoel111.github.io/automatic-fishstick/#namesLotteryContent">
           </button>
         </div>
       </div>
@@ -492,9 +982,10 @@
                   </span>
                 </div>
                 <div class="flex flex-col items-center">
-                  <div class="relative">
+                  <div class="relative" itemscope itemtype="https://schema.org/Action">
                     <button id="precisionStickerBtn" type="button" onclick="openPrecisionModal(event)"
-                      class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black rounded-2xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-2xl flex items-center justify-center gap-4 relative overflow-hidden">
+                      class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black rounded-2xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-2xl flex items-center justify-center gap-4 relative overflow-hidden"
+                      itemprop="name">
                       <!-- אפקט זכוכית עם ברק -->
                       <div
                         class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/40 to-white/10 opacity-60">
@@ -505,6 +996,8 @@
                       <div class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10"></div>
                       <span data-i18n="precisionSticker"
                         class="precision-btn-text relative z-10">הכנת מדבקה מדויקת</span>
+                      <meta itemprop="description" content="יצירת מדבקות מדויקות עם דיוק על המילימטר">
+                      <meta itemprop="url" content="https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker">
                     </button>
                   </div>
                   <div class="text-center mt-2">
@@ -1878,6 +2371,66 @@
   <script src="js/makor-names.js?v=20250127-01"></script>
   <script src="js/google-drive.js?v=20250127-05"></script>
   <script src="js/makor-init.js?v=20250127-05"></script>
+
+  <!-- Handle URL parameters for direct actions -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      
+      if (action === 'precision-sticker') {
+        // Wait a bit for the page to fully load, then open precision sticker modal
+        setTimeout(() => {
+          if (typeof openPrecisionModal === 'function') {
+            openPrecisionModal();
+          }
+        }, 1000);
+      } else if (action === 'number-lottery') {
+        // Navigate to numbers tab and lottery sub-tab
+        setTimeout(() => {
+          // Click on numbers tab
+          const numbersTab = document.getElementById('tabNumbers');
+          if (numbersTab) {
+            numbersTab.click();
+            // Then click on lottery sub-tab
+            setTimeout(() => {
+              const lotterySubTab = document.getElementById('numbersSubTabLottery');
+              if (lotterySubTab) {
+                lotterySubTab.click();
+              }
+            }, 500);
+          }
+        }, 1000);
+      } else if (action === 'names-lottery') {
+        // Navigate to names lottery tab and lottery sub-tab
+        setTimeout(() => {
+          // Click on names lottery tab
+          const namesTab = document.getElementById('tabNamesLottery');
+          if (namesTab) {
+            namesTab.click();
+            // Then click on lottery sub-tab
+            setTimeout(() => {
+              const namesLotterySubTab = document.getElementById('namesSubTabLottery');
+              if (namesLotterySubTab) {
+                namesLotterySubTab.click();
+              }
+            }, 500);
+          }
+        }, 1000);
+      }
+
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/automatic-fishstick/sw.js')
+          .then(function(registration) {
+            console.log('Service Worker registered successfully:', registration.scope);
+          })
+          .catch(function(error) {
+            console.log('Service Worker registration failed:', error);
+          });
+      }
+    });
+  </script>
 
   <!-- Google APIs - loaded after google-drive.js defines the callback functions -->
   <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>

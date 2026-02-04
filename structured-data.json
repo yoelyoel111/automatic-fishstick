@@ -1,0 +1,86 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://yoelyoel111.github.io/automatic-fishstick/#website",
+      "name": "הגרלומט",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+      "description": "עיצוב מדבקות, מיספור שמות ומספר כרטיסים להגרלה",
+      "inLanguage": "he-IL",
+      "potentialAction": [
+        {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://yoelyoel111.github.io/automatic-fishstick/?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      ]
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://yoelyoel111.github.io/automatic-fishstick/#organization",
+      "name": "הגרלומט",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png"
+      },
+      "sameAs": []
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://yoelyoel111.github.io/automatic-fishstick/#webpage",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+      "name": "הגרלומט – עיצוב מדבקות בקלי קלות",
+      "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים",
+      "inLanguage": "he-IL",
+      "isPartOf": {
+        "@id": "https://yoelyoel111.github.io/automatic-fishstick/#website"
+      },
+      "about": {
+        "@id": "https://yoelyoel111.github.io/automatic-fishstick/#organization"
+      },
+      "mainEntity": [
+        {
+          "@type": "Action",
+          "name": "עיצוב מדבקות בקלי קלות",
+          "description": "כלי עיצוב מדבקות מתקדם עם אפשרויות התאמה אישית",
+          "url": "https://yoelyoel111.github.io/automatic-fishstick/#wordsContent"
+        },
+        {
+          "@type": "Action",
+          "name": "הכנת מדבקה מיוחדת להדפסה",
+          "description": "יצירת מדבקות מדויקות עם דיוק על המילימטר",
+          "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker"
+        }
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://yoelyoel111.github.io/automatic-fishstick/#software",
+      "name": "הגרלומט",
+      "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+      "applicationCategory": "DesignApplication",
+      "operatingSystem": "Web Browser",
+      "softwareVersion": "2.0",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "ILS",
+        "availability": "https://schema.org/InStock"
+      },
+      "featureList": [
+        "עיצוב מדבקות בקלי קלות",
+        "הכנת מדבקה מיוחדת להדפסה",
+        "הגרלת שמות ומספרים",
+        "מיספור מדבקות אוטומטי",
+        "הורדה כ-PDF או תמונה",
+        "כיול מדפסת לדיוק מקסימלי"
+      ]
+    }
+  ]
+}

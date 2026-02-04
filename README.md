@@ -1,30 +1,78 @@
-17.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/17.png
-18.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/18.png
-19.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/19.png
-20.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/20.png
-21.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/21.png
-22.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/22.png
-23.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/23.png
-24.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/24.png
-25.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/אלמנטים/25.png
-16.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/16.png
-26.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/26.png
-27.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/27.png
-28.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/28.png
-29.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/29.png
-30.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/30.png
-31.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/31.png
-32.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/32.png
-35.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/35.png
-36.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/36.png
-37.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/37.png
-40.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/מדבקות/40.png
-באגט שניצל.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/באגט שניצל.png
-טלית וכיפה.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/טלית וכיפה.png
-לחמניה ונקניקיה.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/לחמניה ונקניקיה.png
-סמבוסק.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/סמבוסק.png
-פיצה אישית.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/פיצה אישית.png
-פלאפל.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/פלאפל.png
-צולנט.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/צולנט.png
-ציפס.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/ציפס.png
-שבלונה להזנת מספרים.png https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/שבלונה להזנת מספרים.png
+# הגרלומט - עיצוב מדבקות בקלי קלות
+
+כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים.
+
+## תכונות עיקריות
+
+### 🎨 עיצוב מדבקות בקלי קלות
+- העלאת תמונות ועיצובים
+- הוספת טקסט עם פונטים שונים
+- התאמת גדלים וצבעים
+- הורדה כ-PDF או תמונה באיכות גבוהה
+
+### 🎯 הכנת מדבקה מדויקת להדפסה על המ"מ
+- יצירת מדבקות עם דיוק על המילימטר
+- בחירת צורות: מלבן, ריבוע, עיגול
+- חיתוך מדויק של חלקים מתמונות
+- כיול מדפסת לדיוק מקסימלי
+
+### 🎲 הכנת פתקים להגרלת מספרים
+- יצירת פתקים ממוספרים להגרלה והדפסה
+- הגדרת טווח מספרים מותאם אישית
+- בחירת כמות מספרים להגרלה
+- הורדה כ-PDF להדפסה
+
+### 👥 הכנת פתקים להגרלת שמות לפי מספר כרטיסים
+- העלאת קובץ Excel עם שמות וכמות כרטיסים
+- יצירת פתק נפרד לכל כרטיס של כל משתתף
+- התאמת עיצוב הפתקים
+- הגרלה הוגנת לפי מספר כרטיסים
+
+### 🎲 הגרלת שמות ומספרים
+- הגרלת מספרים בטווח מותאם אישית
+- הגרלת שמות מקובץ Excel
+- יצירת פתקים להדפסה
+- מיספור אוטומטי של מדבקות
+
+## קישורים מהירים
+
+- **עיצוב מדבקות**: [https://yoelyoel111.github.io/automatic-fishstick/#wordsContent](https://yoelyoel111.github.io/automatic-fishstick/#wordsContent)
+- **הכנת מדבקה מדויקת על המ"מ**: [https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker](https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker)
+- **הכנת פתקים להגרלת מספרים**: [https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery](https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery)
+- **הכנת פתקים להגרלת שמות לפי מספר כרטיסים**: [https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery](https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery)
+- **מדריך הפעלה**: [user-guide.html](user-guide.html)
+- **שאלות נפוצות**: [faq.html](faq.html)
+
+## טכנולוגיות
+
+- HTML5 + CSS3 + JavaScript
+- Tailwind CSS לעיצוב
+- Canvas API לעיבוד תמונות
+- jsPDF ליצירת קבצי PDF
+- html2canvas לצילום מסך
+
+## SEO ו-Structured Data
+
+האתר כולל structured data מלא עם Schema.org markup:
+- WebSite schema
+- Organization schema
+- WebApplication schema
+- FAQ schema
+- HowTo schema
+- Product schema
+- Breadcrumb schema
+
+## קבצי SEO
+
+- `sitemap.xml` - מפת האתר
+- `robots.txt` - הנחיות לרובוטי חיפוש
+- `manifest.json` - PWA manifest
+- `structured-data.json` - structured data נפרד
+
+## רישיון
+
+פרויקט חינמי ופתוח לשימוש.
+
+## יצירת קשר
+
+לתגובות והצעות: yoelyoel8a@gmail.com

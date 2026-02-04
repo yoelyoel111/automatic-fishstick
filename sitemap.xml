@@ -8,15 +8,79 @@
   <!-- עמוד הבית -->
   <url>
     <loc>https://yoelyoel111.github.io/automatic-fishstick/</loc>
-    <lastmod>2026-02-02</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+
+  <!-- עיצוב מדבקות בקלי קלות -->
+  <url>
+    <loc>https://yoelyoel111.github.io/automatic-fishstick/#wordsContent</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- הכנת מדבקה מדויקת להדפסה על המ"מ -->
+  <url>
+    <loc>https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- הכנת פתקים להגרלת מספרים -->
+  <url>
+    <loc>https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- הכנת פתקים להגרלת שמות לפי מספר כרטיסים -->
+  <url>
+    <loc>https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- מדריך משתמש -->
+  <url>
+    <loc>https://yoelyoel111.github.io/automatic-fishstick/user-guide.html</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- מדריך משתמש באנגלית -->
+  <url>
+    <loc>https://yoelyoel111.github.io/automatic-fishstick/user-guide-en.html</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- שאלות נפוצות -->
+  <url>
+    <loc>https://yoelyoel111.github.io/automatic-fishstick/faq.html</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- שאלות נפוצות באנגלית -->
+  <url>
+    <loc>https://yoelyoel111.github.io/automatic-fishstick/faq-en.html</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
   <!-- תנאי שירות -->
   <url>
     <loc>https://yoelyoel111.github.io/automatic-fishstick/terms-of-service-en.html</loc>
-    <lastmod>2026-02-02</lastmod>
+    <lastmod>2026-02-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

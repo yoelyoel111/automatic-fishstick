@@ -1,0 +1,71 @@
+{
+  "name": "הגרלומט - עיצוב מדבקות בקלי קלות",
+  "short_name": "הגרלומט",
+  "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים",
+  "start_url": "/automatic-fishstick/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "categories": ["design", "productivity", "utilities"],
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "עיצוב מדבקות בקלי קלות",
+      "short_name": "עיצוב מדבקות",
+      "description": "כלי עיצוב מדבקות מתקדם עם אפשרויות התאמה אישית",
+      "url": "/automatic-fishstick/#wordsContent",
+      "icons": [
+        {
+          "src": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "הכנת מדבקה מדויקת להדפסה על המ\"מ",
+      "short_name": "מדבקה מדויקת",
+      "description": "יצירת מדבקות מדויקות עם דיוק על המילימטר",
+      "url": "/automatic-fishstick/?action=precision-sticker",
+      "icons": [
+        {
+          "src": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "הכנת פתקים להגרלת מספרים",
+      "short_name": "הגרלת מספרים",
+      "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+      "url": "/automatic-fishstick/?action=number-lottery",
+      "icons": [
+        {
+          "src": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "הכנת פתקים להגרלת שמות לפי מספר כרטיסים",
+      "short_name": "הגרלת שמות",
+      "description": "יצירת פתקים עם שמות לפי כמות כרטיסים להגרלה",
+      "url": "/automatic-fishstick/?action=names-lottery",
+      "icons": [
+        {
+          "src": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

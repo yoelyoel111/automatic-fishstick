@@ -1,0 +1,81 @@
+{
+  "site_info": {
+    "name": "הגרלומט",
+    "tagline": "עיצוב מדבקות בקלי קלות",
+    "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים",
+    "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+    "version": "2.0",
+    "last_updated": "2026-02-04",
+    "language": "he-IL",
+    "direction": "rtl"
+  },
+  "features": [
+    {
+      "id": "sticker-design",
+      "name": "עיצוב מדבקות בקלי קלות",
+      "description": "כלי עיצוב מדבקות מתקדם עם אפשרויות התאמה אישית",
+      "icon": "📝",
+      "url": "#wordsContent"
+    },
+    {
+      "id": "precision-sticker",
+      "name": "הכנת מדבקה מדויקת להדפסה על המ\"מ",
+      "description": "יצירת מדבקות מדויקות עם דיוק על המילימטר",
+      "icon": "🎯",
+      "url": "?action=precision-sticker"
+    },
+    {
+      "id": "number-lottery",
+      "name": "הכנת פתקים להגרלת מספרים",
+      "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+      "icon": "🎲",
+      "url": "?action=number-lottery"
+    },
+    {
+      "id": "names-lottery",
+      "name": "הכנת פתקים להגרלת שמות לפי מספר כרטיסים",
+      "description": "יצירת פתקים עם שמות לפי כמות כרטיסים להגרלה",
+      "icon": "👥",
+      "url": "?action=names-lottery"
+    },
+    {
+      "id": "number-lottery",
+      "name": "הגרלת מספרים",
+      "description": "הגרלת מספרים בטווח מותאם אישית",
+      "icon": "🔢",
+      "url": "#numbersContent"
+    },
+    {
+      "id": "name-lottery",
+      "name": "הגרלת שמות",
+      "description": "הגרלת שמות מקובץ Excel",
+      "icon": "👥",
+      "url": "#namesLotteryContent"
+    }
+  ],
+  "seo": {
+    "title": "הגרלומט – עיצוב מדבקות, מיספור שמות ומספר כרטיסים להגרלה",
+    "meta_description": "הגרלומט הוא כלי אונליין לעיצוב מדבקות מדויקות להדפסה, מיספור מדבקות והגרלת שמות או מספרים – פשוט, מהיר וחינמי.",
+    "keywords": [
+      "הגרלומט",
+      "עיצוב מדבקות",
+      "הדפסת מדבקות",
+      "הגרלת שמות",
+      "מיספור מדבקות",
+      "כלי עיצוב",
+      "מדבקות מדויקות",
+      "הגרלת מספרים",
+      "כלי הגרלה",
+      "עיצוב גרפי"
+    ],
+    "og_image": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+    "canonical_url": "https://yoelyoel111.github.io/automatic-fishstick/"
+  },
+  "contact": {
+    "email": "yoelyoel8a@gmail.com",
+    "support_url": "#contactModal"
+  },
+  "analytics": {
+    "google_analytics": "G-73WVBRR9X1"
+  }
+}

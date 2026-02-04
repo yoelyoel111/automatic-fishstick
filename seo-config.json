@@ -1,0 +1,61 @@
+{
+  "site": {
+    "name": "הגרלומט",
+    "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+    "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים",
+    "keywords": ["הגרלומט", "עיצוב מדבקות", "הדפסת מדבקות", "הגרלת שמות", "מיספור מדבקות", "כלי עיצוב", "מדבקות מדויקות"],
+    "author": "הגרלומט",
+    "language": "he-IL",
+    "direction": "rtl"
+  },
+  "pages": {
+    "home": {
+      "title": "הגרלומט – עיצוב מדבקות בקלי קלות",
+      "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+      "priority": 1.0
+    },
+    "sticker-design": {
+      "title": "עיצוב מדבקות בקלי קלות - הגרלומט",
+      "description": "כלי עיצוב מדבקות מתקדם עם אפשרויות התאמה אישית",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/#wordsContent",
+      "priority": 0.9
+    },
+    "precision-sticker": {
+      "title": "הכנת מדבקה מדויקת להדפסה על המ\"מ - הגרלומט",
+      "description": "יצירת מדבקות מדויקות עם דיוק על המילימטר",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker",
+      "priority": 0.9
+    },
+    "number-lottery": {
+      "title": "הכנת פתקים להגרלת מספרים - הגרלומט",
+      "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery",
+      "priority": 0.8
+    },
+    "names-lottery": {
+      "title": "הכנת פתקים להגרלת שמות לפי מספר כרטיסים - הגרלומט",
+      "description": "יצירת פתקים עם שמות לפי כמות כרטיסים להגרלה",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery",
+      "priority": 0.8
+    }
+  },
+  "social": {
+    "og_image": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png",
+    "twitter_card": "summary_large_image"
+  },
+  "structured_data": {
+    "organization": {
+      "name": "הגרלומט",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+      "logo": "https://raw.githubusercontent.com/yoelyoel111/automatic-fishstick/main/logo.png"
+    },
+    "software": {
+      "name": "הגרלומט",
+      "category": "DesignApplication",
+      "version": "2.0",
+      "price": "0",
+      "currency": "ILS"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "sitelinks": {
+    "main_site": {
+      "name": "הגרלומט",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/",
+      "description": "כלי מתקדם לעיצוב מדבקות מדויקות, הכנת מדבקות מיוחדות להדפסה והגרלת שמות ומספרים"
+    },
+    "quick_actions": [
+      {
+        "name": "עיצוב מדבקות בקלי קלות",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/#wordsContent",
+        "description": "כלי עיצוב מדבקות מתקדם עם אפשרויות התאמה אישית",
+        "icon": "📝",
+        "priority": "high"
+      },
+      {
+        "name": "הכנת מדבקה מדויקת להדפסה על המ\"מ",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker",
+        "description": "יצירת מדבקות מדויקות עם דיוק על המילימטר",
+        "icon": "🎯",
+        "priority": "high"
+      },
+      {
+        "name": "הכנת פתקים להגרלת מספרים",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery",
+        "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+        "icon": "🎲",
+        "priority": "medium"
+      },
+      {
+        "name": "הכנת פתקים להגרלת שמות לפי מספר כרטיסים",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery",
+        "description": "יצירת פתקים עם שמות לפי כמות כרטיסים להגרלה",
+        "icon": "👥",
+        "priority": "medium"
+      }
+    ],
+    "help_pages": [
+      {
+        "name": "מדריך הפעלה",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/user-guide.html",
+        "description": "מדריך מפורט לשימוש בכלי",
+        "icon": "📖"
+      },
+      {
+        "name": "שאלות נפוצות",
+        "url": "https://yoelyoel111.github.io/automatic-fishstick/faq.html",
+        "description": "תשובות לשאלות נפוצות",
+        "icon": "❓"
+      }
+    ]
+  },
+  "search_suggestions": [
+    "עיצוב מדבקות",
+    "הכנת מדבקה מדויקת",
+    "הגרלת מספרים",
+    "הגרלת שמות",
+    "פתקים להגרלה",
+    "מדבקות להדפסה",
+    "כלי הגרלה",
+    "מיספור מדבקות"
+  ]
+}

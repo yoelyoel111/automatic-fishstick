@@ -1,0 +1,60 @@
+{
+  "quick_links": [
+    {
+      "name": "עיצוב מדבקות בקלי קלות",
+      "description": "כלי עיצוב מדבקות מתקדם עם אפשרויות התאמה אישית",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/#wordsContent",
+      "icon": "📝",
+      "category": "design"
+    },
+    {
+      "name": "הכנת מדבקה מדויקת להדפסה על המ\"מ",
+      "description": "יצירת מדבקות מדויקות עם דיוק על המילימטר",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=precision-sticker",
+      "icon": "🎯",
+      "category": "precision"
+    },
+    {
+      "name": "הכנת פתקים להגרלת מספרים",
+      "description": "יצירת פתקים ממוספרים להגרלה והדפסה",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=number-lottery",
+      "icon": "🎲",
+      "category": "lottery"
+    },
+    {
+      "name": "הכנת פתקים להגרלת שמות לפי מספר כרטיסים",
+      "description": "יצירת פתקים עם שמות לפי כמות כרטיסים להגרלה",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/?action=names-lottery",
+      "icon": "👥",
+      "category": "lottery"
+    },
+    {
+      "name": "הגרלת מספרים",
+      "description": "הגרלת מספרים בטווח מותאם אישית",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/#numbersContent",
+      "icon": "🔢",
+      "category": "lottery"
+    },
+    {
+      "name": "הגרלת שמות",
+      "description": "הגרלת שמות מקובץ Excel",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/#namesLotteryContent",
+      "icon": "👥",
+      "category": "lottery"
+    },
+    {
+      "name": "מדריך הפעלה",
+      "description": "מדריך מפורט לשימוש בכלי",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/user-guide.html",
+      "icon": "📖",
+      "category": "help"
+    },
+    {
+      "name": "שאלות נפוצות",
+      "description": "תשובות לשאלות נפוצות",
+      "url": "https://yoelyoel111.github.io/automatic-fishstick/faq.html",
+      "icon": "❓",
+      "category": "help"
+    }
+  ]
+}
