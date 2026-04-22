@@ -168,6 +168,15 @@
       });
     }
 
+    // Number background padding slider
+    const numberBackgroundPaddingSlider = document.getElementById('numberBackgroundPaddingSlider');
+    const numberBackgroundPaddingValue = document.getElementById('numberBackgroundPaddingValue');
+    if (numberBackgroundPaddingSlider && numberBackgroundPaddingValue) {
+      numberBackgroundPaddingSlider.addEventListener('input', function() {
+        numberBackgroundPaddingValue.textContent = this.value;
+      });
+    }
+
     const uploadLimitInput = document.getElementById('uploadLimitInput');
     if (uploadLimitInput) uploadLimitInput.addEventListener('input', () => {
       getStickerLayoutConfigFromUI();

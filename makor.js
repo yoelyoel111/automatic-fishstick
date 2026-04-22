@@ -4424,6 +4424,14 @@
         numberEl.style.fontFamily = sticker.numberFontFamily;
         numberEl.style.fontWeight = sticker.numberFontWeight;
         numberEl.style.transform = 'translate(-50%, -50%)';
+        
+        // Add background if enabled
+        if (sticker.numberBackgroundEnabled) {
+          const padding = Number.isFinite(sticker.numberBackgroundPadding) ? sticker.numberBackgroundPadding : 6;
+          numberEl.style.backgroundColor = sticker.numberBackgroundColor;
+          numberEl.style.padding = `${padding}px ${padding * 1.5}px`;
+          numberEl.style.borderRadius = '4px';
+        }
 
         numberEl.addEventListener('mousedown', (e) => {
           e.stopPropagation();
@@ -4458,6 +4466,9 @@
       const numberFontFamily = document.getElementById('numberFontFamily').value;
       const numberFontWeight = document.getElementById('numberFontWeight').value;
       const numberFontSize = Math.max(8, Number(document.getElementById('numberFontSize').value) || 32);
+      const numberBackgroundEnabled = document.getElementById('numberBackgroundEnabled')?.checked || false;
+      const numberBackgroundColor = document.getElementById('numberBackgroundColorPicker')?.value || '#FFFFFF';
+      const numberBackgroundPadding = Math.max(0, Number(document.getElementById('numberBackgroundPaddingSlider')?.value) || 6);
 
       const padding = spacing;
       const pageWidth = 210 * 3.7795275591;
@@ -4496,7 +4507,10 @@
           numberColor,
           numberFontFamily,
           numberFontWeight,
-          numberFontSize
+          numberFontSize,
+          numberBackgroundEnabled,
+          numberBackgroundColor,
+          numberBackgroundPadding
         });
       }
 
