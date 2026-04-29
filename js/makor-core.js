@@ -5247,6 +5247,11 @@
           numberEl.style.backgroundColor = sticker.numberBackgroundColor;
           numberEl.style.padding = `${padding}px ${padding * 1.5}px`;
           numberEl.style.borderRadius = '4px';
+          numberEl.style.display = 'inline-block';
+          numberEl.style.whiteSpace = 'nowrap';
+          numberEl.style.lineHeight = '1';
+          numberEl.style.boxSizing = 'border-box';
+          numberEl.style.verticalAlign = 'baseline';
         }
 
         addStartListener(numberEl, (e) => {
