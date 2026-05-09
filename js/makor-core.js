@@ -1645,7 +1645,9 @@
           const currentTop = parseFloat(el.style.top);
           if (!Number.isNaN(currentTop)) {
             const computedTransform = window.getComputedStyle(el).transform;
-            const extraOffset = computedTransform && computedTransform !== 'none' ? 12 : 10;
+            const hasBackground = el.style.backgroundColor && el.style.backgroundColor !== 'transparent' && el.style.backgroundColor !== 'rgba(0, 0, 0, 0)';
+            // If element has background, use smaller offset to account for padding
+            const extraOffset = hasBackground ? 8 : (computedTransform && computedTransform !== 'none' ? 12 : 10);
             el.style.top = `${currentTop - extraOffset}px`;
           }
         });
@@ -5249,9 +5251,8 @@
           numberEl.style.borderRadius = '4px';
           numberEl.style.display = 'inline-block';
           numberEl.style.whiteSpace = 'nowrap';
-          numberEl.style.lineHeight = '1';
+          numberEl.style.lineHeight = '1.2';
           numberEl.style.boxSizing = 'border-box';
-          numberEl.style.verticalAlign = 'baseline';
         }
 
         addStartListener(numberEl, (e) => {
